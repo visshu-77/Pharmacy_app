@@ -5,7 +5,8 @@ export default function HeadingWithButton({
     contentLine,
     firstButton,
     secondButton,
-    thirdButton
+    thirdButton,
+    onThirdButtonClick,
 }) {
     return (
         <div className="flex justify-between mt-5">
@@ -22,7 +23,7 @@ export default function HeadingWithButton({
                     <Upload size={15} />
                     {secondButton}
                 </button>
-                <button className="bg-primary px-6 py-2 rounded-lg text-sm text-white font-semibold border flex items-center gap-2 cursor-pointer">
+                <button onClick={onThirdButtonClick} className="bg-primary px-6 py-2 rounded-lg text-sm text-white font-semibold border flex items-center gap-2 cursor-pointer">
                     <Plus size={15} />
                     {thirdButton}
                 </button>

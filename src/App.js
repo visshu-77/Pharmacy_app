@@ -2,6 +2,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom"
 import logo from './logo.svg';
 import './App.css';
 
+import ProtectedRoute from "./components/ProtectedRoutes.jsx";
+
 import ProfileCard from "./components/ProfileCard.jsx";
 import Layout from "./layout.jsx";
 import Register from "./pages/Register.jsx";
@@ -17,15 +19,27 @@ function App() {
       <Routes>
 
         <Route element={<Layout />}>
-            <Route path='/' element={<Dashboard />} />
-            <Route path='/product' element={<Product />} />
-            <Route path='/category' element={<Category />} />
+          <Route path='/' element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path='/product' element={
+            <ProtectedRoute>
+              <Product />
+            </ProtectedRoute>
+          } />
+          <Route path='/category' element={
+            <ProtectedRoute>
+              <Category />
+            </ProtectedRoute>
+          } />
         </Route>
-        
-        <Route path="/register" element={<Register />}/>
-        <Route path='/login' element={<Login />}/>
+
+        <Route path="/register" element={<Register />} />
+        <Route path='/login' element={<Login />} />
         <Route path='/forgotPassword' element={<ForgotPassword />} />
-        
+
       </Routes>
     </BrowserRouter>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import LastParams from "../components/lastParams";
 
@@ -16,7 +16,12 @@ import SearchIcon from "../components/Icons/SearchIcon";
 import Pagination from "../components/pagination";
 import HeadingWithButton from "../components/Headings";
 
-import { Products } from '../Product/data'
+import { Products } from '../Product/data';
+import { getProducts } from "../services/productService";
+
+import AddProductModal from '../components/modals/AddProductModal';
+
+console.log("get products ", getProducts);
 
 
 const productCategories = [
@@ -84,6 +89,21 @@ const filterOption = [
 
 export default function ProductPage() {
 
+    const [product, setProduct] = useState([]);
+
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                const result = await getProducts();
+                console.log("======> result", result);
+                setProduct(result.products);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchProduct();
+        console.log("=========> fetchProduct", fetchProduct())
+    }, []);
 
     const [searchText, setSearchtext] = useState("");
     const [filters, setFilters] = useState({
@@ -93,16 +113,16 @@ export default function ProductPage() {
         expiry: "",
     });
 
-    console.log("======> search Product",searchText)
+    console.log("======> search Product", searchText);
 
-    const SearchProducts = Products.filter((product) => {
+    const SearchProducts = product.filter((product) => {
         const search = searchText.toLowerCase();
 
-        const matchesSearch = "" || product.name.toLowerCase().includes(search) 
-        || product.Categories.toLowerCase().includes(search) 
-        || product.supplier.toLowerCase().includes(search);
-        const matchesCategory = !filters.category || product.Categories === filters.category;
-        const matchesSuppliers = !filters.suppliers || product.supplier === filters.suppliers;
+        const matchesSearch = "" || product.productName.toLowerCase().includes(search)
+            || product.productCategory.toLowerCase().includes(search)
+            || product.supplierName.toLowerCase().includes(search);
+        const matchesCategory = !filters.category || product.productCategory === filters.category;
+        const matchesSuppliers = !filters.suppliers || product.supplierName === filters.suppliers;
         const matchesStatus = !filters.status || product.status === filters.status;
 
         const expiryDate = new Date(product.expiry);
@@ -137,17 +157,24 @@ export default function ProductPage() {
         indexOfLastProduct
     );
     const totalPages = Math.ceil(SearchProducts.length / productsPerPage);
+
+    const [showModal, setShowModal] = useState(false);
     return (
         <div>
             <LastParams />
 
-            <HeadingWithButton 
-            mainheading="Product Management"
-            contentLine="16 medicines across 9 categories"
-            firstButton="Export"
-            secondButton="Import"
-            thirdButton="Add Product"
+            <HeadingWithButton
+                mainheading="Product Management"
+                contentLine="16 medicines across 9 categories"
+                firstButton="Export"
+                secondButton="Import"
+                thirdButton="Add Product"
+                onThirdButtonClick={()=>setShowModal(true)}
             />
+
+            {showModal && (
+                <AddProductModal onClose={() => setShowModal(false)} />
+            )}
 
             {/* stock divs */}
             <div className="grid grid-cols-4 mt-5 gap-5">
@@ -225,27 +252,43 @@ export default function ProductPage() {
                     <tbody className="w-full table-fixed bg-white">
                         {currentProducts.length > 0 ? (
                             currentProducts.map((product) => (
-                                <tr key={product.id}>
+                                <tr key={product._id}>
                                     <td className="p-4 text-left">
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-semibold">{product.name}</span>
+                                            <span className="text-sm font-semibold">{product.productName}</span>
                                             <span className="text-text font-medium text-xs">ID:{product.id}</span>
                                         </div>
                                     </td>
                                     <td className="p-4 text-left">
-                                        <span className="bg-[#E8ECF1] text-xs p-1 rounded-sm font-semibold text-text">{product.Categories}</span>
+                                        <span className="bg-[#E8ECF1] text-xs p-1 rounded-sm font-semibold text-text">{product.productCategory}</span>
                                     </td>
                                     <td className="p-4 text-left font-semibold">
+
                                         <span className={` ${product.stock === 0 ? "text-red-500" : product.stock < 50 ? "text-orange-500" : "text-black"}`}>{product.stock}</span>
                                     </td>
                                     <td className="p-4 text-left text-text">{product.purchase}</td>
-                                    <td className="p-4 text-left text-secondary font-semibold">{product.selling}</td>
+                                    <td className="p-4 text-left text-secondary font-semibold">{product.sellingPrice}</td>
                                     <td className="p-4 text-left">
-                                        <span className="text-sm text-text">{product.expiry}</span>
+                                        <span className="text-sm text-text">{product.ExpiryDate}</span>
                                     </td>
-                                    <td className="p-4 text-left text-text text-sm">{product.supplier}</td>
+                                    <td className="p-4 text-left text-text text-sm">{product.supplierName}</td>
                                     <td className="p-4 text-left">
-                                        <span className={` border rounded-full p-2 text-xs font-semibold ${product.status === 'In Stock' ? "text-secondary bg-green-100" : product.status === 'Out Of Stock' ? "text-red-500 bg-red-100" : "text-orange-500 bg-orange-100"} `}>• {product.status}</span>
+                                        {/* <span className={` border rounded-full p-2 text-xs font-semibold ${product.status === 'In Stock' ? "text-secondary bg-green-100" : product.status === 'Out Of Stock' ? "text-red-500 bg-red-100" : "text-orange-500 bg-orange-100"} `}>• {product.status}</span> */}
+                                        <span
+                                            className={`border rounded-full p-2 text-xs font-semibold ${product.stock === 0
+                                                    ? "text-red-500 bg-red-100"
+                                                    : product.stock < 50
+                                                        ? "text-orange-500 bg-orange-100"
+                                                        : "text-secondary bg-green-100"
+                                                }`}
+                                        >
+                                            •{" "}
+                                            {product.stock === 0
+                                                ? "Out of Stock"
+                                                : product.stock < 50
+                                                    ? "Low Stock"
+                                                    : "In Stock"}
+                                        </span>
                                     </td>
                                     <td className="p-4 text-left"></td>
                                 </tr>
