@@ -1,89 +1,42 @@
 import { X } from "lucide-react";
 import { useState, useEffect } from "react";
 
-import { addProduct } from "../../services/productService";
+import { addCategory } from "../../services/categoryService";
 
     const inputData = [
         {
             id: 1,
-            name: "productName",
+            name: "categoryName",
             type: "text",
-            label: "Product Name",
-            placeholder: "eg. Iphone 17 Pro Max",
-            width:"w-[49%]",
+            label: "Category Name",
+            placeholder: "eg., Mobile, Furniture",
+            width:"w-[100%]",
             required:true,
         },
         {
             id: 2,
-            name: "productCategory",
+            name: "description",
             type: "text",
             label: "Product Category",
             placeholder: "",
-            width:"w-[49%]",
+            width:"w-[100%]",
             required:true,
-        },
-        {
-            id: 3,
-            name: "stock",
-            type: "number",
-            label: "Stock",
-            placeholder: "0-100000",
-            width:"w-[49%]",
-            required:true,
-        },
-        {
-            id: 4,
-            name: "purchase",
-            type: "number",
-            label: "Purchase Price",
-            placeholder: "150.00",
-            width:"w-[49%]",
-        },
-        {
-            id: 5,
-            name: "sellingPrice",
-            type: "number",
-            label: "Selling Price",
-            placeholder: "299.00",
-            width:"w-[49%]"
-        },
-        {
-            id: 6,
-            name: "ExpiryDate",
-            type: "date",
-            label: "Expiry Date",
-            placeholder: "",
-            width:"w-[49%]",
-            required:true,
-        },
-        {
-            id: 6,
-            name: "supplierName",
-            type: "text",
-            label: "Supplier Name",
-            placeholder: "eg. TATA",
-            width:"w-[98.5%]"
-        },
+        }
     ]
 
 
 
 export default function AddProductModal({ onClose }) {
-    const [productData, setProductData] =useState({
-        productName:"",
-        productCategory:"",
-        stock:"",
-        purchase:"",
-        sellingPrice:"",
-        ExpiryDate:"",
-        supplierName:"",
+    const [categoryData, setCategoryData] = useState({
+        categoryName:"",
+        description:"",
     })
 
     const [error, setError] = useState("");
 
     const handleChange = (e) => {
-        setProductData({
-            ...productData,
+        setCategoryData({
+            ...categoryData,
             [e.target.name]: e.target.value
         })
     }
@@ -91,8 +44,8 @@ export default function AddProductModal({ onClose }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try{
-           const result = await addProduct(productData);
-           alert('product added successfully');
+           const result = await addCategory(categoryData);
+           alert('category Added successfully');
         }catch(err){
             setError(
                 err.response?.data?.message || 'something went wrong'
@@ -126,7 +79,7 @@ export default function AddProductModal({ onClose }) {
                                             type={data.type}
                                             placeholder={data.placeholder}
                                             required={data.required}
-                                            value={productData[data.name]}
+                                            value={categoryData[data.name]}
                                             onChange={handleChange}
                                             className="focus:outline-none focus:ring-0 border rounded p-2 text-sm"
                                         />
@@ -139,7 +92,7 @@ export default function AddProductModal({ onClose }) {
                             type="submit"
                             className="text-sm w-full p-3 bg-primary text-white font-semibold rounded"
                             >
-                                Add Product
+                                Add Category
                             </button>
                         </div>
                         <div>

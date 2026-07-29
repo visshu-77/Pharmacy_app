@@ -16,75 +16,72 @@ import SearchIcon from "../components/Icons/SearchIcon";
 import Pagination from "../components/pagination";
 import HeadingWithButton from "../components/Headings";
 
-import { Products } from '../Product/data';
+import { Products } from "../Product/data.js";
 import { getProducts } from "../services/productService";
 
 import AddProductModal from '../components/modals/AddProductModal';
 
-console.log("get products ", getProducts);
+// const productCategories = [
+//     ...new Set(Products.map((product) => product.productCategory))
+// ];
+
+// const productSuppliers = [
+//     ...new Set(Products.map((product) => product.supplier))
+// ];
+
+// const productStatus = [
+//     ...new Set(Products.map((product) => product.status))
+// ];
 
 
-const productCategories = [
-    ...new Set(Products.map((product) => product.Categories))
-];
+// const today = new Date();
+// today.setHours(0, 0, 0, 0);
 
-const productSuppliers = [
-    ...new Set(Products.map((product) => product.supplier))
-];
+// const fiveDaysLater = new Date(today);
+// fiveDaysLater.setDate(today.getDate() + 10);
 
-const productStatus = [
-    ...new Set(Products.map((product) => product.status))
-];
+// const expiringSoonCount = Products.filter((product) => {
+//     const expiryDate = new Date(product.expiry);
+//     expiryDate.setHours(0, 0, 0, 0);
 
+//     return expiryDate >= today && expiryDate <= fiveDaysLater;
+// }).length;
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
+// const outOfStockCount = Products.filter(
+//     (product) => product.status === "Out Of Stock"
+// ).length;
 
-const fiveDaysLater = new Date(today);
-fiveDaysLater.setDate(today.getDate() + 10);
+// const lowStockCount = Products.filter(
+//     (product) => product.status === "Low Stock"
+// ).length;
 
-const expiringSoonCount = Products.filter((product) => {
-    const expiryDate = new Date(product.expiry);
-    expiryDate.setHours(0, 0, 0, 0);
+// const totalProductCount = Products.length;
 
-    return expiryDate >= today && expiryDate <= fiveDaysLater;
-}).length;
+// const AnalyticsData = [
+//     { id: 1, icon: TotalProductIcon, number: totalProductCount, content: "Total Product", color: "text-secondary", bg: "bg-[#F0FDFA]" },
+//     { id: 2, icon: LowStockIcon, number: lowStockCount, content: "Low Stock", color: "text-red-500", bg: "bg-[#FFFBEB]" },
+//     { id: 3, icon: ExpiringSoonIcon, number: expiringSoonCount, content: "Expiring Soon", color: "text-orange-500", bg: "bg-[#FFF7ED]" },
+//     { id: 4, icon: OutofStockIcon, number: outOfStockCount, content: "Out Of Stock", color: "text-red-500", bg: "bg-[#FEF3F2]" }
+// ]
 
-const outOfStockCount = Products.filter(
-    (product) => product.status === "Out Of Stock"
-).length;
-
-const lowStockCount = Products.filter(
-    (product) => product.status === "Low Stock"
-).length;
-
-const totalProductCount = Products.length;
-
-const AnalyticsData = [
-    { id: 1, icon: TotalProductIcon, number: totalProductCount, content: "Total Product", color: "text-secondary", bg: "bg-[#F0FDFA]" },
-    { id: 2, icon: LowStockIcon, number: lowStockCount, content: "Low Stock", color: "text-red-500", bg: "bg-[#FFFBEB]" },
-    { id: 3, icon: ExpiringSoonIcon, number: expiringSoonCount, content: "Expiring Soon", color: "text-orange-500", bg: "bg-[#FFF7ED]" },
-    { id: 4, icon: OutofStockIcon, number: outOfStockCount, content: "Out Of Stock", color: "text-red-500", bg: "bg-[#FEF3F2]" }
-]
-
-const filterOption = [
-    {
-        placeholder: "All Categories",
-        options: productCategories
-    },
-    {
-        placeholder: "All Suppliers",
-        options: productSuppliers
-    },
-    {
-        placeholder: "All Status",
-        options: productStatus
-    },
-    {
-        placeholder: "All Expiry",
-        options: ["Valid", "Expiring Soon", "Expired"]
-    },
-]
+// const filterOption = [
+//     {
+//         placeholder: "All Categories",
+//         options: productCategories
+//     },
+//     {
+//         placeholder: "All Suppliers",
+//         options: productSuppliers
+//     },
+//     {
+//         placeholder: "All Status",
+//         options: productStatus
+//     },
+//     {
+//         placeholder: "All Expiry",
+//         options: ["Valid", "Expiring Soon", "Expired"]
+//     },
+// ]
 
 
 export default function ProductPage() {
@@ -110,17 +107,14 @@ export default function ProductPage() {
         category: "",
         suppliers: "",
         status: "",
-        expiry: "",
     });
-
-    console.log("======> search Product", searchText);
 
     const SearchProducts = product.filter((product) => {
         const search = searchText.toLowerCase();
 
-        const matchesSearch = "" || product.productName.toLowerCase().includes(search)
-            || product.productCategory.toLowerCase().includes(search)
-            || product.supplierName.toLowerCase().includes(search);
+        const matchesSearch = (product.productName || "").toLowerCase().includes(search)
+            || (product.productCategory || "").toLowerCase().includes(search)
+            || (product.supplierName || "").toLowerCase().includes(search);
         const matchesCategory = !filters.category || product.productCategory === filters.category;
         const matchesSuppliers = !filters.suppliers || product.supplierName === filters.suppliers;
         const matchesStatus = !filters.status || product.status === filters.status;
@@ -159,6 +153,72 @@ export default function ProductPage() {
     const totalPages = Math.ceil(SearchProducts.length / productsPerPage);
 
     const [showModal, setShowModal] = useState(false);
+
+
+
+    const productCategories = [
+        ...new Set(product.map((product) => product.productCategory))
+    ];
+
+    const productSuppliers = [
+        ...new Set(product.map((product) => product.supplierName))
+    ];
+
+    const productStatus = [
+        ...new Set(product.map((product) => product.status))
+    ];
+
+
+    const filterOption = [
+        {
+            placeholder: "All Categories",
+            options: productCategories
+        },
+        {
+            placeholder: "All Suppliers",
+            options: productSuppliers
+        },
+        {
+            placeholder: "All Status",
+            options: productStatus
+        },
+        {
+            placeholder: "All Expiry",
+            options: ["Valid", "Expiring Soon", "Expired"]
+        },
+    ]
+
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const fiveDaysLater = new Date(today);
+    fiveDaysLater.setDate(today.getDate() + 10);
+
+    const expiringSoonCount = product.filter((product) => {
+        const expiryDate = new Date(product.ExpiryDate);
+        expiryDate.setHours(0, 0, 0, 0);
+
+        return expiryDate >= today && expiryDate <= fiveDaysLater;
+    }).length;
+
+    const outOfStockCount = product.filter(
+        (product) => product.status === "Out Of Stock"
+    ).length;
+
+    const lowStockCount = product.filter(
+        (product) => product.status === "Low Stock"
+    ).length;
+
+    const totalProductCount = product.length;
+
+    const AnalyticsData = [
+        { id: 1, icon: TotalProductIcon, number: totalProductCount, content: "Total Product", color: "text-secondary", bg: "bg-[#F0FDFA]" },
+        { id: 2, icon: LowStockIcon, number: lowStockCount, content: "Low Stock", color: "text-red-500", bg: "bg-[#FFFBEB]" },
+        { id: 3, icon: ExpiringSoonIcon, number: expiringSoonCount, content: "Expiring Soon", color: "text-orange-500", bg: "bg-[#FFF7ED]" },
+        { id: 4, icon: OutofStockIcon, number: outOfStockCount, content: "Out Of Stock", color: "text-red-500", bg: "bg-[#FEF3F2]" }
+    ]
+
     return (
         <div>
             <LastParams />
@@ -169,7 +229,7 @@ export default function ProductPage() {
                 firstButton="Export"
                 secondButton="Import"
                 thirdButton="Add Product"
-                onThirdButtonClick={()=>setShowModal(true)}
+                onThirdButtonClick={() => setShowModal(true)}
             />
 
             {showModal && (
@@ -276,10 +336,10 @@ export default function ProductPage() {
                                         {/* <span className={` border rounded-full p-2 text-xs font-semibold ${product.status === 'In Stock' ? "text-secondary bg-green-100" : product.status === 'Out Of Stock' ? "text-red-500 bg-red-100" : "text-orange-500 bg-orange-100"} `}>• {product.status}</span> */}
                                         <span
                                             className={`border rounded-full p-2 text-xs font-semibold ${product.stock === 0
-                                                    ? "text-red-500 bg-red-100"
-                                                    : product.stock < 50
-                                                        ? "text-orange-500 bg-orange-100"
-                                                        : "text-secondary bg-green-100"
+                                                ? "text-red-500 bg-red-100"
+                                                : product.stock < 50
+                                                    ? "text-orange-500 bg-orange-100"
+                                                    : "text-secondary bg-green-100"
                                                 }`}
                                         >
                                             •{" "}

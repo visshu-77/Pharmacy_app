@@ -62,7 +62,7 @@ export default function Login() {
         }
     }
 
-    return (
+return (
         <div>
             <div className="flex">
                 <div className="w-[20%]">
