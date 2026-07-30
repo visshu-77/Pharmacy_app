@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import LastParams from "../components/lastParams";
 
@@ -17,74 +17,16 @@ import Pagination from "../components/pagination";
 import HeadingWithButton from "../components/Headings";
 
 import { Products } from "../Product/data.js";
-import { getProducts } from "../services/productService";
+import { getProducts, deleteProduct, updateProduct, exportProducts, importProducts } from "../services/productService";
 
 import AddProductModal from '../components/modals/AddProductModal';
 
-// const productCategories = [
-//     ...new Set(Products.map((product) => product.productCategory))
-// ];
-
-// const productSuppliers = [
-//     ...new Set(Products.map((product) => product.supplier))
-// ];
-
-// const productStatus = [
-//     ...new Set(Products.map((product) => product.status))
-// ];
-
-
-// const today = new Date();
-// today.setHours(0, 0, 0, 0);
-
-// const fiveDaysLater = new Date(today);
-// fiveDaysLater.setDate(today.getDate() + 10);
-
-// const expiringSoonCount = Products.filter((product) => {
-//     const expiryDate = new Date(product.expiry);
-//     expiryDate.setHours(0, 0, 0, 0);
-
-//     return expiryDate >= today && expiryDate <= fiveDaysLater;
-// }).length;
-
-// const outOfStockCount = Products.filter(
-//     (product) => product.status === "Out Of Stock"
-// ).length;
-
-// const lowStockCount = Products.filter(
-//     (product) => product.status === "Low Stock"
-// ).length;
-
-// const totalProductCount = Products.length;
-
-// const AnalyticsData = [
-//     { id: 1, icon: TotalProductIcon, number: totalProductCount, content: "Total Product", color: "text-secondary", bg: "bg-[#F0FDFA]" },
-//     { id: 2, icon: LowStockIcon, number: lowStockCount, content: "Low Stock", color: "text-red-500", bg: "bg-[#FFFBEB]" },
-//     { id: 3, icon: ExpiringSoonIcon, number: expiringSoonCount, content: "Expiring Soon", color: "text-orange-500", bg: "bg-[#FFF7ED]" },
-//     { id: 4, icon: OutofStockIcon, number: outOfStockCount, content: "Out Of Stock", color: "text-red-500", bg: "bg-[#FEF3F2]" }
-// ]
-
-// const filterOption = [
-//     {
-//         placeholder: "All Categories",
-//         options: productCategories
-//     },
-//     {
-//         placeholder: "All Suppliers",
-//         options: productSuppliers
-//     },
-//     {
-//         placeholder: "All Status",
-//         options: productStatus
-//     },
-//     {
-//         placeholder: "All Expiry",
-//         options: ["Valid", "Expiring Soon", "Expired"]
-//     },
-// ]
-
+import EditProductModal from "../components/modals/EditProductModal";
 
 export default function ProductPage() {
+
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState(null);
 
     const [product, setProduct] = useState([]);
 
@@ -113,9 +55,9 @@ export default function ProductPage() {
         const search = searchText.toLowerCase();
 
         const matchesSearch = (product.productName || "").toLowerCase().includes(search)
-            || (product.productCategory || "").toLowerCase().includes(search)
+            || (product.productCategory?.categoryName || "").toLowerCase().includes(search)
             || (product.supplierName || "").toLowerCase().includes(search);
-        const matchesCategory = !filters.category || product.productCategory === filters.category;
+        const matchesCategory = !filters.category || product.productCategory?.categoryName === filters.category;
         const matchesSuppliers = !filters.suppliers || product.supplierName === filters.suppliers;
         const matchesStatus = !filters.status || product.status === filters.status;
 
@@ -157,7 +99,7 @@ export default function ProductPage() {
 
 
     const productCategories = [
-        ...new Set(product.map((product) => product.productCategory))
+        ...new Set(product.map((product) => product.productCategory?.categoryName))
     ];
 
     const productSuppliers = [
@@ -219,6 +161,69 @@ export default function ProductPage() {
         { id: 4, icon: OutofStockIcon, number: outOfStockCount, content: "Out Of Stock", color: "text-red-500", bg: "bg-[#FEF3F2]" }
     ]
 
+    const handleDeleteproduct = async (id) => {
+        try {
+            await deleteProduct(id);
+
+            setProduct((prev) =>
+                prev.filter((product) => product._id != id)
+            )
+
+            alert("Product delete successfully")
+        } catch (err) {
+            console.log(err);
+            alert("Something Went Wrong")
+        }
+    }
+
+    const handleExports = async () => {
+        try {
+            const data = await exportProducts();
+
+            const url = window.URL.createObjectURL(new Blob([data]));
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", "products.csv");
+
+            document.body.appendChild(link);
+
+            link.click();
+            link.remove();
+
+        } catch (err) {
+            console.log(err);
+            alert("export failed");
+        }
+    }
+
+    const fileInputRef = useRef(null);
+
+    const handleImportClick = () => {
+        fileInputRef.current.click();
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        try {
+            await importProducts(file);
+
+            alert("Products imported successfully!");
+
+            // Fetch updated products
+            const result = await getProducts();
+            setProduct(result.products);
+
+        } catch (err) {
+            console.log(err);
+            alert("Import failed");
+        }
+    };
+
+
     return (
         <div>
             <LastParams />
@@ -227,7 +232,9 @@ export default function ProductPage() {
                 mainheading="Product Management"
                 contentLine="16 medicines across 9 categories"
                 firstButton="Export"
+                onFirstButtonClick={handleExports}
                 secondButton="Import"
+                onSecondButtonClick={handleImportClick}
                 thirdButton="Add Product"
                 onThirdButtonClick={() => setShowModal(true)}
             />
@@ -235,6 +242,32 @@ export default function ProductPage() {
             {showModal && (
                 <AddProductModal onClose={() => setShowModal(false)} />
             )}
+
+            {showEditModal && (
+                <EditProductModal
+                    product={selectedProduct}
+                    onClose={() => setShowEditModal(false)}
+                    onUpdate={(updateProduct) => {
+                        setProduct(prev =>
+                            prev.map(item =>
+                                item._id === updateProduct._id
+                                    ? updateProduct
+                                    : item
+                            )
+                        );
+                    }}
+                />
+            )
+            }
+
+            <input
+                type="file"
+                accept=".csv"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                onChange={handleFileChange}
+            />
+
 
             {/* stock divs */}
             <div className="grid grid-cols-4 mt-5 gap-5">
@@ -320,7 +353,7 @@ export default function ProductPage() {
                                         </div>
                                     </td>
                                     <td className="p-4 text-left">
-                                        <span className="bg-[#E8ECF1] text-xs p-1 rounded-sm font-semibold text-text">{product.productCategory}</span>
+                                        <span className="bg-[#E8ECF1] text-xs p-1 rounded-sm font-semibold text-text">{product.productCategory?.categoryName}</span>
                                     </td>
                                     <td className="p-4 text-left font-semibold">
 
@@ -350,7 +383,30 @@ export default function ProductPage() {
                                                     : "In Stock"}
                                         </span>
                                     </td>
-                                    <td className="p-4 text-left"></td>
+                                    <td className="p-4 text-left">
+                                        <div className="flex gap-3">
+                                            <button
+                                                className="text-blue-500 text-sm"
+                                            >
+                                                view
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedProduct(product);
+                                                    setShowEditModal(true);
+                                                }}
+                                                className="text-green-500 text-sm"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                className="text-red-500 text-sm"
+                                                onClick={() => handleDeleteproduct(product._id)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))
                         ) : (

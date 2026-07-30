@@ -28,3 +28,62 @@ export const addProduct = async (productData) => {
     });
     return response.data;
 }
+
+export const deleteProduct = async(id) => {
+    const token = localStorage.getItem("token");
+    
+    const response = await axios.delete(
+        `${API}/delete/${id}`,
+        {
+            headers:{
+                Authorization: `Bearer ${token}`
+            }
+        }
+    )
+}
+
+export const updateProduct = async(id, productData) => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.put(
+        `${API}/update/${id}`,
+        productData,
+        {
+            headers:{
+                Authorization: `Bearer ${token}`
+            }
+        }
+    )
+}
+
+export const exportProducts = async () => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.get(
+        `${API}/exports`,
+        {
+            headers:{
+                Authorization: `Bearer ${token}`
+            },
+            responseType: "blob"
+        }
+    );
+    return response.data;
+}
+
+export const importProducts = async (file) => {
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("file",file);
+    const response = await axios.post(
+        `${API}/imports`,
+        formData,
+        {
+            headers:{
+                Authorization:`Bearer ${token}`
+            },
+        }
+    );
+    return response.data;
+
+}

@@ -14,7 +14,8 @@ import OutofStockIcon from "../components/Icons/product page icons/outOfStockIco
 
 import AddcategoryModal from "../components/modals/AddcategoryModal";
 
-import { getCategory } from "../services/categoryService";
+import { getCategory, deleteCategory } from "../services/categoryService";
+import EditCategoryModal from "../components/modals/EditcategoryModal";
 
 const AnalyticsData = [
     { id: 1, icon: TotalProductIcon, number: 16, content: "Total Product", color: "text-secondary", bg: "bg-[#F0FDFA]" },
@@ -33,6 +34,9 @@ const filterOption = [
 
 export default function CategoryPage() {
 
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+
     const [showModal, setShowModal] = useState(false);
 
     const [category, setCategory] = useState([]);
@@ -41,7 +45,7 @@ export default function CategoryPage() {
         const fetchCategory = async () => {
             try {
                 const result = await getCategory();
-                setCategory(result.data.category);
+                setCategory(result.result);
             } catch (err) {
                 console.log(err);
             }
@@ -57,7 +61,7 @@ export default function CategoryPage() {
 
     const searchCategory = category.filter((item) => {
         const search = searchText.toLowerCase();
-        const matchSearch = (item.categoryName || "").toLowerCase.includes(search);
+        const matchSearch = (item.categoryName || "").toLowerCase().includes(search);
         const matchCategory = !filters.category || item.categoryName === filters.category;
 
         return (
@@ -78,6 +82,23 @@ export default function CategoryPage() {
     );
     const totalPages = Math.ceil(searchCategory.length / productsPerPage);
 
+
+    // delete handler
+    const handleDeleteCategory = async (id) => {
+        try {
+            await deleteCategory(id);
+
+            setCategory((prev) =>
+                prev.filter((item) => item._id !== id)
+            )
+
+            alert("category delete successfully")
+        } catch (err) {
+            console.log(err);
+            alert("something went wrong");
+        }
+    }
+
     return (
         <div>
             <LastParams />
@@ -92,6 +113,25 @@ export default function CategoryPage() {
 
             {showModal && (
                 <AddcategoryModal onClose={() => setShowModal(false)} />
+            )}
+
+            {showEditModal && (
+                <EditCategoryModal
+                    category={selectedCategory}
+                    onClose={() => setShowEditModal(false)}
+
+                    onUpdate={(updatedCategory) => {
+
+                        setCategory(prev =>
+                            prev.map(item =>
+                                item._id === updatedCategory._id
+                                    ? updatedCategory
+                                    : item
+                            )
+                        );
+
+                    }}
+                />
             )}
 
             {/* stock div */}
@@ -167,6 +207,39 @@ export default function CategoryPage() {
                                     <td className="p-4 text-left">
                                         <span className="bg-[#E8ECF1] text-xs p-1 rounded-sm font-semibold text-text">{data.description}</span>
                                     </td>
+                                    <td className="p-4 text-left">
+                                        <span>0</span>
+                                    </td>
+
+                                    <td className="p-4 text-left">
+                                        <div className="flex gap-3">
+
+                                            <button
+                                                className="text-blue-500 text-sm"
+                                                onClick={() => console.log("view", data._id)}
+                                            >
+                                                View
+                                            </button>
+
+                                            <button
+                                            className="text-green-500 text-sm"
+                                                onClick={() => {
+                                                    setSelectedCategory(data);
+                                                    setShowEditModal(true);
+                                                }}
+                                            >
+                                                Edit
+                                            </button>
+
+                                            <button
+                                                className="text-red-500 text-sm"
+                                                onClick={() => handleDeleteCategory(data._id)}
+                                            >
+                                                Delete
+                                            </button>
+
+                                        </div>
+                                    </td>
                                 </tr>
                             ))
                         ) : (
@@ -176,25 +249,6 @@ export default function CategoryPage() {
                                 </td>
                             </tr>
                         )}
-                        <tr>
-                            <td className="p-4 text-left">
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-semibold">Category Name</span>
-                                    <span className="text-text font-medium text-xs">ID</span>
-                                </div>
-                            </td>
-                            <td className="p-4 text-left">
-                                <span className="bg-[#E8ECF1] text-xs p-1 rounded-sm font-semibold text-text"></span>
-                            </td>
-                            <td className="p-4 text-left font-semibold">
-
-                                {/* <span className={` ${product.stock === 0 ? "text-red-500" : product.stock < 50 ? "text-orange-500" : "text-black"}`}>{product.stock}</span> */}
-                            </td>
-                            <td className="p-4 text-left text-text"></td>
-                        </tr>
-                        <tr>
-                            <td colSpan="9" className="text-center py-9 text-text">No Product Found</td>
-                        </tr>
                     </tbody>
                 </table>
                 <div className="flex items-center justify-between p-4 border-t">

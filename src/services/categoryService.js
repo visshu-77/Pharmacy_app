@@ -9,10 +9,10 @@ export const addCategory = async (productData) => {
         `${API}/add`,
         productData,
         {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    });
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
     return response.data;
 }
 
@@ -21,13 +21,38 @@ export const getCategory = async (productData) => {
 
     const response = await axios.get(
         `${API}/get`,
-        productData,
         {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    });
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
     return response.data;
 }
 
+export const deleteCategory = async (id) => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.delete(
+        `${API}/delete/${id}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+    return response.data;
+}
+
+export const updateCategory = async (id, categoryData) => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.put(
+        `${API}/update/${id}`,
+        categoryData,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+    return response.data;
+}
 

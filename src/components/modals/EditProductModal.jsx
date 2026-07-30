@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { useState, useEffect } from "react";
 
-import { addProduct } from "../../services/productService";
+import { updateProduct } from "../../services/productService";
 import { getCategory } from "../../services/categoryService";
 
 const inputData = [
@@ -69,8 +69,9 @@ const inputData = [
 
 
 
-export default function AddProductModal({ onClose }) {
-    const [productData, setProductData] = useState({
+export default function AddProductModal({ product, onClose, onUpdate }) {
+
+    const [editProductData, setEditProductData] = useState({
         productName: "",
         productCategory: "",
         stock: "",
@@ -80,11 +81,27 @@ export default function AddProductModal({ onClose }) {
         supplierName: "",
     })
 
+    useEffect(() => {
+        if (product) {
+            setEditProductData({
+                productName: product.productName,
+                productCategory: product.productCategory?._id || "",
+                stock: product.stock,
+                purchase: product.purchase,
+                sellingPrice: product.sellingPrice,
+                ExpiryDate: product.ExpiryDate
+                    ? product.ExpiryDate.slice(0, 10)
+                    : "",
+                supplierName: product.supplierName
+            })
+        }
+    }, [product])
+
     const [error, setError] = useState("");
 
     const handleChange = (e) => {
-        setProductData({
-            ...productData,
+        setEditProductData({
+            ...editProductData,
             [e.target.name]: e.target.value
         })
     }
@@ -92,8 +109,11 @@ export default function AddProductModal({ onClose }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const result = await addProduct(productData);
-            alert('product added successfully');
+            const result = await updateProduct(
+                product._id,
+                editProductData
+            );
+            alert('product edit successfully');
         } catch (err) {
             setError(
                 err.response?.data?.message || 'something went wrong'
@@ -140,7 +160,7 @@ export default function AddProductModal({ onClose }) {
                                         {data.type === "select" ? (
                                             <select
                                                 name={data.name}
-                                                value={productData[data.name]}
+                                                value={editProductData[data.name]}
                                                 onChange={handleChange}
                                                 required={data.required}
                                                 className="focus:outline-none focus:ring-0 rounded border p-2 text-sm"
@@ -161,10 +181,10 @@ export default function AddProductModal({ onClose }) {
                                                 type={data.type}
                                                 placeholder={data.placeholder}
                                                 required={data.required}
-                                                value={productData[data.name]}
+                                                value={editProductData[data.name]}
                                                 onChange={handleChange}
                                                 className="focus:outline-none border rounded p-2 text-sm"
-                                            /> 
+                                            />
                                         )}
 
                                     </div>
