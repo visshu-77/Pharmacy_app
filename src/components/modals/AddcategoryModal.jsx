@@ -20,7 +20,7 @@ import { addCategory } from "../../services/categoryService";
             label: "Product Category",
             placeholder: "",
             width:"w-[100%]",
-            required:true,
+            required:false,
         }
     ]
 

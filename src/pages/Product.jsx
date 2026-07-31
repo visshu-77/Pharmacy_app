@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import LastParams from "../components/lastParams";
+import { Trash2, Eye, Pencil, ShoppingCart } from "lucide-react";
 
 import TransparentButton from "../components/transparentButton";
 import FilledButton from "../components/filledButton";
@@ -17,17 +18,17 @@ import Pagination from "../components/pagination";
 import HeadingWithButton from "../components/Headings";
 
 import { Products } from "../Product/data.js";
-import { getProducts, deleteProduct, updateProduct, exportProducts, importProducts } from "../services/productService";
+import { getProducts, deleteProduct, updateProduct, exportProducts, importProducts, singleProduct } from "../services/productService";
 
 import AddProductModal from '../components/modals/AddProductModal';
 
 import EditProductModal from "../components/modals/EditProductModal";
+import ViewProductModal from "../components/modals/ViewProductModal";
 
 export default function ProductPage() {
 
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
-
     const [product, setProduct] = useState([]);
 
     useEffect(() => {
@@ -223,6 +224,13 @@ export default function ProductPage() {
         }
     };
 
+    const [viewProduct, setViewProduct]  = useState(null);
+    const [viewModal, setViewModal] = useState(false);
+
+    const handleView = async(id) => {
+        setViewProduct(id);
+        setViewModal(true);
+    }
 
     return (
         <div>
@@ -259,6 +267,13 @@ export default function ProductPage() {
                 />
             )
             }
+
+            {viewModal && (
+                <ViewProductModal 
+                productId={viewProduct}
+                onClose={() => setViewModal(false)}
+                />
+            )}
 
             <input
                 type="file"
@@ -340,6 +355,7 @@ export default function ProductPage() {
                             <th className="p-4 text-left">Supplier</th>
                             <th className="p-4 text-left">Status</th>
                             <th className="p-4 text-left">Actions</th>
+                            <th className="p-4 text-left">Add to Cart</th>
                         </tr>
                     </thead>
                     <tbody className="w-full table-fixed bg-white">
@@ -387,8 +403,9 @@ export default function ProductPage() {
                                         <div className="flex gap-3">
                                             <button
                                                 className="text-blue-500 text-sm"
+                                                onClick={() => handleView(product._id)}
                                             >
-                                                view
+                                                <Eye size={15} className="stroke-text hover:stroke-primary transition-transform duration-300 hover:scale-110" />
                                             </button>
                                             <button
                                                 onClick={() => {
@@ -397,15 +414,18 @@ export default function ProductPage() {
                                                 }}
                                                 className="text-green-500 text-sm"
                                             >
-                                                Edit
+                                                <Pencil size={15} className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110"  />
                                             </button>
                                             <button
                                                 className="text-red-500 text-sm"
                                                 onClick={() => handleDeleteproduct(product._id)}
                                             >
-                                                Delete
+                                                <Trash2 size={15} className="stroke-text hover:stroke-red-500 transition-transform duration-300 hover:scale-110" />
                                             </button>
                                         </div>
+                                    </td>
+                                    <td className="p-4 text-left">
+                                        <ShoppingCart size={20} className="stroke-text hover:stroke-black cursor-pointer transition-transform duration-300 hover:scale-110"/>
                                     </td>
                                 </tr>
                             ))

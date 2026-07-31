@@ -56,3 +56,15 @@ export const updateCategory = async (id, categoryData) => {
     return response.data;
 }
 
+export const viewCategory = async(id) => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.get(
+        `${API}/single/${id}`,
+        {
+            headers:{
+                Authorization:`Bearer ${token}`
+            }
+        });
+        return response.data;
+}

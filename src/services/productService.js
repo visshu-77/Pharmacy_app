@@ -85,5 +85,16 @@ export const importProducts = async (file) => {
         }
     );
     return response.data;
+}
 
+export const singleProduct = async (id) => {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(
+        `${API}/single/${id}`,
+        {
+            headers:{
+                Authorization:`Bearer ${token}`
+            }
+        }); 
+        return response.data;
 }

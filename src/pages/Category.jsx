@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Trash2, Eye, Pencil } from "lucide-react";
 
 import LastParams from "../components/lastParams";
 import HeadingWithButton from "../components/Headings";
@@ -16,6 +17,7 @@ import AddcategoryModal from "../components/modals/AddcategoryModal";
 
 import { getCategory, deleteCategory } from "../services/categoryService";
 import EditCategoryModal from "../components/modals/EditcategoryModal";
+import ViewCategoryModal from "../components/modals/viewCategoryModal";
 
 const AnalyticsData = [
     { id: 1, icon: TotalProductIcon, number: 16, content: "Total Product", color: "text-secondary", bg: "bg-[#F0FDFA]" },
@@ -36,8 +38,10 @@ export default function CategoryPage() {
 
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 
     const [showModal, setShowModal] = useState(false);
+    const [openViewModal, setOpenViewModal] = useState(false);
 
     const [category, setCategory] = useState([]);
 
@@ -99,6 +103,11 @@ export default function CategoryPage() {
         }
     }
 
+    const handleView = async(id) => {
+        setSelectedCategoryId(id);
+        setOpenViewModal(true);
+    };
+
     return (
         <div>
             <LastParams />
@@ -133,6 +142,15 @@ export default function CategoryPage() {
                     }}
                 />
             )}
+
+            {openViewModal && (
+                <ViewCategoryModal
+                categoryId={selectedCategoryId}
+                onClose={() => setOpenViewModal(false)}
+                />
+            )
+            }
+            
 
             {/* stock div */}
             <div className="grid grid-cols-4 mt-5 gap-5">
@@ -207,8 +225,8 @@ export default function CategoryPage() {
                                     <td className="p-4 text-left">
                                         <span className="bg-[#E8ECF1] text-xs p-1 rounded-sm font-semibold text-text">{data.description}</span>
                                     </td>
-                                    <td className="p-4 text-left">
-                                        <span>0</span>
+                                    <td className="p-4 text-left text-sm">
+                                        <span>{data.productCount}</span>
                                     </td>
 
                                     <td className="p-4 text-left">
@@ -216,9 +234,9 @@ export default function CategoryPage() {
 
                                             <button
                                                 className="text-blue-500 text-sm"
-                                                onClick={() => console.log("view", data._id)}
+                                                onClick={() => handleView(data._id)}
                                             >
-                                                View
+                                                <Eye size={15} className="stroke-text hover:stroke-primary transition-transform duration-300 hover:scale-110" />
                                             </button>
 
                                             <button
@@ -228,14 +246,14 @@ export default function CategoryPage() {
                                                     setShowEditModal(true);
                                                 }}
                                             >
-                                                Edit
+                                                <Pencil size={15} className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110"  />
                                             </button>
 
                                             <button
                                                 className="text-red-500 text-sm"
                                                 onClick={() => handleDeleteCategory(data._id)}
                                             >
-                                                Delete
+                                                <Trash2 size={15} className="stroke-text hover:stroke-red-500 transition-transform duration-300 hover:scale-110" />
                                             </button>
 
                                         </div>
