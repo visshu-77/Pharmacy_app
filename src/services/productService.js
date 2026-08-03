@@ -98,3 +98,21 @@ export const singleProduct = async (id) => {
         }); 
         return response.data;
 }
+
+export const searchProducts = async (search) => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.get(
+        `${API}/search`,
+        {
+            params: {
+                search
+            },
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    return response.data;
+};

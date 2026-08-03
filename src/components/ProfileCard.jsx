@@ -28,7 +28,7 @@ export default function ProfileCard() {
         { id: 7, icon: CustomerIcon, name: "Customers", path: "/customers" },
         { id: 8, icon: ReportIcon, name: "Reports", path: "/reports" },
         { id: 9, icon: EmployeeIcon, name: "Employees", path: "/employees" },
-        { id: 10, icon: NotificationIcon, name: "Notifcations", path: "/notifications" },
+        { id: 10, icon: NotificationIcon, name: "Billing", path: "/billing" },
         { id: 11, icon: SubscrptionIcon, name: "Subscription", path: "/subscription" },
         { id: 12, icon: SettingIcon, name: "Settings", path: "/settings" },
     ]

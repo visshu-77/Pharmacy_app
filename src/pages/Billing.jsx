@@ -1,0 +1,300 @@
+import { useState } from "react";
+import { useCart } from "../context/CartContext";
+import { Trash2, ShoppingCart } from "lucide-react";
+
+import { createOrder } from "../services/orderService";
+import ProductSearch from "../components/Billing/ProductSearch";
+
+import { QRCodeSVG } from "qrcode.react";
+
+
+export default function Billing() {
+
+    const { cart, removeFromCart, clearCart } = useCart();
+
+    const [customerName, setCustomerName] = useState("");
+    const [customerPhone, setCustomerPhone] = useState("");
+    const [discount, setDiscount] = useState(0);
+    const [tax, setTax] = useState(0);
+    const [paymentMethod, setPaymentMethod] = useState("Cash");
+    const [loading, setLoading] = useState(false);
+
+
+    const UPI_ID = "myupi123@upi";
+    const UPI_NAME = "MediStock";
+
+    const subtotal = cart.reduce(
+        (total, item) =>
+            total + Number(item.sellingPrice) * Number(item.quantity),
+        0
+    );
+
+    const grandTotal =
+        subtotal -
+        Number(discount || 0) +
+        Number(tax || 0);
+
+    const upiUrl =
+        `upi://pay?pa=${UPI_ID}` +
+        `&pn=${encodeURIComponent(UPI_NAME)}` +
+        `&am=${grandTotal.toFixed(2)}` +
+        `&cu=INR`;
+
+    const handleCreateOrder = async () => {
+
+        try {
+            if (!cart || cart.length === 0) {
+                alert("Cart is empty");
+                return;
+            }
+            if (!customerName.trim()) {
+                alert("Please enter customer name");
+                return;
+            }
+            if (!customerPhone.trim()) {
+                alert("Please enter mobile number");
+                return;
+            }
+            setLoading(true);
+            const orderData = {
+                customerName: customerName.trim(),
+                customerPhone: customerPhone.trim(),
+                items: cart.map((item) => ({
+                    productId: item._id,
+                    quantity: Number(item.quantity)
+                })),
+                discount: Number(discount) || 0,
+                tax: Number(tax) || 0,
+                paymentMethod
+            };
+            console.log("Sending order:", orderData);
+            const result = await createOrder(orderData);
+            console.log("Order created:", result);
+            clearCart();
+            alert(
+                `Order created successfully!\nInvoice: ${result.order.invoiceNumber}`
+            );
+
+
+        } catch (error) {
+            console.log("Order error:", error);
+            const message =
+                error.response?.data?.message ||
+                "Failed to create order";
+            alert(message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+
+    return (
+        <div className=" p-6 bg-[#F4F6F9]">
+            <h1 className="text-2xl font-bold">
+                Create New Bill
+            </h1>
+            <p className="text-black/50 text-xs">
+                Add products and create a new customer invoice
+            </p>
+
+            <div className="flex gap-6">
+                <div className="w-[75%]">
+                    <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow">
+                        <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
+                            Customer Details
+                        </h2>
+                        <div className="grid grid-cols-2 gap-4 mt-4">
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-bold text-black/30 uppercase">
+                                    Customer Name
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter Customer Name"
+                                    value={customerName}
+                                    onChange={(e) =>
+                                        setCustomerName(e.target.value)
+                                    }
+                                    className="border p-3 rounded text-xs focus:outline-none focus:ring-0 bg-[#F8F9FC]"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-bold text-black/30 uppercase">
+                                    Mobile Number
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter Mobile Number"
+                                    value={customerPhone}
+                                    onChange={(e) =>
+                                        setCustomerPhone(e.target.value)
+                                    }
+                                    className="border p-3 rounded text-xs focus:outline-none focus:ring-0 bg-[#F8F9FC]"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <ProductSearch />
+                    <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow">
+                        <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
+                            Blling Items
+                        </h2>
+                        {cart.length > 0 ? (
+                            cart.map((item) => (
+                                <div
+                                    key={item._id}
+                                    className="flex justify-between items-center border-b py-4"
+                                >
+                                    <div>
+                                        <p className="font-semibold">
+                                            {item.productName}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                            ₹ {Number(item.sellingPrice).toLocaleString("en-IN")}
+                                            {" × "}
+                                            {item.quantity}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-5">
+                                        <p className="font-semibold">
+                                            ₹ {(Number(item.sellingPrice) * Number(item.quantity))
+                                                .toLocaleString("en-IN")}
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeFromCart(item._id)}
+                                            className="text-red-500 hover:text-red-700 transition"
+                                            title="Remove product"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-20 gap-1">
+                                <ShoppingCart size={30} className="text-gray-300" />
+                                <p className="text-black-100 font-bold text-sm">
+                                    Your Bill cart is Empty
+                                </p>
+                                <p className="text-gray-500 text-xs">Search and add products above to start creating this bill.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <div className="w-[25%]">
+                    <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow">
+                        <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
+                            Bill Summary
+                        </h2>
+                        <div className="flex justify-between mt-4">
+                            <span className="text-xs text-gray-500">
+                                Subtotal
+                            </span>
+                            <span className="font-bold text-xs">
+                                ₹ {subtotal.toLocaleString("en-IN")}
+                            </span>
+                        </div>
+                        <div className="flex flex-col justify-between mt-3 gap-2">
+                            <span className="text-xs text-gray-500">
+                                Discount
+                            </span>
+                            <input
+                                type="number"
+                                min="0"
+                                value={discount}
+                                onChange={(e) =>
+                                    setDiscount(e.target.value)
+                                }
+                                className="border rounded p-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
+                                bg-[#F8F9FC] focus:outline-none focus:ring-1 text-green-500 font-bold text-xs"
+                            />
+                        </div>
+                        <div className="flex flex-col justify-between mt-3 gap-2">
+                            <span className="text-xs text-gray-500">
+                                Tax
+                            </span>
+                            <input
+                                type="number"
+                                min="0"
+                                value={tax}
+                                onChange={(e) =>
+                                    setTax(e.target.value)
+                                }
+                                className="border rounded p-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
+                                bg-[#F8F9FC] focus:outline-none focus:ring-1 font-bold text-xs"
+                            />
+                        </div>
+                        <div className="flex justify-between mt-5 pt-4 border-t">
+                            <span className="font-bold text-xs font-bold text-gray-500">
+                                Grand Total
+                            </span>
+                            <span className="font-bold text-lg text-primary">
+                                ₹ {grandTotal.toLocaleString("en-IN")}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Payment Method */}
+                    <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow5">
+                        <h2 className="font-semibold text-lg mb-3">
+                            Payment Method
+                        </h2>
+                        <select
+                            value={paymentMethod}
+                            onChange={(e) =>
+                                setPaymentMethod(e.target.value)
+                            }
+                            className="border p-3 rounded w-full"
+                        >
+                            <option value="Cash">
+                                Cash
+                            </option>
+                            <option value="UPI">
+                                UPI
+                            </option>
+                            <option value="Card">
+                                Card
+                            </option>
+                        </select>
+                        {paymentMethod === "UPI" && (
+                            <div className="mt-5 border rounded-xl p-5">
+                                <h3 className="font-semibold text-lg">
+                                    UPI Payment
+                                </h3>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Scan the QR code to pay
+                                </p>
+                                <div className="flex flex-col items-center mt-5">
+                                    <QRCodeSVG
+                                        value={upiUrl}
+                                        size={220}
+                                    />
+                                    <p className="mt-4 font-semibold">
+                                        ₹ {grandTotal.toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })}
+                                    </p>
+                                    <p className="text-sm text-gray-600 mt-2">
+                                        UPI ID: {UPI_ID}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div className="mt-5 w-full">
+                        <button
+                            onClick={handleCreateOrder}
+                            disabled={loading || cart.length === 0}
+                            className="bg-primary text-white px-6 py-3 rounded-lg disabled:opacity-50"
+                        >
+                            {loading ? "Creating Order..." : "Place Order"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

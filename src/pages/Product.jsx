@@ -25,6 +25,9 @@ import AddProductModal from '../components/modals/AddProductModal';
 import EditProductModal from "../components/modals/EditProductModal";
 import ViewProductModal from "../components/modals/ViewProductModal";
 
+import { useCart } from "../context/CartContext";
+import CartDrawer from "../components/drawer/CartDrawer";
+
 export default function ProductPage() {
 
     const [showEditModal, setShowEditModal] = useState(false);
@@ -224,13 +227,16 @@ export default function ProductPage() {
         }
     };
 
-    const [viewProduct, setViewProduct]  = useState(null);
+    const [viewProduct, setViewProduct] = useState(null);
     const [viewModal, setViewModal] = useState(false);
 
-    const handleView = async(id) => {
+    const handleView = async (id) => {
         setViewProduct(id);
         setViewModal(true);
     }
+
+    const [cartOpen, setCartOpen] = useState(false);
+    const { addToCart } = useCart();
 
     return (
         <div>
@@ -269,11 +275,16 @@ export default function ProductPage() {
             }
 
             {viewModal && (
-                <ViewProductModal 
-                productId={viewProduct}
-                onClose={() => setViewModal(false)}
+                <ViewProductModal
+                    productId={viewProduct}
+                    onClose={() => setViewModal(false)}
                 />
             )}
+
+            <CartDrawer
+                open={cartOpen}
+                onClose={() => setCartOpen(false)}
+            />
 
             <input
                 type="file"
@@ -414,7 +425,7 @@ export default function ProductPage() {
                                                 }}
                                                 className="text-green-500 text-sm"
                                             >
-                                                <Pencil size={15} className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110"  />
+                                                <Pencil size={15} className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110" />
                                             </button>
                                             <button
                                                 className="text-red-500 text-sm"
@@ -425,7 +436,13 @@ export default function ProductPage() {
                                         </div>
                                     </td>
                                     <td className="p-4 text-left">
-                                        <ShoppingCart size={20} className="stroke-text hover:stroke-black cursor-pointer transition-transform duration-300 hover:scale-110"/>
+                                        <button onClick={() => {
+                                            addToCart(product);
+                                            setCartOpen(true);
+                                        }
+                                        }>
+                                            <ShoppingCart size={20} className="stroke-text hover:stroke-black cursor-pointer transition-transform duration-300 hover:scale-110" />
+                                        </button>
                                     </td>
                                 </tr>
                             ))
@@ -449,7 +466,6 @@ export default function ProductPage() {
                     />
                 </div>
             </div>
-
         </div>
     )
 }

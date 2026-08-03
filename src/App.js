@@ -12,6 +12,7 @@ import Product from './pages/Product.jsx';
 import Category from './pages/Category.jsx'
 import Login from "./pages/Login.jsx";
 import ForgotPassword from "./pages/Forgotpassword.jsx";
+import Billing from "./pages/Billing.jsx";
 
 function App() {
   return (
@@ -32,6 +33,11 @@ function App() {
           <Route path='/category' element={
             <ProtectedRoute>
               <Category />
+            </ProtectedRoute>
+          } />
+          <Route path='/billing' element={
+            <ProtectedRoute>
+              <Billing />
             </ProtectedRoute>
           } />
         </Route>
