@@ -115,36 +115,31 @@ export default function ProductSearch() {
 
                         <div
                             key={product._id}
-                            className="flex items-center justify-between p-4 border-b"
+                            className="flex items-center justify-between p-4 border-b hover:bg-[#F2F4F8] transition cursor-pointer"
                         >
-
-                            <div>
-
-                                <p className="font-semibold">
+                            <div className="flex flex-col gap-1">
+                                <p className="font-semibold text-lg capitalize">
                                     {product.productName}
                                 </p>
 
-                                <p className="text-sm text-gray-500">
-                                    ₹ {Number(product.sellingPrice).toLocaleString("en-IN")}
-                                </p>
-
-                                <p className="text-xs text-gray-400">
+                                <p className={` ${product.stock === 0 ? 'bg-red-100 text-red-500' : product.stock < 50 ? 'bg-orange-100 text-orange-500' : 'bg-gray-200 text-black-400'} text-xs py-1 px-2 rounded-lg w-fit font-bold`}>
                                     Stock: {product.stock}
                                 </p>
-
                             </div>
-
-                            <button
-                                onClick={() => handleAddProduct(product)}
-                                disabled={product.stock <= 0}
-                                className="flex items-center gap-1 bg-primary text-white px-3 py-2 rounded-lg disabled:opacity-50"
-                            >
-                                <Plus size={18} />
-                                Add
-                            </button>
-
+                            <div className="flex flex-col gap-2 items-center">
+                                <p className="text-sm text-black font-bold">
+                                    ₹ {Number(product.sellingPrice).toLocaleString("en-IN")}
+                                </p>
+                                <button
+                                    onClick={() => handleAddProduct(product)}
+                                    disabled={product.stock <= 0}
+                                    className="flex items-center gap-1 bg-primary text-xs font-bold text-white py-2 px-4 rounded-lg disabled:opacity-50"
+                                >
+                                    <Plus size={10} />
+                                    Add
+                                </button>
+                            </div>
                         </div>
-
                     ))}
 
                 </div>
