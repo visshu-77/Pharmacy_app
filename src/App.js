@@ -13,6 +13,11 @@ import Category from './pages/Category.jsx'
 import Login from "./pages/Login.jsx";
 import ForgotPassword from "./pages/Forgotpassword.jsx";
 import Billing from "./pages/Billing.jsx";
+import Settings from "./pages/Settings.jsx";
+import Report from "./pages/Report.jsx";
+import Suppliers from "./pages/Suppliers.jsx";
+import Subscription from "./pages/Subscription.jsx";
+import SubscriptionCheckout from "./pages/SubscriptionCheckout.jsx";
 
 function App() {
   return (
@@ -38,6 +43,31 @@ function App() {
           <Route path='/billing' element={
             <ProtectedRoute>
               <Billing />
+            </ProtectedRoute>
+          } />
+          <Route path='/settings' element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          } />
+          <Route path='/reports' element={
+            <ProtectedRoute>
+              <Report />
+            </ProtectedRoute>
+          } />
+          <Route path='/suppliers' element={
+            <ProtectedRoute>
+              <Suppliers />
+            </ProtectedRoute>
+          } />
+          <Route path='/subscription' element={
+            <ProtectedRoute>
+              <Subscription />
+            </ProtectedRoute>
+          } />
+          <Route path="/subscription/checkout" element={
+            <ProtectedRoute>
+              <SubscriptionCheckout />
             </ProtectedRoute>
           } />
         </Route>
