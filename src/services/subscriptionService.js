@@ -51,3 +51,19 @@ export const verifyPayment = async (data) => {
 
     return response.data;
 };
+
+export const getMySubscription = async () => {
+
+    const token = localStorage.getItem("token");
+
+    const response = await axios.get(
+        `${API}/my-subscription`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    return response.data;
+};

@@ -15,6 +15,8 @@ import SubscrptionIcon from "../components/Icons/SubscriptionIcon";
 import SettingIcon from "../components/Icons/SettingsIcon";
 import MeditaskIcon from "./Icons/mediTaskIcon";
 
+import { useSubscription } from "../context/SubscriptionContext";
+
 
 export default function ProfileCard() {
 
@@ -30,10 +32,46 @@ export default function ProfileCard() {
         // { id: 9, icon: Profile, name: "Most Selling", path: "/mostSell" },
         // { id: 10, icon: Profile, name: "Staff", path: "/staff" },
     ]
+
+    const { subscription, subscriptionLoading } = useSubscription();
+    const getRemainingDays = (endDate) => {
+        const now = new Date();
+        const end = new Date(endDate);
+
+        const difference = end - now;
+
+        return Math.max(
+            0,
+            Math.ceil(difference / (1000 * 60 * 60 * 24))
+        );
+    };
+
     return (
         <div className="bg-white text-black rounded shadow-lg flex flex-col h-screen">
+
+            {!subscriptionLoading && (subscription ? (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200">
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+
+                    <div>
+                        <p className="text-sm font-semibold text-green-700 capitalize">
+                            {subscription.plan} Plan <span className="text-xs text-green-600">Activated</span>
+                        </p>
+                        
+                        <p className="text-xs text-gray-500">
+                            {getRemainingDays(subscription.endDate)} days remaining
+                        </p>
+                    </div>
+                </div>
+            ) : (
+                <div className="flex items-center justify-center gap-2 px-3 py-4 rounded-lg bg-red-50 border border-red-200">
+                    <h1 className="text-sm">No Subscription Found</h1>
+                </div>
+            )
+            )}
+
             <div className="flex p-4 item-center gap-4">
-                 <MeditaskIcon className="h-10 w-10 stroke-black" />
+                <MeditaskIcon className="h-10 w-10 stroke-black" />
                 <div><h3 className="font-bold text-xl">MediTask</h3><p className="text-xs text-text">India's No. 1 billing App</p></div>
             </div>
 
@@ -53,11 +91,11 @@ export default function ProfileCard() {
             </div>
             <div className=" flex flex-col gap-2 p-2 mt-4 p-4">
                 <Link to='/register' className=" flex gap-2 items-center border text-sm rounded p-4 whitespace-nowrap hover:shadow">
-                <UserPlus className="w-3 h-3" />
-                Create Account</Link>
+                    <UserPlus className="w-3 h-3" />
+                    Create Account</Link>
                 <Link to='/login' className="flex gap-2 items-center border text-sm rounded p-4 text-center hover:shadow">
-                <LogIn className="w-3 h-3"/>
-                Signin</Link>
+                    <LogIn className="w-3 h-3" />
+                    Signin</Link>
             </div>
         </div >
     )

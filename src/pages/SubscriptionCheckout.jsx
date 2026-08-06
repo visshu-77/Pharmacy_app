@@ -2,10 +2,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { createSubscription, createPaymentOrder,verifyPayment } from "../services/subscriptionService";
 
+import { useSubscription } from "../context/SubscriptionContext";
+
 export default function SubscriptionCheckout() {
 
     const location = useLocation();
     const navigate = useNavigate();
+
+    const { fetchSubscription } = useSubscription();
 
     const [paymentMethod, setPaymentMethod] = useState("UPI");
     const [loading, setLoading] = useState(false);
@@ -75,6 +79,7 @@ export default function SubscriptionCheckout() {
                         };
                         const result =
                             await verifyPayment(verifyData);
+                        await fetchSubscription();
                         alert(
                             "Payment successful! Subscription activated."
                         );

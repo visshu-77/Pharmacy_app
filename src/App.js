@@ -19,6 +19,8 @@ import Suppliers from "./pages/Suppliers.jsx";
 import Subscription from "./pages/Subscription.jsx";
 import SubscriptionCheckout from "./pages/SubscriptionCheckout.jsx";
 
+import SubscriptionRoute from "./components/SubscriptionRoute.jsx";
+
 function App() {
   return (
     <BrowserRouter>
@@ -27,37 +29,51 @@ function App() {
         <Route element={<Layout />}>
           <Route path='/' element={
             <ProtectedRoute>
-              <Dashboard />
+              <SubscriptionRoute>
+                <Dashboard />
+              </SubscriptionRoute>
             </ProtectedRoute>
           } />
           <Route path='/product' element={
             <ProtectedRoute>
-              <Product />
+              <SubscriptionRoute>
+                <Product />
+              </SubscriptionRoute>
             </ProtectedRoute>
           } />
           <Route path='/category' element={
             <ProtectedRoute>
-              <Category />
+              <SubscriptionRoute>
+                <Category />
+              </SubscriptionRoute>
             </ProtectedRoute>
           } />
           <Route path='/billing' element={
             <ProtectedRoute>
-              <Billing />
+              <SubscriptionRoute>
+                <Billing />
+              </SubscriptionRoute>
             </ProtectedRoute>
           } />
           <Route path='/settings' element={
             <ProtectedRoute>
-              <Settings />
+              <SubscriptionRoute>
+                <Settings />
+              </SubscriptionRoute>
             </ProtectedRoute>
           } />
           <Route path='/reports' element={
             <ProtectedRoute>
-              <Report />
+              <SubscriptionRoute>
+                <Report />
+              </SubscriptionRoute>
             </ProtectedRoute>
           } />
           <Route path='/suppliers' element={
             <ProtectedRoute>
-              <Suppliers />
+              <SubscriptionRoute>
+                <Suppliers />
+              </SubscriptionRoute>
             </ProtectedRoute>
           } />
           <Route path='/subscription' element={

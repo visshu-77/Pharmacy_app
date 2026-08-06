@@ -6,12 +6,15 @@ import App from './App';
 
 import Home from './pages/Home';
 import { CartProvider } from './context/CartContext';
+import { SubscriptionProvider } from './context/SubscriptionContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <CartProvider>
-      <App />
+      <SubscriptionProvider>
+        <App />
+      </SubscriptionProvider>
     </CartProvider>
   </React.StrictMode>
 );
