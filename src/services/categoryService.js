@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const API = "http://localhost:5000/category";
+// const API = process.env.REACT_APP_API_URL;
 
 export const addCategory = async (productData) => {
     const token = localStorage.getItem("token");

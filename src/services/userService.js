@@ -33,3 +33,19 @@ export const updateProfile = async (profileData) => {
 
     return response.data;
 };
+
+export const changePassword = async (data) => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.post(
+        `${API}/change-password`,
+        data,
+        {
+            headers:{
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
+        }
+    );
+    return response.data;
+}
