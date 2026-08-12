@@ -1,6 +1,7 @@
 import { Routes, Route, Outlet } from 'react-router-dom';
 
 import ProfileCard from './components/ProfileCard';
+import GeminiAssistant from './components/gemini/GeminiAssistant';
 
 export default function Layout() {
     return (    
@@ -13,6 +14,9 @@ export default function Layout() {
                 <main className='w-[85%]'>
                     <Outlet />
                 </main>
+
+                <GeminiAssistant />
+
             </div>
         </div>
     )

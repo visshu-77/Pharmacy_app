@@ -75,6 +75,6 @@ export const getRecentTransactions = async (filters = {}) => {
             }
         }
     );
-
+    
     return response.data;
 };

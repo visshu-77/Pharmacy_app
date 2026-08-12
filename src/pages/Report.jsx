@@ -222,19 +222,6 @@ export default function Reports() {
                   </option>
                </select>
 
-               {/* {loading ? (
-                  <p>Loading sales...</p>
-               ) : (
-                  <div>
-                     {setSummary.map((item, index) => (
-                        <div key={index}>
-                           {JSON.stringify(item)}
-                        </div>
-                     ))}
-                  </div>
-               )} */}
-
-
                <button
                   type="button"
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700"
@@ -565,9 +552,7 @@ export default function Reports() {
 
          </div>
 
-
          {/* Category perfromance */}
-
          <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
 
             <div className="mb-5">
@@ -657,8 +642,6 @@ export default function Reports() {
 
          </div>
 
-
-         {/* Recent Transactions */}
          {/* Recent Transactions */}
          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mt-6">
 
