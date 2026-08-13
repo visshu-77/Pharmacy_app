@@ -73,3 +73,37 @@ export const deleteSupplier = async (id) => {
 
     return response.data;
 };
+
+export const deleteSelectedSuppliers = async (supplierIds) => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.delete(
+        `${API_URL}/delete-selected`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            data: {
+                supplierIds
+            }
+        }
+    );
+
+    return response.data;
+};
+
+
+export const deleteAllSuppliers = async () => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.delete(
+        `${API_URL}/delete-all`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    return response.data;
+};

@@ -18,7 +18,19 @@ import Pagination from "../components/pagination";
 import HeadingWithButton from "../components/Headings";
 
 import { Products } from "../Product/data.js";
-import { getProducts, deleteProduct, updateProduct, exportProducts, importProducts, singleProduct } from "../services/productService";
+import {
+    getProducts,
+    deleteProduct,
+    updateProduct,
+    exportProducts,
+    importProducts,
+    singleProduct,
+    deleteSingleProducts,
+    deleteAllProducts
+} from "../services/productService";
+
+import { getCategory } from "../services/categoryService";
+import { getSuppliers } from "../services/supplierService";
 
 import AddProductModal from '../components/modals/AddProductModal';
 
@@ -33,48 +45,126 @@ export default function ProductPage() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [product, setProduct] = useState([]);
+    const [selectedProducts, setSelectedProducts] = useState([]);
 
-    useEffect(() => {
-        const fetchProduct = async () => {
-            try {
-                const result = await getProducts();
-                console.log("======> result", result);
-                setProduct(result.products);
-            } catch (err) {
-                console.log(err);
-            }
-        };
-        fetchProduct();
-        console.log("=========> fetchProduct", fetchProduct())
-    }, []);
+    const [categories, setCategories] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
 
     const [searchText, setSearchtext] = useState("");
     const [filters, setFilters] = useState({
         category: "",
         suppliers: "",
         status: "",
+        expiry: "",
     });
 
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                const result = await getProducts();
+                console.log("======> result", result);
+                setProduct(result.products || []);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchProduct();
+    }, []);
+
+    useEffect(() => {
+        const fetchFilterData = async () => {
+            try {
+                const [categoryResult, supplierResult] = await Promise.all([
+                    getCategory(),
+                    getSuppliers()
+                ]);
+
+                console.log("CATEGORIES:", categoryResult);
+                console.log("SUPPLIERS:", supplierResult);
+
+                setCategories(categoryResult.result || []);
+                setSuppliers(supplierResult.suppliers || []);
+
+            } catch (error) {
+                console.log("Filter data error:", error);
+            }
+        };
+
+        fetchFilterData();
+    }, []);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const fiveDaysLater = new Date(today);
+    fiveDaysLater.setDate(today.getDate() + 5);
+
     const SearchProducts = product.filter((product) => {
+
         const search = searchText.toLowerCase();
 
-        const matchesSearch = (product.productName || "").toLowerCase().includes(search)
-            || (product.productCategory?.categoryName || "").toLowerCase().includes(search)
-            || (product.supplierName || "").toLowerCase().includes(search);
-        const matchesCategory = !filters.category || product.productCategory?.categoryName === filters.category;
-        const matchesSuppliers = !filters.suppliers || product.supplierName === filters.suppliers;
-        const matchesStatus = !filters.status || product.status === filters.status;
+        const matchesSearch =
+            (product.productName || "").toLowerCase().includes(search) ||
+            (product.productCategory?.categoryName || "").toLowerCase().includes(search) ||
+            (product.supplierName || "").toLowerCase().includes(search);
 
-        const expiryDate = new Date(product.expiry);
-        expiryDate.setHours(0, 0, 0, 0);
+        const matchesCategory =
+            !filters.category ||
+            product.productCategory?._id === filters.category;
+
+        const matchesSuppliers =
+            !filters.suppliers ||
+            product.supplierName === filters.suppliers;
+
+        // Calculate status from stock
+        const productStatus =
+            product.stock === 0
+                ? "Out of Stock"
+                : product.stock < 50
+                    ? "Low Stock"
+                    : "In Stock";
+
+        const matchesStatus =
+            !filters.status ||
+            productStatus === filters.status;
+
+        // Expiry
+        const expiryDate = product.ExpiryDate
+            ? new Date(product.ExpiryDate)
+            : null;
+
+        if (expiryDate) {
+            expiryDate.setHours(0, 0, 0, 0);
+        }
 
         const matchesExpiry = (() => {
-            switch (filters.expiry) {
-                case "Expired": return expiryDate < today;
-                case "Expiring Soon": return expiryDate >= today && expiryDate <= fiveDaysLater;
-                case "Valid": return expiryDate > fiveDaysLater;
-                default: return true;
+
+            if (!filters.expiry) {
+                return true;
             }
+
+            if (!expiryDate) {
+                return false;
+            }
+
+            switch (filters.expiry) {
+
+                case "Expired":
+                    return expiryDate < today;
+
+                case "Expiring Soon":
+                    return (
+                        expiryDate >= today &&
+                        expiryDate <= fiveDaysLater
+                    );
+
+                case "Valid":
+                    return expiryDate > fiveDaysLater;
+
+                default:
+                    return true;
+            }
+
         })();
 
         return (
@@ -86,6 +176,9 @@ export default function ProductPage() {
         );
     });
 
+    console.log("ALL PRODUCTS:", product);
+    console.log("SEARCH PRODUCTS:", SearchProducts);
+
     const [currentPage, setCurrentPage] = useState(1);
     const productsPerPage = 10;
 
@@ -96,56 +189,72 @@ export default function ProductPage() {
         indexOfFirstProduct,
         indexOfLastProduct
     );
+    console.log("CURRENT PRODUCTS:", currentProducts);
     const totalPages = Math.ceil(SearchProducts.length / productsPerPage);
 
     const [showModal, setShowModal] = useState(false);
 
 
 
-    const productCategories = [
-        ...new Set(product.map((product) => product.productCategory?.categoryName))
-    ];
+    // const productCategories = [
+    //     ...new Set(product.map((product) => product.productCategory?.categoryName))
+    // ];
 
-    const productSuppliers = [
-        ...new Set(product.map((product) => product.supplierName))
-    ];
+    // const productSuppliers = [
+    //     ...new Set(product.map((product) => product.supplierName))
+    // ];
 
-    const productStatus = [
-        ...new Set(product.map((product) => product.status))
-    ];
+    // const productStatus = [
+    //     ...new Set(product.map((product) => product.status))
+    // ];
 
 
     const filterOption = [
         {
             placeholder: "All Categories",
-            options: productCategories
+            key: "category",
+            options: categories
         },
         {
             placeholder: "All Suppliers",
-            options: productSuppliers
+            key: "suppliers",
+            options: suppliers
         },
         {
             placeholder: "All Status",
-            options: productStatus
+            key: "status",
+            options: [
+                "In Stock",
+                "Low Stock",
+                "Out of Stock"
+            ]
         },
         {
             placeholder: "All Expiry",
-            options: ["Valid", "Expiring Soon", "Expired"]
-        },
-    ]
+            key: "expiry",
+            options: [
+                "Valid",
+                "Expiring Soon",
+                "Expired"
+            ]
+        }
+    ];
 
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const fiveDaysLater = new Date(today);
-    fiveDaysLater.setDate(today.getDate() + 10);
 
     const expiringSoonCount = product.filter((product) => {
+        if (!product.ExpiryDate) {
+            return false;
+        }
         const expiryDate = new Date(product.ExpiryDate);
+        if (isNaN(expiryDate.getTime())) {
+            return false;
+        }
         expiryDate.setHours(0, 0, 0, 0);
-
-        return expiryDate >= today && expiryDate <= fiveDaysLater;
+        return (
+            expiryDate >= today &&
+            expiryDate <= fiveDaysLater
+        );
     }).length;
 
     const outOfStockCount = product.filter(
@@ -213,14 +322,18 @@ export default function ProductPage() {
         if (!file) return;
 
         try {
-            await importProducts(file);
+            console.log("Selected CSV:", file);
+            const importResult = await importProducts(file);
+            console.log("IMPORT RESULT:", importResult);
 
-            alert("Products imported successfully!");
 
             // Fetch updated products
             const result = await getProducts();
-            setProduct(result.products);
+            console.log("PRODUCTS AFTER IMPORT:", result);
+            setProduct(result.products || []);
+            setCurrentPage(1);
 
+            alert("Products imported successfully!");
         } catch (err) {
             console.log(err);
             alert("Import failed");
@@ -237,6 +350,101 @@ export default function ProductPage() {
 
     const [cartOpen, setCartOpen] = useState(false);
     const { addToCart } = useCart();
+
+    const handleSelectProduct = (id) => {
+        setSelectedProducts((prev) => {
+            if (prev.includes(id)) {
+                return prev.filter(
+                    (productId) => productId !== id
+                );
+            }
+            return [...prev, id];
+        });
+    };
+
+    const handleSelectAll = () => {
+        const currentProductIds = currentProducts.map(
+            (product) => product._id
+        );
+        const allSelected = currentProductIds.every(
+            (id) => selectedProducts.includes(id)
+        );
+        if (allSelected) {
+            setSelectedProducts((prev) =>
+                prev.filter(
+                    (id) => !currentProductIds.includes(id)
+                )
+            );
+        } else {
+            setSelectedProducts((prev) => [
+                ...new Set([
+                    ...prev,
+                    ...currentProductIds
+                ])
+            ]);
+        }
+    };
+
+    const isAllCurrentProductsSelected =
+        currentProducts.length > 0 &&
+        currentProducts.every(
+            (product) =>
+                selectedProducts.includes(product._id)
+        );
+
+    const handleDeleteSelected = async () => {
+        if (selectedProducts.length === 0) {
+            alert("Please select at least one product");
+            return;
+        }
+        const confirmed = window.confirm(
+            `Are you sure you want to delete ${selectedProducts.length} selected product(s)?`
+        );
+        if (!confirmed) return;
+        try {
+            await deleteSingleProducts(selectedProducts);
+            setProduct((prev) =>
+                prev.filter(
+                    (product) =>
+                        !selectedProducts.includes(product._id)
+                )
+            );
+            setSelectedProducts([]);
+            alert("Selected products deleted successfully");
+        } catch (error) {
+            console.log(error);
+            alert("Failed to delete selected products");
+        }
+    };
+
+
+    const handleDeleteAll = async () => {
+        if (product.length === 0) {
+            alert("No products available to delete");
+            return;
+        }
+        const confirmed = window.confirm(
+            `Are you sure you want to delete ALL ${product.length} products?`
+        );
+        if (!confirmed) return;
+        try {
+            await deleteAllProducts();
+            setProduct([]);
+            setSelectedProducts([]);
+            setCurrentPage(1);
+            alert("All products deleted successfully");
+        } catch (error) {
+            console.log(error);
+            alert("Failed to delete all products");
+        }
+    };
+
+    const productStatus = [
+        "In Stock",
+        "Low Stock",
+        "Out of Stock"
+    ];
+
 
     return (
         <div>
@@ -325,39 +533,104 @@ export default function ProductPage() {
                 <div className="flex gap-5 items-center">
                     <FilterIcon className="h-4 w-4" />
                     {filterOption.map((filter) => {
-                        const filterkeys =
-                            filter.placeholder === "All Categories" ? "category"
-                                : filter.placeholder === "All Suppliers" ? "suppliers"
-                                    : filter.placeholder === "All Status" ? "status"
-                                        : "expiry";
+
                         return (
-                            <select key={filter.placeholder}
-                                value={filters[filterkeys]}
+                            <select
+                                key={filter.key}
+                                value={filters[filter.key]}
                                 onChange={(e) =>
                                     setFilters({
                                         ...filters,
-                                        [filterkeys]: e.target.value,
+                                        [filter.key]: e.target.value
                                     })
                                 }
-                                className="focus:outline-none focus:ring-0 border border-[#E8ECF1] rounded-lg py-2 px-4 text-text cursor-pointer">
-                                <option value="">{filter.placeholder}</option>
-                                {filter.options.map((option) => (
-                                    <option key={option} value={option}>
-                                        {option}
-                                    </option>
-                                ))}
+                                className="focus:outline-none focus:ring-0 border border-[#E8ECF1] rounded-lg py-2 px-4 text-text cursor-pointer"
+                            >
+
+                                <option value="">
+                                    {filter.placeholder}
+                                </option>
+
+                                {filter.options.map((option) => {
+
+                                    const optionValue =
+                                        filter.key === "category"
+                                            ? option._id
+                                            : filter.key === "suppliers"
+                                                ? option.supplierName
+                                                : option;
+
+                                    const optionLabel =
+                                        filter.key === "category"
+                                            ? option.categoryName
+                                            : filter.key === "suppliers"
+                                                ? option.supplierName
+                                                : option;
+
+                                    return (
+                                        <option
+                                            key={optionValue}
+                                            value={optionValue}
+                                        >
+                                            {optionLabel}
+                                        </option>
+                                    );
+                                })}
+
                             </select>
                         );
                     })}
                 </div>
             </div>
 
+            {selectedProducts.length > 0 && (
+                <div className="flex items-center justify-between bg-white border border-[#E8ECF1] rounded-xl p-3 mt-4">
+
+                    <span className="text-sm text-text">
+                        {selectedProducts.length} product
+                        {selectedProducts.length > 1 ? "s" : ""} selected
+                    </span>
+
+                    <div className="flex gap-3 items-center justify-center">
+                        <div>
+                            <button
+                                onClick={handleDeleteSelected}
+                                className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-600 transition"
+                            >
+                                Delete Selected
+                            </button>
+                        </div>
+
+                        <div className="">
+                            <button
+                                onClick={handleDeleteAll}
+                                className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-600 transition"
+                            >
+                                Delete All
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            )}
+
             {/* Products */}
             <div className="border-[#E8ECF1] border rounded-xl mt-5">
                 <table className="w-full table-fixed">
                     <thead>
                         <tr className="text-text uppercase text-xs bg-[#FAFBFC]">
-                            <th className="p-4 text-left">Product</th>
+                            <th className="p-4 text-left">
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={isAllCurrentProductsSelected}
+                                        onChange={handleSelectAll}
+                                        className="w-4 h-4 cursor-pointer"
+                                    />
+                                    <span>Product</span>
+                                </div>
+                            </th>
                             <th className="p-4 text-left">Category</th>
                             <th className="p-4 text-left">Stock</th>
                             <th className="p-4 text-left">Purchase</th>
@@ -369,33 +642,174 @@ export default function ProductPage() {
                             <th className="p-4 text-left">Add to Cart</th>
                         </tr>
                     </thead>
-                    <tbody className="w-full table-fixed bg-white">
+                    {/* <tbody className="w-full table-fixed bg-white">
+                        {currentProducts.length > 0 ? (
+                            currentProducts.map((product) => {
+                                console.log("RENDERING PRODUCT:", product);
+                                return (
+                                    <tr key={product._id}>
+                                        <td className="p-4 text-left">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-semibold">{product.productName}</span>
+                                                <span className="text-text font-medium text-xs">ID:{product._id}</span>
+                                            </div>
+                                        </td>
+                                        <td className="p-4 text-left">
+                                            <span className="bg-[#E8ECF1] text-xs p-1 rounded-sm font-semibold text-text">{product.productCategory?.categoryName}</span>
+                                        </td>
+                                        <td className="p-4 text-left font-semibold">
+
+                                            <span className={` ${product.stock === 0 ? "text-red-500" : product.stock < 50 ? "text-orange-500" : "text-black"}`}>{product.stock}</span>
+                                        </td>
+                                        <td className="p-4 text-left text-text">{product.purchase}</td>
+                                        <td className="p-4 text-left text-secondary font-semibold">{product.sellingPrice}</td>
+                                        <td className="p-4 text-left">
+                                            <span className="text-sm text-text">{product.ExpiryDate}</span>
+                                        </td>
+                                        <td className="p-4 text-left text-text text-sm">{product.supplierName}</td>
+                                        <td className="p-4 text-left">
+                                            {/* <span className={` border rounded-full p-2 text-xs font-semibold ${product.status === 'In Stock' ? "text-secondary bg-green-100" : product.status === 'Out Of Stock' ? "text-red-500 bg-red-100" : "text-orange-500 bg-orange-100"} `}>• {product.status}</span> */}
+                    {/*}  <span
+                        className={`border rounded-full p-2 text-xs font-semibold ${product.stock === 0
+                            ? "text-red-500 bg-red-100"
+                            : product.stock < 50
+                                ? "text-orange-500 bg-orange-100"
+                                : "text-secondary bg-green-100"
+                            }`}
+                    >
+                        •{" "}
+                        {product.stock === 0
+                            ? "Out of Stock"
+                            : product.stock < 50
+                                ? "Low Stock"
+                                : "In Stock"}
+                    </span>
+                </td>
+                <td className="p-4 text-left">
+                    <div className="flex gap-3">
+                        <button
+                            className="text-blue-500 text-sm"
+                            onClick={() => handleView(product._id)}
+                        >
+                            <Eye size={15} className="stroke-text hover:stroke-primary transition-transform duration-300 hover:scale-110" />
+                        </button>
+                        <button
+                            onClick={() => {
+                                setSelectedProduct(product);
+                                setShowEditModal(true);
+                            }}
+                            className="text-green-500 text-sm"
+                        >
+                            <Pencil size={15} className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110" />
+                        </button>
+                        <button
+                            className="text-red-500 text-sm"
+                            onClick={() => handleDeleteproduct(product._id)}
+                        >
+                            <Trash2 size={15} className="stroke-text hover:stroke-red-500 transition-transform duration-300 hover:scale-110" />
+                        </button>
+                    </div>
+                </td>
+                <td className="p-4 text-left">
+                    <button onClick={() => {
+                        addToCart(product);
+                        setCartOpen(true);
+                    }
+                    }>
+                        <ShoppingCart size={20} className="stroke-text hover:stroke-black cursor-pointer transition-transform duration-300 hover:scale-110" />
+                    </button>
+                </td>
+            </tr>
+            )
+                            })
+            ) : (
+            <tr>
+                <td colSpan="9" className="text-center py-9 text-text">No Product Found</td>
+            </tr>
+                        )}
+        </tbody> */}
+
+                    <tbody className="w-full bg-white">
                         {currentProducts.length > 0 ? (
                             currentProducts.map((product) => (
-                                <tr key={product._id}>
+                                <tr
+                                    key={product._id}
+                                    className="border-t border-[#E8ECF1] hover:bg-[#FAFBFC] transition-colors"
+                                >
+                                    {/* Product */}
                                     <td className="p-4 text-left">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-semibold">{product.productName}</span>
-                                            <span className="text-text font-medium text-xs">ID:{product.id}</span>
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedProducts.includes(product._id)}
+                                                onChange={() =>
+                                                    handleSelectProduct(product._id)
+                                                }
+                                                className="w-4 h-4 cursor-pointer"
+                                            />
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-semibold">
+                                                    {product.productName}
+                                                </span>
+                                                <span className="text-text font-medium text-xs">
+                                                    ID:{product.id}
+                                                </span>
+                                            </div>
                                         </div>
                                     </td>
-                                    <td className="p-4 text-left">
-                                        <span className="bg-[#E8ECF1] text-xs p-1 rounded-sm font-semibold text-text">{product.productCategory?.categoryName}</span>
-                                    </td>
-                                    <td className="p-4 text-left font-semibold">
 
-                                        <span className={` ${product.stock === 0 ? "text-red-500" : product.stock < 50 ? "text-orange-500" : "text-black"}`}>{product.stock}</span>
-                                    </td>
-                                    <td className="p-4 text-left text-text">{product.purchase}</td>
-                                    <td className="p-4 text-left text-secondary font-semibold">{product.sellingPrice}</td>
+                                    {/* Category */}
                                     <td className="p-4 text-left">
-                                        <span className="text-sm text-text">{product.ExpiryDate}</span>
+                                        <span className="bg-[#E8ECF1] text-xs px-2 py-1 rounded-sm font-semibold text-text">
+                                            {product.productCategory?.categoryName || "-"}
+                                        </span>
                                     </td>
-                                    <td className="p-4 text-left text-text text-sm">{product.supplierName}</td>
-                                    <td className="p-4 text-left">
-                                        {/* <span className={` border rounded-full p-2 text-xs font-semibold ${product.status === 'In Stock' ? "text-secondary bg-green-100" : product.status === 'Out Of Stock' ? "text-red-500 bg-red-100" : "text-orange-500 bg-orange-100"} `}>• {product.status}</span> */}
+
+                                    {/* Stock */}
+                                    <td className="p-4 text-left font-semibold">
                                         <span
-                                            className={`border rounded-full p-2 text-xs font-semibold ${product.stock === 0
+                                            className={
+                                                product.stock === 0
+                                                    ? "text-red-500"
+                                                    : product.stock < 50
+                                                        ? "text-orange-500"
+                                                        : "text-black"
+                                            }
+                                        >
+                                            {product.stock ?? 0}
+                                        </span>
+                                    </td>
+
+                                    {/* Purchase */}
+                                    <td className="p-4 text-left text-text">
+                                        ₹{Number(product.purchase || 0).toLocaleString("en-IN")}
+                                    </td>
+
+                                    {/* Selling */}
+                                    <td className="p-4 text-left text-secondary font-semibold">
+                                        ₹{Number(product.sellingPrice || 0).toLocaleString("en-IN")}
+                                    </td>
+
+                                    {/* Expiry */}
+                                    <td className="p-4 text-left">
+                                        <span className="text-sm text-text">
+                                            {product.ExpiryDate
+                                                ? new Date(product.ExpiryDate).toLocaleDateString(
+                                                    "en-IN"
+                                                )
+                                                : "-"}
+                                        </span>
+                                    </td>
+
+                                    {/* Supplier */}
+                                    <td className="p-4 text-left text-text text-sm">
+                                        {product.supplierName || "-"}
+                                    </td>
+
+                                    {/* Status */}
+                                    <td className="p-4 text-left">
+                                        <span
+                                            className={`border rounded-full px-2 py-1 text-xs font-semibold ${product.stock === 0
                                                 ? "text-red-500 bg-red-100"
                                                 : product.stock < 50
                                                     ? "text-orange-500 bg-orange-100"
@@ -410,53 +824,92 @@ export default function ProductPage() {
                                                     : "In Stock"}
                                         </span>
                                     </td>
+
+                                    {/* Actions */}
                                     <td className="p-4 text-left">
                                         <div className="flex gap-3">
+
+                                            {/* View */}
                                             <button
+                                                type="button"
                                                 className="text-blue-500 text-sm"
                                                 onClick={() => handleView(product._id)}
                                             >
-                                                <Eye size={15} className="stroke-text hover:stroke-primary transition-transform duration-300 hover:scale-110" />
+                                                <Eye
+                                                    size={15}
+                                                    className="stroke-text hover:stroke-primary transition-transform duration-300 hover:scale-110"
+                                                />
                                             </button>
+
+                                            {/* Edit */}
                                             <button
+                                                type="button"
                                                 onClick={() => {
                                                     setSelectedProduct(product);
                                                     setShowEditModal(true);
                                                 }}
                                                 className="text-green-500 text-sm"
                                             >
-                                                <Pencil size={15} className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110" />
+                                                <Pencil
+                                                    size={15}
+                                                    className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110"
+                                                />
                                             </button>
+
+                                            {/* Delete */}
                                             <button
+                                                type="button"
                                                 className="text-red-500 text-sm"
-                                                onClick={() => handleDeleteproduct(product._id)}
+                                                onClick={() =>
+                                                    handleDeleteproduct(product._id)
+                                                }
                                             >
-                                                <Trash2 size={15} className="stroke-text hover:stroke-red-500 transition-transform duration-300 hover:scale-110" />
+                                                <Trash2
+                                                    size={15}
+                                                    className="stroke-text hover:stroke-red-500 transition-transform duration-300 hover:scale-110"
+                                                />
                                             </button>
+
                                         </div>
                                     </td>
+
+                                    {/* Add To Cart */}
                                     <td className="p-4 text-left">
-                                        <button onClick={() => {
-                                            addToCart(product);
-                                            setCartOpen(true);
-                                        }
-                                        }>
-                                            <ShoppingCart size={20} className="stroke-text hover:stroke-black cursor-pointer transition-transform duration-300 hover:scale-110" />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                addToCart(product);
+                                                setCartOpen(true);
+                                            }}
+                                        >
+                                            <ShoppingCart
+                                                size={20}
+                                                className="stroke-text hover:stroke-black cursor-pointer transition-transform duration-300 hover:scale-110"
+                                            />
                                         </button>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="9" className="text-center py-9 text-text">No Product Found</td>
+                                <td
+                                    colSpan="10"
+                                    className="text-center py-9 text-text"
+                                >
+                                    No Product Found
+                                </td>
                             </tr>
                         )}
                     </tbody>
-                </table>
+                </table >
                 <div className="flex items-center justify-between p-4 border-t">
                     <p className="text-sm text-text">
-                        Showing {indexOfFirstProduct + 1}-
-                        {Math.min(indexOfLastProduct, Products.length)} of {Products.length}
+                        {SearchProducts.length > 0
+                            ? `Showing ${indexOfFirstProduct + 1}-${Math.min(
+                                indexOfLastProduct,
+                                SearchProducts.length
+                            )} of ${SearchProducts.length}`
+                            : "Showing 0-0 of 0"}
                     </p>
 
                     <Pagination
@@ -465,7 +918,7 @@ export default function ProductPage() {
                         onPageChange={setCurrentPage}
                     />
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     )
 }

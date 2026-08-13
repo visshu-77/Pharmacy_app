@@ -117,3 +117,34 @@ export const searchProducts = async (search) => {
 
     return response.data;
 };
+
+export const deleteSingleProducts = async (productIds) => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.delete(
+        `${API}/delete-selected`,
+        {
+            data:{
+                productIds
+            },
+            headers:{
+                Authorization:`Bearer ${token}`
+            }
+        }
+    );
+    return response.data;
+}
+
+export const deleteAllProducts = async () => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.delete(
+        `${API}/delete-all`,
+        {
+            headers:{
+                Authorization:`Bearer ${token}`
+            }
+        }
+    );
+    return response.data;
+}

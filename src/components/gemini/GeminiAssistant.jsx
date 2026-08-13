@@ -91,7 +91,7 @@ const GeminiAssistant = () => {
                     className="
         fixed
         bottom-6
-        right-6
+        left-6
         z-50
         group
         flex
@@ -134,7 +134,7 @@ const GeminiAssistant = () => {
                     className="
                         fixed
                         bottom-6
-                        right-6
+                        left-6
                         z-50
                         flex
                         h-[600px]
