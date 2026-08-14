@@ -69,7 +69,7 @@ const inputData = [
 
 
 
-export default function AddProductModal({ onClose }) {
+export default function AddProductModal({ onClose, onProductAdded }) {
     const [productData, setProductData] = useState({
         productName: "",
         productCategory: "",
@@ -93,6 +93,10 @@ export default function AddProductModal({ onClose }) {
         e.preventDefault();
         try {
             const result = await addProduct(productData);
+            if (result.product) {
+                onProductAdded(result.product);
+            }
+            onClose();
             alert('product added successfully');
         } catch (err) {
             setError(
@@ -164,7 +168,7 @@ export default function AddProductModal({ onClose }) {
                                                 value={productData[data.name]}
                                                 onChange={handleChange}
                                                 className="focus:outline-none border rounded p-2 text-sm"
-                                            /> 
+                                            />
                                         )}
 
                                     </div>

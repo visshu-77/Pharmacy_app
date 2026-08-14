@@ -17,7 +17,7 @@ export const addCategory = async (productData) => {
     return response.data;
 }
 
-export const getCategory = async (productData) => {
+export const getCategory = async () => {
     const token = localStorage.getItem("token");
 
     const response = await axios.get(
@@ -62,6 +62,35 @@ export const viewCategory = async(id) => {
 
     const response = await axios.get(
         `${API}/single/${id}`,
+        {
+            headers:{
+                Authorization:`Bearer ${token}`
+            }
+        });
+        return response.data;
+}
+
+export const deleteSingleCategories = async(ids) => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.delete(
+        `${API}/delete-selected`,
+        {
+            data:{
+                ids
+            },
+            headers:{
+                Authorization:`Bearer ${token}`
+            }
+        });
+        return response.data;
+}
+
+export const deleteAllCategories = async() => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.delete(
+        `${API}/delete-all`,
         {
             headers:{
                 Authorization:`Bearer ${token}`

@@ -46,6 +46,7 @@ export default function AddProductModal({ onClose }) {
         try{
            const result = await addCategory(categoryData);
            alert('category Added successfully');
+           onClose(result.result || result.category);
         }catch(err){
             setError(
                 err.response?.data?.message || 'something went wrong'

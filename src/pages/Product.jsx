@@ -47,6 +47,9 @@ export default function ProductPage() {
     const [product, setProduct] = useState([]);
     const [selectedProducts, setSelectedProducts] = useState([]);
 
+    const [importing, setImporting] = useState(false);
+    const [importProgress, setImportProgress] = useState(0);
+
     const [categories, setCategories] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
 
@@ -240,30 +243,28 @@ export default function ProductPage() {
         }
     ];
 
+    const outOfStockCount = product.filter(
+        (item) => Number(item.stock) === 0
+    ).length;
 
+    const lowStockCount = product.filter(
+        (item) => Number(item.stock) > 0 && Number(item.stock) < 50
+    ).length;
 
-    const expiringSoonCount = product.filter((product) => {
-        if (!product.ExpiryDate) {
-            return false;
-        }
-        const expiryDate = new Date(product.ExpiryDate);
-        if (isNaN(expiryDate.getTime())) {
-            return false;
-        }
+    const expiringSoonCount = product.filter((item) => {
+        if (!item.ExpiryDate) return false;
+
+        const expiryDate = new Date(item.ExpiryDate);
+
+        if (isNaN(expiryDate.getTime())) return false;
+
         expiryDate.setHours(0, 0, 0, 0);
+
         return (
             expiryDate >= today &&
             expiryDate <= fiveDaysLater
         );
     }).length;
-
-    const outOfStockCount = product.filter(
-        (product) => product.status === "Out Of Stock"
-    ).length;
-
-    const lowStockCount = product.filter(
-        (product) => product.status === "Low Stock"
-    ).length;
 
     const totalProductCount = product.length;
 
@@ -313,8 +314,35 @@ export default function ProductPage() {
     const fileInputRef = useRef(null);
 
     const handleImportClick = () => {
+        if (importing) {
+            return;
+        }
         fileInputRef.current.click();
     };
+
+    // const handleFileChange = async (e) => {
+    //     const file = e.target.files[0];
+
+    //     if (!file) return;
+
+    //     try {
+    //         console.log("Selected CSV:", file);
+    //         const importResult = await importProducts(file);
+    //         console.log("IMPORT RESULT:", importResult);
+
+
+    //         // Fetch updated products
+    //         const result = await getProducts();
+    //         console.log("PRODUCTS AFTER IMPORT:", result);
+    //         setProduct(result.products || []);
+    //         setCurrentPage(1);
+
+    //         alert("Products imported successfully!");
+    //     } catch (err) {
+    //         console.log(err);
+    //         alert("Import failed");
+    //     }
+    // };
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
@@ -322,23 +350,54 @@ export default function ProductPage() {
         if (!file) return;
 
         try {
+            setImporting(true);
+            setImportProgress(10);
+
             console.log("Selected CSV:", file);
+
+            // Upload/import CSV
+            setImportProgress(30);
+
             const importResult = await importProducts(file);
+
             console.log("IMPORT RESULT:", importResult);
 
+            setImportProgress(80);
 
             // Fetch updated products
             const result = await getProducts();
+
             console.log("PRODUCTS AFTER IMPORT:", result);
+
             setProduct(result.products || []);
             setCurrentPage(1);
 
+            setImportProgress(100);
+
             alert("Products imported successfully!");
+
         } catch (err) {
-            console.log(err);
-            alert("Import failed");
+
+            console.log("Import error:", err);
+
+            alert(
+                err?.response?.data?.message ||
+                "Import failed"
+            );
+
+        } finally {
+
+            setImporting(false);
+
+            setTimeout(() => {
+                setImportProgress(0);
+            }, 500);
         }
+
+        // Allow selecting the same CSV again
+        e.target.value = "";
     };
+
 
     const [viewProduct, setViewProduct] = useState(null);
     const [viewModal, setViewModal] = useState(false);
@@ -462,7 +521,15 @@ export default function ProductPage() {
             />
 
             {showModal && (
-                <AddProductModal onClose={() => setShowModal(false)} />
+                <AddProductModal onClose={() => setShowModal(false)}
+                    onProductAdded={(newProduct) => {
+                        setProduct((prev) => [
+                            ...prev,
+                            newProduct
+                        ]);
+                        setCurrentPage(1);
+                    }}
+                />
             )}
 
             {showEditModal && (
@@ -502,6 +569,40 @@ export default function ProductPage() {
                 onChange={handleFileChange}
             />
 
+            {importing && (
+                <div className="bg-white border border-[#E8ECF1] rounded-xl p-5 mt-5">
+
+                    <div className="flex items-center justify-between mb-2">
+                        <div>
+                            <p className="text-sm font-semibold text-gray-800">
+                                Importing products...
+                            </p>
+
+                            <p className="text-xs text-gray-500 mt-1">
+                                Please wait while your CSV is being processed.
+                            </p>
+                        </div>
+
+                        <span className="text-sm font-semibold text-blue-600">
+                            {importProgress}%
+                        </span>
+                    </div>
+
+                    <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
+                            style={{
+                                width: `${importProgress}%`
+                            }}
+                        />
+                    </div>
+
+                    <p className="text-xs text-gray-400 mt-2">
+                        Please don't close or refresh the page.
+                    </p>
+
+                </div>
+            )}
 
             {/* stock divs */}
             <div className="grid grid-cols-4 mt-5 gap-5">
@@ -642,93 +743,6 @@ export default function ProductPage() {
                             <th className="p-4 text-left">Add to Cart</th>
                         </tr>
                     </thead>
-                    {/* <tbody className="w-full table-fixed bg-white">
-                        {currentProducts.length > 0 ? (
-                            currentProducts.map((product) => {
-                                console.log("RENDERING PRODUCT:", product);
-                                return (
-                                    <tr key={product._id}>
-                                        <td className="p-4 text-left">
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-semibold">{product.productName}</span>
-                                                <span className="text-text font-medium text-xs">ID:{product._id}</span>
-                                            </div>
-                                        </td>
-                                        <td className="p-4 text-left">
-                                            <span className="bg-[#E8ECF1] text-xs p-1 rounded-sm font-semibold text-text">{product.productCategory?.categoryName}</span>
-                                        </td>
-                                        <td className="p-4 text-left font-semibold">
-
-                                            <span className={` ${product.stock === 0 ? "text-red-500" : product.stock < 50 ? "text-orange-500" : "text-black"}`}>{product.stock}</span>
-                                        </td>
-                                        <td className="p-4 text-left text-text">{product.purchase}</td>
-                                        <td className="p-4 text-left text-secondary font-semibold">{product.sellingPrice}</td>
-                                        <td className="p-4 text-left">
-                                            <span className="text-sm text-text">{product.ExpiryDate}</span>
-                                        </td>
-                                        <td className="p-4 text-left text-text text-sm">{product.supplierName}</td>
-                                        <td className="p-4 text-left">
-                                            {/* <span className={` border rounded-full p-2 text-xs font-semibold ${product.status === 'In Stock' ? "text-secondary bg-green-100" : product.status === 'Out Of Stock' ? "text-red-500 bg-red-100" : "text-orange-500 bg-orange-100"} `}>• {product.status}</span> */}
-                    {/*}  <span
-                        className={`border rounded-full p-2 text-xs font-semibold ${product.stock === 0
-                            ? "text-red-500 bg-red-100"
-                            : product.stock < 50
-                                ? "text-orange-500 bg-orange-100"
-                                : "text-secondary bg-green-100"
-                            }`}
-                    >
-                        •{" "}
-                        {product.stock === 0
-                            ? "Out of Stock"
-                            : product.stock < 50
-                                ? "Low Stock"
-                                : "In Stock"}
-                    </span>
-                </td>
-                <td className="p-4 text-left">
-                    <div className="flex gap-3">
-                        <button
-                            className="text-blue-500 text-sm"
-                            onClick={() => handleView(product._id)}
-                        >
-                            <Eye size={15} className="stroke-text hover:stroke-primary transition-transform duration-300 hover:scale-110" />
-                        </button>
-                        <button
-                            onClick={() => {
-                                setSelectedProduct(product);
-                                setShowEditModal(true);
-                            }}
-                            className="text-green-500 text-sm"
-                        >
-                            <Pencil size={15} className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110" />
-                        </button>
-                        <button
-                            className="text-red-500 text-sm"
-                            onClick={() => handleDeleteproduct(product._id)}
-                        >
-                            <Trash2 size={15} className="stroke-text hover:stroke-red-500 transition-transform duration-300 hover:scale-110" />
-                        </button>
-                    </div>
-                </td>
-                <td className="p-4 text-left">
-                    <button onClick={() => {
-                        addToCart(product);
-                        setCartOpen(true);
-                    }
-                    }>
-                        <ShoppingCart size={20} className="stroke-text hover:stroke-black cursor-pointer transition-transform duration-300 hover:scale-110" />
-                    </button>
-                </td>
-            </tr>
-            )
-                            })
-            ) : (
-            <tr>
-                <td colSpan="9" className="text-center py-9 text-text">No Product Found</td>
-            </tr>
-                        )}
-        </tbody> */}
-
                     <tbody className="w-full bg-white">
                         {currentProducts.length > 0 ? (
                             currentProducts.map((product) => (
@@ -750,9 +764,6 @@ export default function ProductPage() {
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-semibold">
                                                     {product.productName}
-                                                </span>
-                                                <span className="text-text font-medium text-xs">
-                                                    ID:{product.id}
                                                 </span>
                                             </div>
                                         </div>

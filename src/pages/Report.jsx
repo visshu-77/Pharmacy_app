@@ -4,8 +4,13 @@ import {
    getSalesOverview,
    getTopSellingProducts,
    getCategoryPerformance,
-   getRecentTransactions
+   getRecentTransactions,
+   exportReport
 } from "../services/reportService";
+
+import {
+   getCategory
+} from "../services/categoryService";
 import {
    ResponsiveContainer,
    LineChart,
@@ -15,13 +20,15 @@ import {
    CartesianGrid,
    Tooltip
 } from "recharts";
-
 export default function Reports() {
 
    const [dateRange, setDateRange] = useState("thisMonth");
    const [category, setCategory] = useState("all");
    const [orderStatus, setOrderStatus] = useState("all");
    const [selectedRange, setSelectedRange] = useState("thisMonth");
+   const [categories, setCategories] = useState([]);
+   const [topSellingType, setTopSellingType] = useState("quantity");
+   const [transactionView, setTransactionView] = useState("subscription");
 
    const [summary, setSummary] = useState({
       totalSales: 0,
@@ -34,23 +41,27 @@ export default function Reports() {
    const [overviewLoading, setOverviewLoading] = useState(true);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState("");
-
    const [topProducts, setTopProducts] = useState([]);
 
    useEffect(() => {
       fetchReportSummary();
       fetchSalesOverview();
-      fetchTopProducts();
+
    }, [selectedRange]);
 
    useEffect(() => {
+      fetchTopProducts();
+   }, [topSellingType])
+
+   useEffect(() => {
+      fetchCategories();
       fetchCategoryPerformance();
    }, [])
 
    const fetchReportSummary = async () => {
       try {
          setLoading(true);
-         const data = await getReportSummary(selectedRange);
+         const data = await getReportSummary(selectedRange, category);
          setSummary(data);
       } catch (err) {
          console.log(err);
@@ -75,8 +86,7 @@ export default function Reports() {
 
    const fetchTopProducts = async () => {
       try {
-         const data = await getTopSellingProducts();
-
+         const data = await getTopSellingProducts(topSellingType);
          setTopProducts(data.products || []);
       } catch (error) {
          console.log("Top products error:", error);
@@ -91,31 +101,31 @@ export default function Reports() {
       try {
          setCategoryLoading(true);
          setCategoryError("");
-
          const data = await getCategoryPerformance();
-
          console.log("Category Performance:", data);
-
          setCategoryPerformance(data.categories || []);
-
       } catch (error) {
-
          console.log(
             "Category performance error:",
             error
          );
-
          setCategoryError(
             error?.response?.data?.message ||
             "Failed to load category performance"
          );
-
       } finally {
          setCategoryLoading(false);
       }
    };
 
    const [transactions, setTransactions] = useState([]);
+
+   const [currentPage, setCurrentPage] = useState(1);
+   const [totalPages, setTotalPages] = useState(1);
+   const [totalTransactions, setTotalTransactions] = useState(0);
+
+   const transactionsPerPage = 10;
+
    const [transactionFilters, setTransactionFilters] = useState({
       customerName: "",
       productName: "",
@@ -124,6 +134,7 @@ export default function Reports() {
       date: "",
       type: "all"
    });
+
    const [transactionLoading, setTransactionLoading] = useState(true);
    const [transactionError, setTransactionError] = useState("");
 
@@ -131,67 +142,194 @@ export default function Reports() {
       fetchRecentTransactions();
    }, []);
 
-   const fetchRecentTransactions = async (filters = {}) => {
+   const fetchRecentTransactions = async (
+      filters = {},
+      page = 1
+   ) => {
       try {
          setTransactionLoading(true);
          setTransactionError("");
-
-         const data = await getRecentTransactions(filters);
-
+         const data = await getRecentTransactions({
+            ...filters,
+            page,
+            limit: transactionsPerPage
+         });
          setTransactions(data.transactions || []);
+         setCurrentPage(
+            data.pagination?.currentPage || page
+         );
 
+         setTotalPages(
+            data.pagination?.totalPages || 1
+         );
+
+         setTotalTransactions(
+            data.pagination?.totalTransactions || 0
+         );
       } catch (err) {
          console.log(err);
-
          setTransactionError(
             err?.response?.data?.message ||
             "Failed to load transactions"
          );
-
       } finally {
          setTransactionLoading(false);
       }
    };
 
    const handleTransactionFilterChange = (field, value) => {
-      setTransactionFilters(prev => ({
+      setTransactionFilters((prev) => ({
          ...prev,
          [field]: value
       }));
    };
 
-   const searchTransaction = (field) => {
+   const handleApplyTransactionFilters = () => {
+      const filters = {};
 
-      const value = transactionFilters[field];
+      Object.entries(transactionFilters).forEach(([key, value]) => {
+         if (value && value !== "all") {
+            filters[key] = value;
+         }
+      });
+      setCurrentPage(1);
+      fetchRecentTransactions(filters);
+   };
 
-      if (!value) {
-         fetchRecentTransactions();
+   const handleResetTransactionFilters = () => {
+      const resetFilters = {
+         customerName: "",
+         productName: "",
+         amount: "",
+         status: "all",
+         date: "",
+         type: "all"
+      };
+
+      setTransactionFilters(resetFilters);
+      setCurrentPage(1);
+      fetchRecentTransactions({});
+   };
+
+
+   const handleExportReport = async () => {
+
+      try {
+
+         const blob = await exportReport();
+
+         const url = window.URL.createObjectURL(blob);
+
+         const link = document.createElement("a");
+
+         link.href = url;
+         link.download = "sales-report.csv";
+
+         document.body.appendChild(link);
+
+         link.click();
+
+         link.remove();
+
+         window.URL.revokeObjectURL(url);
+
+      } catch (error) {
+
+         console.log("Export error:", error);
+
+         alert(
+            error?.response?.data?.message ||
+            "Failed to export report"
+         );
+      }
+   };
+
+   const fetchCategories = async () => {
+      try {
+         const data = await getCategory();
+         // console.log("full category response: ", data)
+         // console.log("Categories:", data?.result);
+
+         setCategories(data.result || []);
+      } catch (error) {
+         console.log("Category fetch error:", error);
+      }
+   };
+
+   const handleReportFilters = () => {
+      console.log("Selected category:", category);
+
+      if (category === "all") {
+         fetchReportSummary(selectedRange);
+         fetchSalesOverview(selectedRange);
+         fetchTopProducts();
+         fetchCategoryPerformance();
+
          return;
       }
 
-      fetchRecentTransactions({
-         [field]: value
-      });
+      // For now check that the category ID is correctly selected
+      console.log("Filtering by category ID:", category);
    };
+
+   const handleResetReportFilters = () => {
+      setCategory("all");
+      setOrderStatus("all");
+   };
+
+   const getActiveTransactionFilters = () => {
+
+      const filters = {};
+
+      Object.entries(transactionFilters).forEach(
+         ([key, value]) => {
+
+            if (value && value !== "all") {
+               filters[key] = value;
+            }
+
+         }
+      );
+
+      return filters;
+   };
+
+   const handleTransactionPageChange = (page) => {
+
+      if (page < 1 || page > totalPages) {
+         return;
+      }
+
+      const filters = getActiveTransactionFilters();
+
+      fetchRecentTransactions(filters, page);
+   };
+
+   const displayedTransactions = transactions.filter((transaction) => {
+
+      if (transactionView === "subscription") {
+         return transaction.transactionType === "subscription";
+      }
+
+      if (transactionView === "billing") {
+         return transaction.transactionType === "order";
+      }
+
+      return true;
+   });
 
    return (
       <div className="min-h-screen bg-gray-50 p-6">
-
-         {/* Header */}
          <div className="flex items-center justify-between mb-6">
-
             <div>
                <h1 className="text-2xl font-bold text-gray-900">
                   Reports & Analytics
                </h1>
-
                <p className="text-sm text-gray-500 mt-1">
                   Track your shop performance, sales, products, and inventory.
                </p>
             </div>
-
             <div className="flex items-center gap-3">
-
                <select
                   value={selectedRange}
                   onChange={(e) => setSelectedRange(e.target.value)}
@@ -200,128 +338,93 @@ export default function Reports() {
                   <option value="today">
                      Today
                   </option>
-
                   <option value="thisWeek">
                      This Week
                   </option>
-
                   <option value="thisMonth">
                      This Month
                   </option>
-
                   <option value="lastMonth">
                      Last Month
                   </option>
-
                   <option value="thisYear">
                      This Year
                   </option>
-
                   <option value="custom">
                      Custom Range
                   </option>
                </select>
-
                <button
                   type="button"
+                  onClick={handleExportReport}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700"
                >
                   ↓ Export Report
                </button>
-
             </div>
-
          </div>
-
-
-         {/* Summary Cards */}
          <div className="grid grid-cols-4 gap-4 mb-5">
-
             <div className="bg-white border border-gray-200 rounded-xl p-5">
                <p className="text-xs text-gray-500">
                   Total Sales
                </p>
-
                <h2 className="text-2xl font-bold mt-2">
                   ₹{summary.totalSales.toLocaleString("en-IN")}
                </h2>
-
                <p className="text-xs text-green-600 mt-2">
                   ↑ 12.4%
                </p>
-
                <p className="text-xs text-gray-400 mt-1">
                   vs previous period
                </p>
             </div>
-
-
             <div className="bg-white border border-gray-200 rounded-xl p-5">
                <p className="text-xs text-gray-500">
                   Total Orders
                </p>
-
                <h2 className="text-2xl font-bold mt-2">
                   {summary.totalOrders.toLocaleString("en-IN")}
                </h2>
-
                <p className="text-xs text-green-600 mt-2">
                   ↑ 8.2%
                </p>
-
                <p className="text-xs text-gray-400 mt-1">
                   vs previous period
                </p>
             </div>
-
-
             <div className="bg-white border border-gray-200 rounded-xl p-5">
                <p className="text-xs text-gray-500">
                   Avg Order Value
                </p>
-
                <h2 className="text-2xl font-bold mt-2">
                   ₹{summary.averageOrderValue.toLocaleString("en-IN", {
                      maximumFractionDigits: 2
                   })}
                </h2>
-
                <p className="text-xs text-red-500 mt-2">
                   ↓ 2.1%
                </p>
-
                <p className="text-xs text-gray-400 mt-1">
                   vs previous period
                </p>
             </div>
-
-
             <div className="bg-white border border-gray-200 rounded-xl p-5">
                <p className="text-xs text-gray-500">
                   Products Sold
                </p>
-
                <h2 className="text-2xl font-bold mt-2">
                   {summary.productsSold.toLocaleString("en-IN")}
                </h2>
-
                <p className="text-xs text-green-600 mt-2">
                   ↑ 18.7%
                </p>
-
                <p className="text-xs text-gray-400 mt-1">
                   vs previous period
                </p>
             </div>
-
          </div>
-
-
-         {/* Filters */}
          <div className="bg-white border border-gray-200 rounded-xl p-4 mb-5">
-
             <div className="flex items-center gap-4">
-
                <span className="text-sm font-semibold">
                   Filters
                </span>
@@ -335,25 +438,17 @@ export default function Reports() {
                      All Categories
                   </option>
 
-                  <option value="electronics">
-                     Electronics
-                  </option>
-
-                  <option value="grocery">
-                     Grocery
-                  </option>
-
-                  <option value="clothing">
-                     Clothing
-                  </option>
-
-                  <option value="accessories">
-                     Accessories
-                  </option>
+                  {categories.map((item) => (
+                     <option
+                        key={item._id}
+                        value={item._id}
+                     >
+                        {item.categoryName}
+                     </option>
+                  ))}
                </select>
 
-
-               <select
+               {/* <select
                   value={orderStatus}
                   onChange={(e) => setOrderStatus(e.target.value)}
                   className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
@@ -361,64 +456,50 @@ export default function Reports() {
                   <option value="all">
                      All Orders
                   </option>
-
                   <option value="completed">
                      Completed
                   </option>
-
                   <option value="processing">
                      Processing
                   </option>
-
                   <option value="pending">
                      Pending
                   </option>
-
                   <option value="cancelled">
                      Cancelled
                   </option>
-
                   <option value="failed">
                      Failed
                   </option>
-               </select>
-
+               </select> */}
 
                <div className="ml-auto flex gap-2">
-
                   <button
                      type="button"
+                     onClick={handleResetReportFilters}
                      className="border border-gray-200 px-4 py-2 rounded-lg text-sm"
                   >
                      Reset
                   </button>
-
                   <button
                      type="button"
+                     onClick={handleReportFilters}
                      className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
                   >
                      Apply Filters
                   </button>
-
                </div>
-
             </div>
-
          </div>
-
-
-         {/* Charts will come here */}
          <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
             <div className="mb-5">
                <h2 className="text-lg font-bold text-gray-900">
                   Sales Overview
                </h2>
-
                <p className="text-sm text-gray-500 mt-1">
                   Track your sales performance over time.
                </p>
             </div>
-
             {overviewLoading ? (
                <div className="h-[300px] flex items-center justify-center text-gray-500">
                   Loading sales overview...
@@ -445,606 +526,432 @@ export default function Reports() {
                   </LineChart>
                </ResponsiveContainer>
             )}
-
          </div>
-
-         {/* Top Selling Products */}
          <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
+            <div className="mb-5 flex items-center justify-between">
 
-            <div className="mb-5">
-               <h2 className="text-lg font-bold text-gray-900">
-                  Top Selling Products
-               </h2>
+               <div>
+                  <h2 className="text-lg font-bold text-gray-900">
+                     Top Selling Products
+                  </h2>
 
-               <p className="text-sm text-gray-500 mt-1">
-                  Your best performing products by quantity sold.
-               </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                     {topSellingType === "quantity"
+                        ? "Your best performing products by quantity sold."
+                        : "Your best performing products by total sales."
+                     }
+                  </p>
+               </div>
+
+               {/* Quantity / Price Toggle */}
+               <div className="flex items-center bg-gray-100 rounded-lg p-1">
+
+                  <button
+                     type="button"
+                     onClick={() => setTopSellingType("quantity")}
+                     className={`px-4 py-2 text-sm font-medium rounded-md transition ${topSellingType === "quantity"
+                        ? "bg-white text-blue-600 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                        }`}
+                  >
+                     Quantity
+                  </button>
+
+                  <button
+                     type="button"
+                     onClick={() => setTopSellingType("price")}
+                     className={`px-4 py-2 text-sm font-medium rounded-md transition ${topSellingType === "price"
+                        ? "bg-white text-blue-600 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                        }`}
+                  >
+                     Price
+                  </button>
+
+               </div>
+
             </div>
-
             {topProducts.length === 0 ? (
-
                <div className="py-10 text-center text-gray-500">
                   No product sales available.
                </div>
-
             ) : (
-
                <div className="overflow-x-auto">
-
                   <table className="w-full">
-
                      <thead>
                         <tr className="border-b border-gray-200 text-left">
-
                            <th className="py-3 px-3 text-xs font-semibold text-gray-500">
                               Product
                            </th>
-
                            <th className="py-3 px-3 text-xs font-semibold text-gray-500">
                               Quantity Sold
                            </th>
-
                            <th className="py-3 px-3 text-xs font-semibold text-gray-500">
                               Total Sales
                            </th>
-
                         </tr>
                      </thead>
-
                      <tbody>
-
                         {topProducts.map((product, index) => (
-
                            <tr
                               key={product._id}
                               className="border-b border-gray-100 last:border-b-0"
                            >
-
                               <td className="py-4 px-3">
-
                                  <div className="flex items-center gap-3">
-
                                     <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-sm font-bold text-blue-600">
                                        {index + 1}
                                     </div>
-
                                     <div>
                                        <p className="text-sm font-semibold text-gray-900">
                                           {product.productName}
                                        </p>
-
                                        <p className="text-xs text-gray-400">
                                           Product ID: {product._id}
                                        </p>
                                     </div>
-
                                  </div>
-
                               </td>
-
                               <td className="py-4 px-3">
-
                                  <span className="text-sm font-semibold">
                                     {product.quantitySold}
                                  </span>
-
                               </td>
-
                               <td className="py-4 px-3">
-
                                  <span className="text-sm font-semibold">
                                     ₹{product.totalSales.toLocaleString("en-IN")}
                                  </span>
-
                               </td>
-
                            </tr>
-
                         ))}
-
                      </tbody>
-
                   </table>
-
                </div>
-
             )}
-
          </div>
-
-         {/* Category perfromance */}
          <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
-
             <div className="mb-5">
                <h2 className="text-sm font-semibold text-gray-900">
                   Category Performance
                </h2>
-
                <p className="text-xs text-gray-500 mt-1">
                   Sales performance by product category.
                </p>
             </div>
-
             {categoryLoading ? (
-
                <div className="py-8 text-center text-sm text-gray-500">
                   Loading category performance...
                </div>
-
             ) : categoryError ? (
-
                <div className="py-8 text-center text-sm text-red-500">
                   {categoryError}
                </div>
-
             ) : categoryPerformance.length === 0 ? (
-
                <div className="py-8 text-center text-sm text-gray-500">
                   No category data found.
                </div>
-
             ) : (
-
                <div className="overflow-x-auto">
-
                   <table className="w-full">
-
                      <thead>
                         <tr className="border-b border-gray-100">
-
                            <th className="text-left text-xs font-semibold text-gray-500 py-3">
                               Category
                            </th>
-
                            <th className="text-left text-xs font-semibold text-gray-500 py-3">
                               Products Sold
                            </th>
-
                            <th className="text-left text-xs font-semibold text-gray-500 py-3">
                               Total Sales
                            </th>
-
                         </tr>
                      </thead>
-
                      <tbody>
-
                         {categoryPerformance.map((category) => (
-
                            <tr
                               key={category._id}
                               className="border-b border-gray-100 last:border-b-0"
                            >
-
                               <td className="py-4 text-sm font-medium text-gray-900">
                                  {category.categoryName}
                               </td>
-
                               <td className="py-4 text-sm text-gray-600">
                                  {category.productsSold.toLocaleString("en-IN")}
                               </td>
-
                               <td className="py-4 text-sm font-semibold text-gray-900">
                                  ₹{category.totalSales.toLocaleString("en-IN")}
                               </td>
-
                            </tr>
-
                         ))}
-
                      </tbody>
-
                   </table>
+               </div>
+            )}
+         </div>
+         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mt-6">
+            <div className="px-5 py-4 border-b border-gray-200">
+               <div className="flex items-center justify-between">
+
+                  <div>
+                     <h2 className="text-lg font-semibold text-gray-900">
+                        Recent Transactions
+                     </h2>
+
+                     <p className="text-sm text-gray-500 mt-1">
+                        View your latest sales and subscription transactions.
+                     </p>
+                  </div>
+
+                  {/* Subscription / Billing Toggle */}
+                  <div className="flex items-center bg-gray-100 rounded-lg p-1">
+
+                     <button
+                        type="button"
+                        onClick={() => setTransactionView("subscription")}
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition ${transactionView === "subscription"
+                           ? "bg-white text-blue-600 shadow-sm"
+                           : "text-gray-500 hover:text-gray-700"
+                           }`}
+                     >
+                        Subscription Plan
+                     </button>
+
+                     <button
+                        type="button"
+                        onClick={() => setTransactionView("billing")}
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition ${transactionView === "billing"
+                           ? "bg-white text-blue-600 shadow-sm"
+                           : "text-gray-500 hover:text-gray-700"
+                           }`}
+                     >
+                        Billing Plan
+                     </button>
+
+                  </div>
 
                </div>
-
-            )}
-
-         </div>
-
-         {/* Recent Transactions */}
-         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mt-6">
-
-            {/* Header */}
-            <div className="px-5 py-4 border-b border-gray-200">
-
-               <h2 className="text-lg font-semibold text-gray-900">
-                  Recent Transactions
-               </h2>
-
-               <p className="text-sm text-gray-500 mt-1">
-                  View your latest sales and subscription transactions.
-               </p>
-
             </div>
-
-
-            {/* Filters */}
             <div className="p-5 border-b border-gray-200">
-
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
-
-                  {/* Customer Name */}
                   <div>
-
                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Customer Name
                      </label>
-
-                     <div className="flex gap-2">
-
-                        <input
-                           type="text"
-                           placeholder="Search customer"
-                           value={transactionFilters.customerName}
-                           onChange={(e) =>
-                              handleTransactionFilterChange(
-                                 "customerName",
-                                 e.target.value
-                              )
-                           }
-                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
-                        />
-
-                        <button
-                           type="button"
-                           onClick={() => searchTransaction("customerName")}
-                           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                        >
-                           Search
-                        </button>
-
-                     </div>
-
+                     <input
+                        type="text"
+                        placeholder="Search customer"
+                        value={transactionFilters.customerName}
+                        onChange={(e) =>
+                           handleTransactionFilterChange(
+                              "customerName",
+                              e.target.value
+                           )
+                        }
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                     />
                   </div>
-
-
-                  {/* Product Name */}
                   <div>
-
                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Product / Plan
                      </label>
-
-                     <div className="flex gap-2">
-
-                        <input
-                           type="text"
-                           placeholder="Search product or plan"
-                           value={transactionFilters.productName}
-                           onChange={(e) =>
-                              handleTransactionFilterChange(
-                                 "productName",
-                                 e.target.value
-                              )
-                           }
-                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
-                        />
-
-                        <button
-                           type="button"
-                           onClick={() => searchTransaction("productName")}
-                           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                        >
-                           Search
-                        </button>
-
-                     </div>
-
+                     <input
+                        type="text"
+                        placeholder="Search product or plan"
+                        value={transactionFilters.productName}
+                        onChange={(e) =>
+                           handleTransactionFilterChange(
+                              "productName",
+                              e.target.value
+                           )
+                        }
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                     />
                   </div>
-
-
-                  {/* Amount */}
                   <div>
-
                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Amount
                      </label>
-
-                     <div className="flex gap-2">
-
-                        <input
-                           type="number"
-                           placeholder="Enter amount"
-                           value={transactionFilters.amount}
-                           onChange={(e) =>
-                              handleTransactionFilterChange(
-                                 "amount",
-                                 e.target.value
-                              )
-                           }
-                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
-                        />
-
-                        <button
-                           type="button"
-                           onClick={() => searchTransaction("amount")}
-                           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                        >
-                           Search
-                        </button>
-
-                     </div>
-
+                     <input
+                        type="number"
+                        placeholder="Enter amount"
+                        value={transactionFilters.amount}
+                        onChange={(e) =>
+                           handleTransactionFilterChange(
+                              "amount",
+                              e.target.value
+                           )
+                        }
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                     />
                   </div>
-
-
-                  {/* Status */}
                   <div>
-
                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Status
                      </label>
+                     <select
+                        value={transactionFilters.status}
+                        onChange={(e) =>
+                           handleTransactionFilterChange(
+                              "status",
+                              e.target.value
+                           )
+                        }
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                     >
 
-                     <div className="flex gap-2">
+                        <option value="all">
+                           All Status
+                        </option>
 
-                        <select
-                           value={transactionFilters.status}
-                           onChange={(e) =>
-                              handleTransactionFilterChange(
-                                 "status",
-                                 e.target.value
-                              )
-                           }
-                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
-                        >
+                        <option value="Paid">
+                           Paid
+                        </option>
 
-                           <option value="all">
-                              All Status
-                           </option>
+                        <option value="Pending">
+                           Pending
+                        </option>
 
-                           <option value="Paid">
-                              Paid
-                           </option>
+                        <option value="Failed">
+                           Failed
+                        </option>
 
-                           <option value="Pending">
-                              Pending
-                           </option>
-
-                           <option value="Failed">
-                              Failed
-                           </option>
-
-                        </select>
-
-                        <button
-                           type="button"
-                           onClick={() => searchTransaction("status")}
-                           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                        >
-                           Search
-                        </button>
-
-                     </div>
-
+                     </select>
                   </div>
 
-
-                  {/* Date */}
                   <div>
 
                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Date
                      </label>
 
-                     <div className="flex gap-2">
-
-                        <input
-                           type="date"
-                           value={transactionFilters.date}
-                           onChange={(e) =>
-                              handleTransactionFilterChange(
-                                 "date",
-                                 e.target.value
-                              )
-                           }
-                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
-                        />
-
-                        <button
-                           type="button"
-                           onClick={() => searchTransaction("date")}
-                           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                        >
-                           Search
-                        </button>
-
-                     </div>
-
+                     <input
+                        type="date"
+                        value={transactionFilters.date}
+                        onChange={(e) =>
+                           handleTransactionFilterChange(
+                              "date",
+                              e.target.value
+                           )
+                        }
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                     />
                   </div>
-
-
-                  {/* Type */}
                   <div>
-
                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Payment Type
                      </label>
-
-                     <div className="flex gap-2">
-
-                        <select
-                           value={transactionFilters.type}
-                           onChange={(e) =>
-                              handleTransactionFilterChange(
-                                 "type",
-                                 e.target.value
-                              )
-                           }
-                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
-                        >
-
-                           <option value="all">
-                              All Types
-                           </option>
-
-                           <option value="Cash">
-                              Cash
-                           </option>
-
-                           <option value="Card">
-                              Card
-                           </option>
-
-                           <option value="UPI">
-                              UPI
-                           </option>
-
-                           <option value="Razorpay">
-                              Razorpay
-                           </option>
-
-                        </select>
-
-                        <button
-                           type="button"
-                           onClick={() => searchTransaction("type")}
-                           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                        >
-                           Search
-                        </button>
-
-                     </div>
-
+                     <select
+                        value={transactionFilters.type}
+                        onChange={(e) =>
+                           handleTransactionFilterChange(
+                              "type",
+                              e.target.value
+                           )
+                        }
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                     >
+                        <option value="all">
+                           All Types
+                        </option>
+                        <option value="Cash">
+                           Cash
+                        </option>
+                        <option value="Card">
+                           Card
+                        </option>
+                        <option value="UPI">
+                           UPI
+                        </option>
+                        <option value="Razorpay">
+                           Razorpay
+                        </option>
+                     </select>
                   </div>
-
                </div>
 
-
-               {/* Reset */}
-               <div className="flex justify-end mt-4">
+               <div className="flex justify-end gap-3 mt-4">
 
                   <button
                      type="button"
-                     onClick={() => {
-
-                        const resetFilters = {
-                           customerName: "",
-                           productName: "",
-                           amount: "",
-                           status: "all",
-                           date: "",
-                           type: "all"
-                        };
-
-                        setTransactionFilters(resetFilters);
-
-                        fetchRecentTransactions();
-
-                     }}
+                     onClick={handleResetTransactionFilters}
                      className="border border-gray-200 hover:bg-gray-50 px-5 py-2 rounded-lg text-sm font-medium text-gray-700"
                   >
                      Reset Filters
                   </button>
 
+                  <button
+                     type="button"
+                     onClick={handleApplyTransactionFilters}
+                     className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium"
+                  >
+                     Apply Filters
+                  </button>
+
                </div>
 
             </div>
-
-
-            {/* Loading */}
             {transactionLoading ? (
-
                <div className="px-5 py-10 text-center text-gray-500">
                   Loading transactions...
                </div>
-
             ) : transactionError ? (
-
                <div className="px-5 py-10 text-center text-red-500">
                   {transactionError}
                </div>
-
-            ) : transactions.length === 0 ? (
-
+            ) : displayedTransactions.length === 0 ? (
                <div className="px-5 py-10 text-center text-gray-500">
                   No transactions found.
                </div>
-
             ) : (
-
-               /* Transactions Table */
                <div className="overflow-x-auto">
-
                   <table className="w-full min-w-[900px]">
-
                      <thead className="bg-gray-50">
-
                         <tr>
-
                            <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
                               Transaction ID
                            </th>
-
                            <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
                               Customer
                            </th>
-
                            <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
                               Product / Plan
                            </th>
-
                            <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
                               Amount
                            </th>
-
                            <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
                               Status
                            </th>
-
                            <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
                               Date
                            </th>
-
                            <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
                               Type
                            </th>
-
                         </tr>
-
                      </thead>
-
-
                      <tbody>
-
-                        {transactions.map((transaction) => (
-
+                        {displayedTransactions.map((transaction) => (
                            <tr
                               key={`${transaction.transactionType}-${transaction.transactionId}`}
                               className="border-t border-gray-100 hover:bg-gray-50"
                            >
-
-                              {/* Transaction ID */}
                               <td className="px-5 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                                  {transaction.transactionId || "-"}
                               </td>
-
-
-                              {/* Customer */}
                               <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap">
                                  {transaction.customerName || "-"}
                               </td>
-
-
-                              {/* Product / Plan */}
                               <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap">
                                  {transaction.transactionName || "-"}
                               </td>
-
-
-                              {/* Amount */}
                               <td className="px-5 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap">
                                  ₹
                                  {Number(
                                     transaction.amount || 0
                                  ).toLocaleString("en-IN")}
                               </td>
-
-
-                              {/* Status */}
                               <td className="px-5 py-4 whitespace-nowrap">
-
                                  <span
                                     className={`
                               px-2.5
@@ -1052,7 +959,6 @@ export default function Reports() {
                               rounded-full
                               text-xs
                               font-medium
-
                               ${transaction.status?.toLowerCase() === "paid"
                                           ? "bg-green-100 text-green-700"
                                           : transaction.status?.toLowerCase() === "failed"
@@ -1063,46 +969,85 @@ export default function Reports() {
                                  >
                                     {transaction.status || "-"}
                                  </span>
-
                               </td>
-
-
-                              {/* Date */}
                               <td className="px-5 py-4 text-sm text-gray-500 whitespace-nowrap">
-
                                  {transaction.date
                                     ? new Date(
                                        transaction.date
                                     ).toLocaleDateString("en-IN")
                                     : "-"
                                  }
-
                               </td>
-
-
-                              {/* Type */}
                               <td className="px-5 py-4 whitespace-nowrap">
-
                                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                                     {transaction.type || "-"}
                                  </span>
-
                               </td>
-
                            </tr>
-
                         ))}
-
                      </tbody>
-
                   </table>
+                  {totalTransactions > 0 && (
+                     <div className="flex items-center justify-between px-5 py-4 border-t border-gray-200">
 
+                        <p className="text-sm text-gray-500">
+                           Showing{" "}
+                           <span className="font-medium text-gray-700">
+                              {(currentPage - 1) * transactionsPerPage + 1}
+                           </span>
+                           {" "}to{" "}
+                           <span className="font-medium text-gray-700">
+                              {Math.min(
+                                 currentPage * transactionsPerPage,
+                                 totalTransactions
+                              )}
+                           </span>
+                           {" "}of{" "}
+                           <span className="font-medium text-gray-700">
+                              {totalTransactions}
+                           </span>
+                           {" "}transactions
+                        </p>
+
+                        <div className="flex items-center gap-2">
+
+                           <button
+                              type="button"
+                              disabled={currentPage === 1}
+                              onClick={() =>
+                                 handleTransactionPageChange(
+                                    currentPage - 1
+                                 )
+                              }
+                              className="px-3 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                           >
+                              Previous
+                           </button>
+
+                           <span className="px-3 py-2 text-sm font-medium">
+                              Page {currentPage} of {totalPages}
+                           </span>
+
+                           <button
+                              type="button"
+                              disabled={currentPage === totalPages}
+                              onClick={() =>
+                                 handleTransactionPageChange(
+                                    currentPage + 1
+                                 )
+                              }
+                              className="px-3 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                           >
+                              Next
+                           </button>
+
+                        </div>
+
+                     </div>
+                  )}
                </div>
-
             )}
-
          </div>
-
       </div>
    );
 }

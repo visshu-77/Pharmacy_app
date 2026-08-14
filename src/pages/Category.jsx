@@ -15,16 +15,14 @@ import OutofStockIcon from "../components/Icons/product page icons/outOfStockIco
 
 import AddcategoryModal from "../components/modals/AddcategoryModal";
 
-import { getCategory, deleteCategory } from "../services/categoryService";
+import {
+    getCategory,
+    deleteCategory,
+    deleteSingleCategories,
+    deleteAllCategories
+} from "../services/categoryService";
 import EditCategoryModal from "../components/modals/EditcategoryModal";
 import ViewCategoryModal from "../components/modals/viewCategoryModal";
-
-const AnalyticsData = [
-    { id: 1, icon: TotalProductIcon, number: 16, content: "Total Product", color: "text-secondary", bg: "bg-[#F0FDFA]" },
-    { id: 2, icon: LowStockIcon, number: 4, content: "Low Stock", color: "text-red-500", bg: "bg-[#FFFBEB]" },
-    { id: 3, icon: ExpiringSoonIcon, number: 2, content: "Expiring Soon", color: "text-orange-500", bg: "bg-[#FFF7ED]" },
-    { id: 4, icon: OutofStockIcon, number: 1, content: "Out Of Stock", color: "text-red-500", bg: "bg-[#FEF3F2]" }
-]
 
 
 const filterOption = [
@@ -44,6 +42,7 @@ export default function CategoryPage() {
     const [openViewModal, setOpenViewModal] = useState(false);
 
     const [category, setCategory] = useState([]);
+    const [selectedCategories, setSelectedCategories] = useState([]);
 
     useEffect(() => {
         const fetchCategory = async () => {
@@ -103,9 +102,123 @@ export default function CategoryPage() {
         }
     }
 
-    const handleView = async(id) => {
+    const handleView = async (id) => {
         setSelectedCategoryId(id);
         setOpenViewModal(true);
+    };
+
+    const categoryOptions = [
+        ...new Set(
+            category
+                .map((item) => item.categoryName)
+                .filter(Boolean)
+        )
+    ];
+
+    const AnalyticsData = [
+        { id: 1, icon: TotalProductIcon, number: category.length, content: "Total Categories", color: "text-secondary", bg: "bg-[#F0FDFA]" }
+    ]
+
+    const handleSelectCategory = (id) => {
+        setSelectedCategories((prev) => {
+            if (prev.includes(id)) {
+                return prev.filter(
+                    (categoryId) => categoryId !== id
+                );
+            }
+
+            return [...prev, id];
+        });
+    };
+
+    const handleSelectAll = () => {
+        const currentCategoryIds = currentProducts.map(
+            (item) => item._id
+        );
+
+        const allSelected = currentCategoryIds.every(
+            (id) => selectedCategories.includes(id)
+        );
+
+        if (allSelected) {
+            setSelectedCategories((prev) =>
+                prev.filter(
+                    (id) => !currentCategoryIds.includes(id)
+                )
+            );
+        } else {
+            setSelectedCategories((prev) => [
+                ...new Set([
+                    ...prev,
+                    ...currentCategoryIds
+                ])
+            ]);
+        }
+    };
+
+    const isAllCurrentCategoriesSelected =
+        currentProducts.length > 0 &&
+        currentProducts.every(
+            (item) => selectedCategories.includes(item._id)
+        );
+
+    const handleDeleteSelected = async () => {
+        if (selectedCategories.length === 0) {
+            alert("Please select at least one category");
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Are you sure you want to delete ${selectedCategories.length} selected category(s)?`
+        );
+
+        if (!confirmed) return;
+
+        try {
+            await deleteSingleCategories(selectedCategories);
+
+            setCategory((prev) =>
+                prev.filter(
+                    (item) =>
+                        !selectedCategories.includes(item._id)
+                )
+            );
+
+            setSelectedCategories([]);
+
+            setCurrentPage(1);
+
+            alert("Selected categories deleted successfully");
+        } catch (error) {
+            console.log(error);
+            alert("Failed to delete selected categories");
+        }
+    };
+
+    const handleDeleteAll = async () => {
+        if (category.length === 0) {
+            alert("No categories available to delete");
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Are you sure you want to delete ALL ${category.length} categories?`
+        );
+
+        if (!confirmed) return;
+
+        try {
+            await deleteAllCategories();
+
+            setCategory([]);
+            setSelectedCategories([]);
+            setCurrentPage(1);
+
+            alert("All categories deleted successfully");
+        } catch (error) {
+            console.log(error);
+            alert("Failed to delete all categories");
+        }
     };
 
     return (
@@ -113,15 +226,21 @@ export default function CategoryPage() {
             <LastParams />
             <HeadingWithButton
                 mainheading="Product Categories"
-                contentLine="17 categories"
-                firstButton="Export"
-                secondButton="Import"
+                contentLine={`${category.length} categories`}
                 thirdButton="Add Category"
                 onThirdButtonClick={() => setShowModal(true)}
             />
 
             {showModal && (
-                <AddcategoryModal onClose={() => setShowModal(false)} />
+                <AddcategoryModal onClose={(newCategory) => {
+                    setShowModal(false)
+                    if (newCategory) {
+                        setCategory((prev) => [
+                            ...prev,
+                            newCategory
+                        ]);
+                    }
+                }} />
             )}
 
             {showEditModal && (
@@ -145,12 +264,12 @@ export default function CategoryPage() {
 
             {openViewModal && (
                 <ViewCategoryModal
-                categoryId={selectedCategoryId}
-                onClose={() => setOpenViewModal(false)}
+                    categoryId={selectedCategoryId}
+                    onClose={() => setOpenViewModal(false)}
                 />
             )
             }
-            
+
 
             {/* stock div */}
             <div className="grid grid-cols-4 mt-5 gap-5">
@@ -170,6 +289,35 @@ export default function CategoryPage() {
                 })}
             </div>
 
+            {selectedCategories.length > 0 && (
+                <div className="flex items-center justify-between bg-white border border-[#E8ECF1] rounded-xl p-3 mt-4">
+
+                    <span className="text-sm text-text">
+                        {selectedCategories.length} categories
+                        {selectedCategories.length > 1 ? "ies" : "y"} selected
+                    </span>
+
+                    <div className="flex gap-3">
+
+                        <button
+                            onClick={handleDeleteSelected}
+                            className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-600 transition"
+                        >
+                            Delete Selected
+                        </button>
+
+                        <button
+                            onClick={handleDeleteAll}
+                            className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-600 transition"
+                        >
+                            Delete All
+                        </button>
+
+                    </div>
+
+                </div>
+            )}
+
             {/* search filter */}
             <div className="bg-white p-4 border border-[#E8ECF1] rounded-xl mt-5 flex gap-5 items-center">
                 <div className="flex border border-[#E8ECF1] p-2 rounded-lg w-[90%] gap-2 items-center">
@@ -185,19 +333,31 @@ export default function CategoryPage() {
                 </div>
                 <div className="flex gap-5 items-center w-[30%]">
                     <FilterIcon className="h-4 w-4" />
-                    {filterOption.map((filter) => {
-                        return (
-                            <select key={filter.placeholder}
-                                className="w-[100%] focus:outline-none focus:ring-0 border border-[#E8ECF1] rounded-lg py-2 px-4 text-text cursor-pointer">
-                                <option value="">{filter.placeholder}</option>
-                                {filter.options.map((option) => (
-                                    <option key={option} value={option}>
-                                        {option}
-                                    </option>
-                                ))}
-                            </select>
-                        );
-                    })}
+
+                    <select
+                        value={filters.category}
+                        onChange={(e) => {
+                            setFilters({
+                                ...filters,
+                                category: e.target.value,
+                            });
+
+                            // Reset pagination when filter changes
+                            setCurrentPage(1);
+                        }}
+                        className="w-full focus:outline-none focus:ring-0 border border-[#E8ECF1] rounded-lg py-2 px-4 text-text cursor-pointer"
+                    >
+                        <option value="">All Categories</option>
+
+                        {categoryOptions.map((categoryName) => (
+                            <option
+                                key={categoryName}
+                                value={categoryName}
+                            >
+                                {categoryName}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             </div>
 
@@ -206,7 +366,17 @@ export default function CategoryPage() {
                 <table className="w-full">
                     <thead>
                         <tr className="text-text uppercase text-xs bg-[#FAFBFC]">
-                            <th className="p-4 text-left">Category name</th>
+                            <th className="p-4 text-left">
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={isAllCurrentCategoriesSelected}
+                                        onChange={handleSelectAll}
+                                        className="w-4 h-4 cursor-pointer"
+                                    />
+                                    <span>Category name</span>
+                                </div>
+                            </th>
                             <th className="p-4 text-left">Description</th>
                             <th className="p-4 text-left">Products</th>
                             <th className="p-4 text-left">Actions</th>
@@ -217,9 +387,23 @@ export default function CategoryPage() {
                             currentProducts.map((data) => (
                                 <tr key={data._id}>
                                     <td className="p-4 text-left">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-semibold">{data.categoryName}</span>
-                                            <span className="text-text font-medium text-xs">{data._id}</span>
+                                        <div className="flex items-center gap-3">
+
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedCategories.includes(data._id)}
+                                                onChange={() =>
+                                                    handleSelectCategory(data._id)
+                                                }
+                                                className="w-4 h-4 cursor-pointer"
+                                            />
+
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-semibold">
+                                                    {data.categoryName}
+                                                </span>
+                                            </div>
+
                                         </div>
                                     </td>
                                     <td className="p-4 text-left">
@@ -240,13 +424,13 @@ export default function CategoryPage() {
                                             </button>
 
                                             <button
-                                            className="text-green-500 text-sm"
+                                                className="text-green-500 text-sm"
                                                 onClick={() => {
                                                     setSelectedCategory(data);
                                                     setShowEditModal(true);
                                                 }}
                                             >
-                                                <Pencil size={15} className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110"  />
+                                                <Pencil size={15} className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110" />
                                             </button>
 
                                             <button
@@ -271,8 +455,35 @@ export default function CategoryPage() {
                 </table>
                 <div className="flex items-center justify-between p-4 border-t">
                     <p className="text-sm text-text">
-                        pagination
+                        {searchCategory.length > 0
+                            ? `Showing ${indexOfFirstCategory + 1}-${Math.min(
+                                indexOfLastCategory,
+                                searchCategory.length
+                            )} of ${searchCategory.length}`
+                            : "Showing 0-0 of 0"}
                     </p>
+
+                    <div className="flex gap-2">
+                        <button
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage((prev) => prev - 1)}
+                            className="px-3 py-1 border rounded disabled:opacity-50"
+                        >
+                            Previous
+                        </button>
+
+                        <span className="px-3 py-1">
+                            {currentPage} / {totalPages || 1}
+                        </span>
+
+                        <button
+                            disabled={currentPage === totalPages || totalPages === 0}
+                            onClick={() => setCurrentPage((prev) => prev + 1)}
+                            className="px-3 py-1 border rounded disabled:opacity-50"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
 
