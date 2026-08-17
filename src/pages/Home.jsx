@@ -1,4 +1,7 @@
 
+import { useState, useEffect } from "react";
+import { getDashboardSummary } from "../services/dashboardService"
+
 import LastParams from "../components/lastParams";
 
 import FilledButton from "../components/filledButton";
@@ -13,12 +16,12 @@ import RailIcon from "../components/Icons/RailIcon";
 import ProfileIcon from "../components/Icons/ProfileIcon";
 import CartIcon from "../components/Icons/CartIcon";
 
-const counterData = [
-    { number: "₹8,420", content: "Today's Revenue" },
-    { number: "34", content: "Orders Today" },
-    { number: "5", content: "Low Stock" },
-    { number: "3", content: "Expiring Soon" },
-]
+// const counterData = [
+//     { number: "₹8,420", content: "Today's Revenue" },
+//     { number: "34", content: "Orders Today" },
+//     { number: "5", content: "Low Stock" },
+//     { number: "3", content: "Expiring Soon" },
+// ]
 
 const BoxesData = [
     { icon: CapsuleIcon, number: "1,284", content: "Total Product", status: "12% This Week" },
@@ -40,6 +43,53 @@ const topSellingData = [
 ]
 
 export default function Dashboard() {
+
+    const [dashboardSummary, setDashboardSummary] = useState({
+        "todaysRevenue": 0,
+        "ordersToday": 0,
+        "lowStock": 0,
+        "expiringSoon": 0
+    })
+
+    const [dashboardLoading, setDashboardLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDashboardSummary = async () => {
+            try {
+                setDashboardLoading(true);
+                const data = await getDashboardSummary();
+                console.log(data);
+                setDashboardLoading(data.summary || {});
+
+            } catch (err) {
+                console.log(err);
+            } finally {
+                setDashboardLoading(false);
+            }
+        };
+        fetchDashboardSummary();
+    }, []);
+
+    const counterData = [
+        {
+            number: `₹${Number(
+                dashboardSummary.todaysRevenue || 0
+            ).toLocaleString("en-IN")}`,
+            content: "Today's Revenue"
+        },
+        {
+            number: dashboardSummary.ordersToday,
+            content: "Orders Today"
+        },
+        {
+            number: dashboardSummary.lowStock,
+            content: "Low Stock"
+        },
+        {
+            number: dashboardSummary.expiringSoon,
+            content: "Expiring Soon"
+        }
+    ]
 
     return (
         <div className="">
@@ -64,7 +114,12 @@ export default function Dashboard() {
                 <div className="grid grid-cols-4 border-t-1 border-[#ffffff4a] pt-3 pb-3 mt-3">
                     {counterData.map((item, index) => (
                         <div key={index}>
-                            <h2 className="text-xl font-semibold">{item.number}</h2>
+                            <h2 className="text-xl font-semibold">
+                                {dashboardLoading
+                                    ? "..."
+                                    : item.number
+                                }
+                            </h2>
                             <p className="text-xs text-[#BEDBFF]">{item.content}</p>
                         </div>
                     ))}
@@ -115,7 +170,7 @@ export default function Dashboard() {
                                     </div>
                                     <div>
                                         <h3 className='font-semibold text-sm'>{items.price}</h3>
-                                        <p className={`font-semibold text-xs text-right ${items.increase < 0 ? "text-red-500" : "text-secondary"}`}>{items.increase > 0 ? "+" : ""}{items.increase}%</p>
+                                        <p className={`font- semibold text - xs text - right ${items.increase < 0 ? "text-red-500" : "text-secondary"}`}>{items.increase > 0 ? "+" : ""}{items.increase}%</p>
                                     </div>
                                 </div>
                             )

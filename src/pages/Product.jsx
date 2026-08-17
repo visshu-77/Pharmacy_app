@@ -300,7 +300,7 @@ export default function ProductPage() {
             link.href = url;
             link.setAttribute("download", "products.csv");
 
-            document.body.appendChild(link);
+                document.body.appendChild(link);
 
             link.click();
             link.remove();
