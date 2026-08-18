@@ -23,16 +23,16 @@ import CartIcon from "../components/Icons/CartIcon";
 //     { number: "3", content: "Expiring Soon" },
 // ]
 
-const BoxesData = [
-    { icon: CapsuleIcon, number: "1,284", content: "Total Product", status: "12% This Week" },
-    { icon: AlertIcon, number: "5", content: "Low Stock Items", status: "Needs attention" },
-    { icon: CalenderIcon, number: "3", content: "Expiring Soon", status: "Within 30 days" },
-    { icon: MoneyIcon, number: "₹8,420", content: "Today's Sales", status: "↑ 18% vs yesterday" },
-    { icon: GraphIcon, number: "₹30,200", content: "Monthly Profit", status: "↑ 8% vs last month" },
-    { icon: RailIcon, number: "24", content: "Total Suppliers", status: "3 new this month" },
-    { icon: ProfileIcon, number: "8", content: "Employees", status: "All active" },
-    { icon: CartIcon, number: "2", content: "Pending Purchases", status: "All active" },
-]
+// const BoxesData = [
+//     { icon: CapsuleIcon, number: "1,284", content: "Total Product", status: "12% This Week" },
+//     { icon: AlertIcon, number: "5", content: "Low Stock Items", status: "Needs attention" },
+//     { icon: CalenderIcon, number: "3", content: "Expiring Soon", status: "Within 30 days" },
+//     { icon: MoneyIcon, number: "₹8,420", content: "Today's Sales", status: "↑ 18% vs yesterday" },
+//     { icon: GraphIcon, number: "₹30,200", content: "Monthly Profit", status: "↑ 8% vs last month" },
+//     { icon: RailIcon, number: "24", content: "Total Suppliers", status: "3 new this month" },
+//     { icon: ProfileIcon, number: "8", content: "Employees", status: "All active" },
+//     { icon: CartIcon, number: "2", content: "Pending Purchases", status: "All active" },
+// ]
 
 const topSellingData = [
     { id: 1, TabletName: "Dolo 650mg", unit: "1,842 units", price: "₹18,420", increase: "12" },
@@ -49,7 +49,19 @@ export default function Dashboard() {
         "ordersToday": 0,
         "lowStock": 0,
         "expiringSoon": 0
-    })
+    });
+
+    const [dashboardBoxes, setDashboardBoxes] = useState({
+        totalProducts: 0,
+        lowStockItems: 0,
+        expiringSoon: 0,
+        todaysSales: 0,
+        monthlyProfit: 0,
+        totalSuppliers: 0,
+        employees: 0,
+        pendingPurchases: 0,
+        monthlyRevenue: 0
+    });
 
     const [dashboardLoading, setDashboardLoading] = useState(true);
 
@@ -59,7 +71,8 @@ export default function Dashboard() {
                 setDashboardLoading(true);
                 const data = await getDashboardSummary();
                 console.log(data);
-                setDashboardLoading(data.summary || {});
+                setDashboardSummary(data.summary || {});
+                setDashboardBoxes(data.summary || {})
 
             } catch (err) {
                 console.log(err);
@@ -90,6 +103,61 @@ export default function Dashboard() {
             content: "Expiring Soon"
         }
     ]
+
+    const BoxesData = [
+        {
+            icon: CapsuleIcon,
+            number: dashboardBoxes.totalProducts,
+            content: "Total Product",
+            status: "Total products"
+        },
+        {
+            icon: AlertIcon,
+            number: dashboardBoxes.lowStock,
+            content: "Low Stock Items",
+            status: "Needs attention"
+        },
+        {
+            icon: CalenderIcon,
+            number: dashboardBoxes.expiringSoon,
+            content: "Expiring Soon",
+            status: "Within 30 days"
+        },
+        {
+            icon: MoneyIcon,
+            number: `₹${Number(
+                dashboardBoxes.todaysRevenue || 0
+            ).toLocaleString("en-IN")}`,
+            content: "Today's Sales",
+            status: "Today's revenue"
+        },
+        {
+            icon: GraphIcon,
+            number: `₹${Number(
+                dashboardSummary.monthlyRevenue || 0
+            ).toLocaleString("en-IN")}`,
+            content: "Monthly Profit",
+            status: "This month"
+        },
+        {
+            icon: RailIcon,
+            number: dashboardBoxes.totalSuppliers,
+            content: "Total Suppliers",
+            status: "Active suppliers"
+        },
+        {
+            icon: ProfileIcon,
+            number: dashboardBoxes.employees,
+            content: "Employees",
+            status: "Active employees"
+        },
+        {
+            icon: CartIcon,
+            number: dashboardBoxes.pendingPurchases,
+            content: "Pending Purchases",
+            status: "Needs attention"
+        }
+    ];
 
     return (
         <div className="">

@@ -624,14 +624,14 @@ export default function ProductPage() {
 
 
             {/* Search Filter */}
-            <div className="bg-white p-4 border border-[#E8ECF1] rounded-xl mt-5 flex gap-5 items-center">
-                <div className="flex border border-[#E8ECF1] p-2 rounded-lg w-[50%] gap-2 items-center">
+            <div className="bg-white p-4 border border-[#E8ECF1] rounded-xl mt-5 flex flex-wrap sm:flex-nowrap gap-5 items-center">
+                <div className="flex border border-[#E8ECF1] p-2 rounded-lg w-full sm:w-[50%] gap-2 items-center">
                     <span>
                         <SearchIcon className="h-4 w-4" />
                     </span>
                     <input type="text" value={searchText} onChange={(e) => setSearchtext(e.target.value)} placeholder="Seacrh Products.." className="w-[100%] focus:outline-none focus:ring-0 text-sm text-text" />
                 </div>
-                <div className="flex gap-5 items-center">
+                <div className="flex flex-wrap sm:flex-nowrap gap-5 items-center">
                     <FilterIcon className="h-4 w-4" />
                     {filterOption.map((filter) => {
 

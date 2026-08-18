@@ -18,7 +18,7 @@ import MeditaskIcon from "./Icons/mediTaskIcon";
 import { useSubscription } from "../context/SubscriptionContext";
 
 
-export default function ProfileCard() {
+export default function ProfileCard({ closeSidebar }) {
 
     const sidebarData = [
         { id: 1, icon: DashboardIcon, name: "Dashboard", path: "/" },
@@ -47,7 +47,7 @@ export default function ProfileCard() {
     };
 
     return (
-        <div className="bg-white text-black rounded shadow-lg flex flex-col h-screen">
+        <div className="bg-white text-black rounded shadow-lg flex flex-col min-h-full overflow-y-auto">
 
             {!subscriptionLoading && (subscription ? (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200">
@@ -57,7 +57,7 @@ export default function ProfileCard() {
                         <p className="text-sm font-semibold text-green-700 capitalize">
                             {subscription.plan} Plan <span className="text-xs text-green-600">Activated</span>
                         </p>
-                        
+
                         <p className="text-xs text-gray-500">
                             {getRemainingDays(subscription.endDate)} days remaining
                         </p>
@@ -80,8 +80,12 @@ export default function ProfileCard() {
 
                     const Icon = item.icon
                     return (
-                        <Link to={item.path} key={item.id} >
-                            <div className="flex text-text text-sm font-semibold hover:bg-primary hover:text-white hover:shadow-lg p-4 gap-2" >
+                        <Link
+                            to={item.path}
+                            key={item.id}
+                            onClick={closeSidebar}
+                        >
+                            <div className="flex text-text text-sm font-semibold hover:bg-primary hover:text-white hover:shadow-lg p-4 gap-2">
                                 <Icon className="h-5 w-5" />
                                 <h3>{item.name}</h3>
                             </div>
