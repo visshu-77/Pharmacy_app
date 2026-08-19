@@ -11,7 +11,7 @@ export default function HeadingWithButton({
     onSecondButtonClick,
 }) {
     return (
-        <div className="flex justify-between mt-5">
+        <div className="flex sm:flex-row flex-col justify-between mt-5">
 
             <div>
                 <h2 className="text-xl font-semibold">
@@ -23,13 +23,13 @@ export default function HeadingWithButton({
                 </p>
             </div>
 
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center sm:mt-0 mt-4">
 
                 {/* Export */}
                 {firstButton && (
                     <button
                         onClick={onFirstButtonClick}
-                        className="px-6 py-2 rounded-lg border-primary text-sm text-text font-semibold border flex items-center gap-2 cursor-pointer"
+                        className="px-4 py-2 rounded-lg border-primary text-sm text-text font-semibold border flex items-center gap-2 cursor-pointer"
                     >
                         <Download size={15} />
                         {firstButton}
@@ -40,7 +40,7 @@ export default function HeadingWithButton({
                 {secondButton && (
                     <button
                         onClick={onSecondButtonClick}
-                        className="px-6 py-2 rounded-lg border-primary text-sm text-text font-semibold border flex items-center gap-2 cursor-pointer"
+                        className="px-4 py-2 rounded-lg border-primary text-sm text-text font-semibold border flex items-center gap-2 cursor-pointer"
                     >
                         <Upload size={15} />
                         {secondButton}
@@ -51,7 +51,7 @@ export default function HeadingWithButton({
                 {thirdButton && (
                     <button
                         onClick={onThirdButtonClick}
-                        className="bg-primary px-6 py-2 rounded-lg text-sm text-white font-semibold border flex items-center gap-2 cursor-pointer"
+                        className="bg-primary px-4 py-2 rounded-lg text-sm text-white font-semibold border flex items-center gap-2 cursor-pointer"
                     >
                         <Plus size={15} />
                         {thirdButton}

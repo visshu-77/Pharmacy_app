@@ -47,59 +47,62 @@ export default function ProfileCard({ closeSidebar }) {
     };
 
     return (
-        <div className="bg-white text-black rounded shadow-lg flex flex-col min-h-full overflow-y-auto">
+        <div className="bg-white text-black rounded shadow-lg flex flex-col justify-between min-h-full overflow-y-auto">
+            <div>
+                {!subscriptionLoading && (subscription ? (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200">
+                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
 
-            {!subscriptionLoading && (subscription ? (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200">
-                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                        <div>
+                            <p className="text-sm font-semibold text-green-700 capitalize">
+                                {subscription.plan} Plan <span className="text-xs text-green-600">Activated</span>
+                            </p>
 
-                    <div>
-                        <p className="text-sm font-semibold text-green-700 capitalize">
-                            {subscription.plan} Plan <span className="text-xs text-green-600">Activated</span>
-                        </p>
-
-                        <p className="text-xs text-gray-500">
-                            {getRemainingDays(subscription.endDate)} days remaining
-                        </p>
+                            <p className="text-xs text-gray-500">
+                                {getRemainingDays(subscription.endDate)} days remaining
+                            </p>
+                        </div>
                     </div>
+                ) : (
+                    <div className="flex items-center justify-center gap-2 px-3 py-4 rounded-lg bg-red-50 border border-red-200">
+                        <h1 className="text-sm">No Subscription Found</h1>
+                    </div>
+                )
+                )}
+
+                <div className="flex p-4 item-center gap-4">
+                    <MeditaskIcon className="h-10 w-10 stroke-black" />
+                    <div><h3 className="font-bold text-xl">MediTask</h3><p className="text-xs text-text">India's No. 1 billing App</p></div>
                 </div>
-            ) : (
-                <div className="flex items-center justify-center gap-2 px-3 py-4 rounded-lg bg-red-50 border border-red-200">
-                    <h1 className="text-sm">No Subscription Found</h1>
+
+                <div className="mt-4">
+                    {sidebarData.map((item) => {
+
+                        const Icon = item.icon
+                        return (
+                            <Link
+                                to={item.path}
+                                key={item.id}
+                                onClick={closeSidebar}
+                            >
+                                <div className="flex text-text text-sm font-semibold hover:bg-primary hover:text-white hover:shadow-lg p-4 gap-2">
+                                    <Icon className="h-5 w-5" />
+                                    <h3>{item.name}</h3>
+                                </div>
+                            </Link>
+                        )
+                    })}
                 </div>
-            )
-            )}
-
-            <div className="flex p-4 item-center gap-4">
-                <MeditaskIcon className="h-10 w-10 stroke-black" />
-                <div><h3 className="font-bold text-xl">MediTask</h3><p className="text-xs text-text">India's No. 1 billing App</p></div>
             </div>
-
-            <div className="mt-4">
-                {sidebarData.map((item) => {
-
-                    const Icon = item.icon
-                    return (
-                        <Link
-                            to={item.path}
-                            key={item.id}
-                            onClick={closeSidebar}
-                        >
-                            <div className="flex text-text text-sm font-semibold hover:bg-primary hover:text-white hover:shadow-lg p-4 gap-2">
-                                <Icon className="h-5 w-5" />
-                                <h3>{item.name}</h3>
-                            </div>
-                        </Link>
-                    )
-                })}
-            </div>
-            <div className=" flex flex-col gap-2 p-2 mt-4 p-4">
-                <Link to='/register' className=" flex gap-2 items-center border text-sm rounded p-4 whitespace-nowrap hover:shadow">
-                    <UserPlus className="w-3 h-3" />
-                    Create Account</Link>
-                <Link to='/login' className="flex gap-2 items-center border text-sm rounded p-4 text-center hover:shadow">
-                    <LogIn className="w-3 h-3" />
-                    Signin</Link>
+            <div>
+                <div className=" flex flex-col gap-2 p-2 mt-4 p-4">
+                    <Link to='/register' className=" flex gap-2 items-center border text-sm rounded p-4 whitespace-nowrap hover:shadow">
+                        <UserPlus className="w-3 h-3" />
+                        Create Account</Link>
+                    <Link to='/login' className="flex gap-2 items-center border text-sm rounded p-4 text-center hover:shadow">
+                        <LogIn className="w-3 h-3" />
+                        Signin</Link>
+                </div>
             </div>
         </div >
     )

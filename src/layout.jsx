@@ -66,7 +66,8 @@ export default function Layout() {
                         fixed lg:static
                         top-0 left-0
                         z-50
-                        h-screen
+                        h-auto
+                        items-self
                         w-[280px] lg:w-[15%]
                         bg-white
                         transform transition-transform duration-300

@@ -197,21 +197,6 @@ export default function ProductPage() {
 
     const [showModal, setShowModal] = useState(false);
 
-
-
-    // const productCategories = [
-    //     ...new Set(product.map((product) => product.productCategory?.categoryName))
-    // ];
-
-    // const productSuppliers = [
-    //     ...new Set(product.map((product) => product.supplierName))
-    // ];
-
-    // const productStatus = [
-    //     ...new Set(product.map((product) => product.status))
-    // ];
-
-
     const filterOption = [
         {
             placeholder: "All Categories",
@@ -300,7 +285,7 @@ export default function ProductPage() {
             link.href = url;
             link.setAttribute("download", "products.csv");
 
-                document.body.appendChild(link);
+            document.body.appendChild(link);
 
             link.click();
             link.remove();
@@ -320,29 +305,6 @@ export default function ProductPage() {
         fileInputRef.current.click();
     };
 
-    // const handleFileChange = async (e) => {
-    //     const file = e.target.files[0];
-
-    //     if (!file) return;
-
-    //     try {
-    //         console.log("Selected CSV:", file);
-    //         const importResult = await importProducts(file);
-    //         console.log("IMPORT RESULT:", importResult);
-
-
-    //         // Fetch updated products
-    //         const result = await getProducts();
-    //         console.log("PRODUCTS AFTER IMPORT:", result);
-    //         setProduct(result.products || []);
-    //         setCurrentPage(1);
-
-    //         alert("Products imported successfully!");
-    //     } catch (err) {
-    //         console.log(err);
-    //         alert("Import failed");
-    //     }
-    // };
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
@@ -605,7 +567,7 @@ export default function ProductPage() {
             )}
 
             {/* stock divs */}
-            <div className="grid grid-cols-4 mt-5 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 mt-5 gap-5">
                 {AnalyticsData.map((items) => {
                     const Icons = items.icon;
                     return (
@@ -684,6 +646,7 @@ export default function ProductPage() {
                 </div>
             </div>
 
+
             {selectedProducts.length > 0 && (
                 <div className="flex items-center justify-between bg-white border border-[#E8ECF1] rounded-xl p-3 mt-4">
 
@@ -717,204 +680,452 @@ export default function ProductPage() {
             )}
 
             {/* Products */}
-            <div className="border-[#E8ECF1] border rounded-xl mt-5">
-                <table className="w-full table-fixed">
-                    <thead>
-                        <tr className="text-text uppercase text-xs bg-[#FAFBFC]">
-                            <th className="p-4 text-left">
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={isAllCurrentProductsSelected}
-                                        onChange={handleSelectAll}
-                                        className="w-4 h-4 cursor-pointer"
-                                    />
-                                    <span>Product</span>
-                                </div>
-                            </th>
-                            <th className="p-4 text-left">Category</th>
-                            <th className="p-4 text-left">Stock</th>
-                            <th className="p-4 text-left">Purchase</th>
-                            <th className="p-4 text-left">Selling</th>
-                            <th className="p-4 text-left">Expiry</th>
-                            <th className="p-4 text-left">Supplier</th>
-                            <th className="p-4 text-left">Status</th>
-                            <th className="p-4 text-left">Actions</th>
-                            <th className="p-4 text-left">Add to Cart</th>
-                        </tr>
-                    </thead>
-                    <tbody className="w-full bg-white">
-                        {currentProducts.length > 0 ? (
-                            currentProducts.map((product) => (
-                                <tr
-                                    key={product._id}
-                                    className="border-t border-[#E8ECF1] hover:bg-[#FAFBFC] transition-colors"
-                                >
-                                    {/* Product */}
-                                    <td className="p-4 text-left">
-                                        <div className="flex items-center gap-3">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedProducts.includes(product._id)}
-                                                onChange={() =>
-                                                    handleSelectProduct(product._id)
-                                                }
-                                                className="w-4 h-4 cursor-pointer"
-                                            />
-                                            <div className="flex flex-col">
+            <div className="border border-[#E8ECF1] rounded-xl mt-5 overflow-hidden">
+
+                {/* ================= DESKTOP TABLE ================= */}
+                <div className="hidden md:block overflow-x-auto">
+
+                    <table className="w-full min-w-[1200px]">
+
+                        {/* KEEP YOUR EXISTING THEAD */}
+                        <thead>
+                            <tr className="text-text uppercase text-xs bg-[#FAFBFC]">
+
+                                <th className="p-4 text-left">
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="checkbox"
+                                            checked={isAllCurrentProductsSelected}
+                                            onChange={handleSelectAll}
+                                            className="w-4 h-4 cursor-pointer"
+                                        />
+                                        <span>Product</span>
+                                    </div>
+                                </th>
+
+                                <th className="p-4 text-left">Category</th>
+                                <th className="p-4 text-left">Stock</th>
+                                <th className="p-4 text-left">Purchase</th>
+                                <th className="p-4 text-left">Selling</th>
+                                <th className="p-4 text-left">Expiry</th>
+                                <th className="p-4 text-left">Supplier</th>
+                                <th className="p-4 text-left">Status</th>
+                                <th className="p-4 text-left">Actions</th>
+                                <th className="p-4 text-left">Add to Cart</th>
+
+                            </tr>
+                        </thead>
+
+                        <tbody className="bg-white">
+
+                            {currentProducts.length > 0 ? (
+
+                                currentProducts.map((product) => (
+
+                                    <tr
+                                        key={product._id}
+                                        className="border-t border-[#E8ECF1] hover:bg-[#FAFBFC]"
+                                    >
+
+                                        {/* Product */}
+                                        <td className="p-4">
+                                            <div className="flex items-center gap-3">
+
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedProducts.includes(
+                                                        product._id
+                                                    )}
+                                                    onChange={() =>
+                                                        handleSelectProduct(product._id)
+                                                    }
+                                                    className="w-4 h-4 cursor-pointer"
+                                                />
+
                                                 <span className="text-sm font-semibold">
                                                     {product.productName}
                                                 </span>
+
                                             </div>
-                                        </div>
-                                    </td>
+                                        </td>
 
-                                    {/* Category */}
-                                    <td className="p-4 text-left">
-                                        <span className="bg-[#E8ECF1] text-xs px-2 py-1 rounded-sm font-semibold text-text">
-                                            {product.productCategory?.categoryName || "-"}
-                                        </span>
-                                    </td>
+                                        {/* Category */}
+                                        <td className="p-4">
+                                            <span className="bg-[#E8ECF1] text-xs px-2 py-1 rounded-sm font-semibold">
+                                                {product.productCategory?.categoryName || "-"}
+                                            </span>
+                                        </td>
 
-                                    {/* Stock */}
-                                    <td className="p-4 text-left font-semibold">
-                                        <span
-                                            className={
-                                                product.stock === 0
-                                                    ? "text-red-500"
-                                                    : product.stock < 50
-                                                        ? "text-orange-500"
-                                                        : "text-black"
-                                            }
-                                        >
-                                            {product.stock ?? 0}
-                                        </span>
-                                    </td>
-
-                                    {/* Purchase */}
-                                    <td className="p-4 text-left text-text">
-                                        ₹{Number(product.purchase || 0).toLocaleString("en-IN")}
-                                    </td>
-
-                                    {/* Selling */}
-                                    <td className="p-4 text-left text-secondary font-semibold">
-                                        ₹{Number(product.sellingPrice || 0).toLocaleString("en-IN")}
-                                    </td>
-
-                                    {/* Expiry */}
-                                    <td className="p-4 text-left">
-                                        <span className="text-sm text-text">
-                                            {product.ExpiryDate
-                                                ? new Date(product.ExpiryDate).toLocaleDateString(
-                                                    "en-IN"
-                                                )
-                                                : "-"}
-                                        </span>
-                                    </td>
-
-                                    {/* Supplier */}
-                                    <td className="p-4 text-left text-text text-sm">
-                                        {product.supplierName || "-"}
-                                    </td>
-
-                                    {/* Status */}
-                                    <td className="p-4 text-left">
-                                        <span
-                                            className={`border rounded-full px-2 py-1 text-xs font-semibold ${product.stock === 0
-                                                ? "text-red-500 bg-red-100"
-                                                : product.stock < 50
-                                                    ? "text-orange-500 bg-orange-100"
-                                                    : "text-secondary bg-green-100"
-                                                }`}
-                                        >
-                                            •{" "}
-                                            {product.stock === 0
-                                                ? "Out of Stock"
-                                                : product.stock < 50
-                                                    ? "Low Stock"
-                                                    : "In Stock"}
-                                        </span>
-                                    </td>
-
-                                    {/* Actions */}
-                                    <td className="p-4 text-left">
-                                        <div className="flex gap-3">
-
-                                            {/* View */}
-                                            <button
-                                                type="button"
-                                                className="text-blue-500 text-sm"
-                                                onClick={() => handleView(product._id)}
+                                        {/* Stock */}
+                                        <td className="p-4 font-semibold">
+                                            <span
+                                                className={
+                                                    product.stock === 0
+                                                        ? "text-red-500"
+                                                        : product.stock < 50
+                                                            ? "text-orange-500"
+                                                            : "text-black"
+                                                }
                                             >
-                                                <Eye
-                                                    size={15}
-                                                    className="stroke-text hover:stroke-primary transition-transform duration-300 hover:scale-110"
-                                                />
+                                                {product.stock ?? 0}
+                                            </span>
+                                        </td>
+
+                                        {/* Purchase */}
+                                        <td className="p-4 text-text">
+                                            ₹
+                                            {Number(
+                                                product.purchase || 0
+                                            ).toLocaleString("en-IN")}
+                                        </td>
+
+                                        {/* Selling */}
+                                        <td className="p-4 text-secondary font-semibold">
+                                            ₹
+                                            {Number(
+                                                product.sellingPrice || 0
+                                            ).toLocaleString("en-IN")}
+                                        </td>
+
+                                        {/* Expiry */}
+                                        <td className="p-4 text-sm">
+                                            {product.ExpiryDate
+                                                ? new Date(
+                                                    product.ExpiryDate
+                                                ).toLocaleDateString("en-IN")
+                                                : "-"}
+                                        </td>
+
+                                        {/* Supplier */}
+                                        <td className="p-4 text-text text-sm">
+                                            {product.supplierName || "-"}
+                                        </td>
+
+                                        {/* Status */}
+                                        <td className="p-4">
+                                            <span
+                                                className={`border rounded-full px-2 py-1 text-xs font-semibold ${product.stock === 0
+                                                        ? "text-red-500 bg-red-100"
+                                                        : product.stock < 50
+                                                            ? "text-orange-500 bg-orange-100"
+                                                            : "text-secondary bg-green-100"
+                                                    }`}
+                                            >
+                                                •{" "}
+                                                {product.stock === 0
+                                                    ? "Out of Stock"
+                                                    : product.stock < 50
+                                                        ? "Low Stock"
+                                                        : "In Stock"}
+                                            </span>
+                                        </td>
+
+                                        {/* Actions */}
+                                        <td className="p-4">
+                                            <div className="flex gap-3">
+
+                                                <button
+                                                    onClick={() =>
+                                                        handleView(product._id)
+                                                    }
+                                                >
+                                                    <Eye size={16} />
+                                                </button>
+
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedProduct(product);
+                                                        setShowEditModal(true);
+                                                    }}
+                                                >
+                                                    <Pencil size={16} />
+                                                </button>
+
+                                                <button
+                                                    onClick={() =>
+                                                        handleDeleteproduct(
+                                                            product._id
+                                                        )
+                                                    }
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+
+                                            </div>
+                                        </td>
+
+                                        {/* Cart */}
+                                        <td className="p-4">
+
+                                            <button
+                                                onClick={() => {
+                                                    addToCart(product);
+                                                    setCartOpen(true);
+                                                }}
+                                            >
+                                                <ShoppingCart size={20} />
                                             </button>
 
-                                            {/* Edit */}
+                                        </td>
+
+                                    </tr>
+
+                                ))
+
+                            ) : (
+
+                                <tr>
+                                    <td
+                                        colSpan="10"
+                                        className="text-center py-9 text-text"
+                                    >
+                                        No Product Found
+                                    </td>
+                                </tr>
+
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                {/* ================= MOBILE CARDS ================= */}
+                <div className="md:hidden bg-[#F8FAFC] p-3">
+
+                    {currentProducts.length > 0 ? (
+
+                        <div className="space-y-3">
+
+                            {currentProducts.map((product) => {
+
+                                const status =
+                                    product.stock === 0
+                                        ? "Out of Stock"
+                                        : product.stock < 50
+                                            ? "Low Stock"
+                                            : "In Stock";
+
+                                return (
+
+                                    <div
+                                        key={product._id}
+                                        className="bg-white border border-[#E8ECF1] rounded-xl p-4"
+                                    >
+
+                                        {/* Card Header */}
+                                        <div className="flex items-start justify-between gap-3">
+
+                                            <div className="flex items-start gap-3 min-w-0">
+
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedProducts.includes(
+                                                        product._id
+                                                    )}
+                                                    onChange={() =>
+                                                        handleSelectProduct(
+                                                            product._id
+                                                        )
+                                                    }
+                                                    className="w-4 h-4 mt-1 shrink-0"
+                                                />
+
+                                                <div className="min-w-0">
+
+                                                    <h3 className="font-semibold text-sm text-gray-900 truncate">
+                                                        {product.productName}
+                                                    </h3>
+
+                                                    <span className="inline-block mt-1 bg-[#E8ECF1] text-xs px-2 py-1 rounded">
+                                                        {product.productCategory
+                                                            ?.categoryName || "-"}
+                                                    </span>
+
+                                                </div>
+
+                                            </div>
+
+                                            {/* Status */}
+                                            <span
+                                                className={`shrink-0 border rounded-full px-2 py-1 text-[10px] font-semibold ${product.stock === 0
+                                                        ? "text-red-500 bg-red-100"
+                                                        : product.stock < 50
+                                                            ? "text-orange-500 bg-orange-100"
+                                                            : "text-secondary bg-green-100"
+                                                    }`}
+                                            >
+                                                {status}
+                                            </span>
+
+                                        </div>
+
+
+                                        {/* Product Information */}
+                                        <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-[#E8ECF1]">
+
+                                            <div>
+                                                <p className="text-[11px] text-gray-400">
+                                                    Stock
+                                                </p>
+
+                                                <p
+                                                    className={`text-sm font-semibold mt-1 ${product.stock === 0
+                                                            ? "text-red-500"
+                                                            : product.stock < 50
+                                                                ? "text-orange-500"
+                                                                : "text-gray-900"
+                                                        }`}
+                                                >
+                                                    {product.stock ?? 0}
+                                                </p>
+                                            </div>
+
+
+                                            <div>
+                                                <p className="text-[11px] text-gray-400">
+                                                    Supplier
+                                                </p>
+
+                                                <p className="text-sm font-medium mt-1 truncate">
+                                                    {product.supplierName || "-"}
+                                                </p>
+                                            </div>
+
+
+                                            <div>
+                                                <p className="text-[11px] text-gray-400">
+                                                    Purchase Price
+                                                </p>
+
+                                                <p className="text-sm font-medium mt-1">
+                                                    ₹
+                                                    {Number(
+                                                        product.purchase || 0
+                                                    ).toLocaleString("en-IN")}
+                                                </p>
+                                            </div>
+
+
+                                            <div>
+                                                <p className="text-[11px] text-gray-400">
+                                                    Selling Price
+                                                </p>
+
+                                                <p className="text-sm font-semibold text-secondary mt-1">
+                                                    ₹
+                                                    {Number(
+                                                        product.sellingPrice || 0
+                                                    ).toLocaleString("en-IN")}
+                                                </p>
+                                            </div>
+
+
+                                            <div>
+                                                <p className="text-[11px] text-gray-400">
+                                                    Expiry
+                                                </p>
+
+                                                <p className="text-sm mt-1">
+                                                    {product.ExpiryDate
+                                                        ? new Date(
+                                                            product.ExpiryDate
+                                                        ).toLocaleDateString(
+                                                            "en-IN"
+                                                        )
+                                                        : "-"}
+                                                </p>
+                                            </div>
+
+                                        </div>
+
+
+                                        {/* Actions */}
+                                        <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#E8ECF1]">
+
+                                            <div className="flex items-center gap-4">
+
+                                                {/* View */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleView(product._id)
+                                                    }
+                                                    className="p-2 rounded-lg bg-blue-50 text-blue-500"
+                                                >
+                                                    <Eye size={16} />
+                                                </button>
+
+
+                                                {/* Edit */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedProduct(product);
+                                                        setShowEditModal(true);
+                                                    }}
+                                                    className="p-2 rounded-lg bg-green-50 text-green-500"
+                                                >
+                                                    <Pencil size={16} />
+                                                </button>
+
+
+                                                {/* Delete */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleDeleteproduct(
+                                                            product._id
+                                                        )
+                                                    }
+                                                    className="p-2 rounded-lg bg-red-50 text-red-500"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+
+                                            </div>
+
+
+                                            {/* Cart */}
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    setSelectedProduct(product);
-                                                    setShowEditModal(true);
+                                                    addToCart(product);
+                                                    setCartOpen(true);
                                                 }}
-                                                className="text-green-500 text-sm"
+                                                className="flex items-center gap-2 bg-secondary text-white px-3 py-2 rounded-lg text-xs font-medium"
                                             >
-                                                <Pencil
-                                                    size={15}
-                                                    className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110"
-                                                />
-                                            </button>
-
-                                            {/* Delete */}
-                                            <button
-                                                type="button"
-                                                className="text-red-500 text-sm"
-                                                onClick={() =>
-                                                    handleDeleteproduct(product._id)
-                                                }
-                                            >
-                                                <Trash2
-                                                    size={15}
-                                                    className="stroke-text hover:stroke-red-500 transition-transform duration-300 hover:scale-110"
-                                                />
+                                                <ShoppingCart size={16} />
+                                                Add to Cart
                                             </button>
 
                                         </div>
-                                    </td>
 
-                                    {/* Add To Cart */}
-                                    <td className="p-4 text-left">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                addToCart(product);
-                                                setCartOpen(true);
-                                            }}
-                                        >
-                                            <ShoppingCart
-                                                size={20}
-                                                className="stroke-text hover:stroke-black cursor-pointer transition-transform duration-300 hover:scale-110"
-                                            />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td
-                                    colSpan="10"
-                                    className="text-center py-9 text-text"
-                                >
-                                    No Product Found
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table >
-                <div className="flex items-center justify-between p-4 border-t">
-                    <p className="text-sm text-text">
+                                    </div>
+
+                                );
+
+                            })}
+
+                        </div>
+
+                    ) : (
+
+                        <div className="bg-white rounded-xl py-10 text-center text-text text-sm">
+                            No Product Found
+                        </div>
+
+                    )}
+
+                </div>
+
+
+                {/* ================= PAGINATION ================= */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-t bg-white">
+
+                    <p className="text-xs sm:text-sm text-text">
                         {SearchProducts.length > 0
                             ? `Showing ${indexOfFirstProduct + 1}-${Math.min(
                                 indexOfLastProduct,
@@ -923,13 +1134,19 @@ export default function ProductPage() {
                             : "Showing 0-0 of 0"}
                     </p>
 
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={setCurrentPage}
-                    />
+                    <div className="w-full sm:w-auto overflow-x-auto">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={setCurrentPage}
+                        />
+                    </div>
+
                 </div>
-            </div >
+
+            </div>
+
+
         </div >
     )
 }

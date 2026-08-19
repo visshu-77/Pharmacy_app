@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Papa from "papaparse";
 import axios from "axios";
+import LastParams from "../components/lastParams";
 
 import {
    getSuppliers,
@@ -376,7 +377,10 @@ export default function Suppliers() {
 
    return (
       <>
-         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+         <div>
+            <LastParams />
+         </div>
+         <div className="bg-white mt-4 border border-gray-200 rounded-xl overflow-hidden">
             <div className="flex justify-between px-5 py-4 border-b border-gray-200">
                <div>
                   <h2 className="text-lg font-semibold text-gray-900">
@@ -1122,7 +1126,7 @@ export default function Suppliers() {
                                  </button>
                               )}
 
-                         </div>
+                           </div>
 
                            {/* Next */}
                            <button

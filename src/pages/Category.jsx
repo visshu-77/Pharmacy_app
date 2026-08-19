@@ -272,7 +272,7 @@ export default function CategoryPage() {
 
 
             {/* stock div */}
-            <div className="grid grid-cols-4 mt-5 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 mt-5 gap-5">
                 {AnalyticsData.map((items) => {
                     const Icons = items.icon;
                     return (
@@ -301,14 +301,14 @@ export default function CategoryPage() {
 
                         <button
                             onClick={handleDeleteSelected}
-                            className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-600 transition"
+                            className="bg-red-500 text-white px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 transition"
                         >
                             Delete Selected
                         </button>
 
                         <button
                             onClick={handleDeleteAll}
-                            className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-600 transition"
+                            className="bg-red-500 text-white px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 transition"
                         >
                             Delete All
                         </button>
@@ -318,174 +318,438 @@ export default function CategoryPage() {
                 </div>
             )}
 
-            {/* search filter */}
-            <div className="bg-white p-4 border border-[#E8ECF1] rounded-xl mt-5 flex gap-5 items-center">
-                <div className="flex border border-[#E8ECF1] p-2 rounded-lg w-[90%] gap-2 items-center">
-                    <span>
-                        <SearchIcon className="h-4 w-4" />
-                    </span>
-                    <input
-                        type="text"
-                        placeholder="Seacrh categories.."
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        className="w-full focus:outline-none focus:ring-0 text-sm text-text" />
-                </div>
-                <div className="flex gap-5 items-center w-[30%]">
-                    <FilterIcon className="h-4 w-4" />
+            {/* Search Filter */}
+            <div className="bg-white p-4 border border-[#E8ECF1] rounded-xl mt-5">
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex border border-[#E8ECF1] p-2.5 rounded-lg w-full sm:flex-1 gap-2 items-center">
+                        <SearchIcon className="h-4 w-4 shrink-0" />
+                        <input
+                            type="text"
+                            placeholder="Search categories..."
+                            value={searchText}
+                            onChange={(e) => {
+                                setSearchText(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="w-full min-w-0 focus:outline-none focus:ring-0 text-sm text-text"
+                        />
+                    </div>
 
-                    <select
-                        value={filters.category}
-                        onChange={(e) => {
-                            setFilters({
-                                ...filters,
-                                category: e.target.value,
-                            });
 
-                            // Reset pagination when filter changes
-                            setCurrentPage(1);
-                        }}
-                        className="w-full focus:outline-none focus:ring-0 border border-[#E8ECF1] rounded-lg py-2 px-4 text-text cursor-pointer"
-                    >
-                        <option value="">All Categories</option>
+                    {/* Filter */}
+                    <div className="flex gap-3 items-center w-full sm:w-[280px]">
+                        <FilterIcon className="h-4 w-4 shrink-0" />
+                        <select
+                            value={filters.category}
+                            onChange={(e) => {
+                                setFilters({
+                                    ...filters,
+                                    category: e.target.value,
+                                });
 
-                        {categoryOptions.map((categoryName) => (
-                            <option
-                                key={categoryName}
-                                value={categoryName}
-                            >
-                                {categoryName}
+                                setCurrentPage(1);
+                            }}
+                            className="w-full focus:outline-none focus:ring-0 border border-[#E8ECF1] rounded-lg py-2.5 px-3 text-sm text-text cursor-pointer bg-white"
+                        >
+                            <option value="">
+                                All Categories
                             </option>
-                        ))}
-                    </select>
+
+                            {categoryOptions.map((categoryName) => (
+                                <option
+                                    key={categoryName}
+                                    value={categoryName}
+                                >
+                                    {categoryName}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            {/* categories */}
-            <div className="border-[#E8ECF1] border rounded-xl mt-5">
-                <table className="w-full">
-                    <thead>
-                        <tr className="text-text uppercase text-xs bg-[#FAFBFC]">
-                            <th className="p-4 text-left">
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={isAllCurrentCategoriesSelected}
-                                        onChange={handleSelectAll}
-                                        className="w-4 h-4 cursor-pointer"
-                                    />
-                                    <span>Category name</span>
-                                </div>
-                            </th>
-                            <th className="p-4 text-left">Description</th>
-                            <th className="p-4 text-left">Products</th>
-                            <th className="p-4 text-left">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="w-full table-fixed bg-white">
-                        {currentProducts.length > 0 ? (
-                            currentProducts.map((data) => (
-                                <tr key={data._id}>
-                                    <td className="p-4 text-left">
-                                        <div className="flex items-center gap-3">
 
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedCategories.includes(data._id)}
-                                                onChange={() =>
-                                                    handleSelectCategory(data._id)
-                                                }
-                                                className="w-4 h-4 cursor-pointer"
-                                            />
+            {/* Categories */}
+            <div className="border border-[#E8ECF1] rounded-xl mt-5 overflow-hidden">
 
-                                            <div className="flex flex-col">
+                {/* ================================= */}
+                {/* DESKTOP TABLE */}
+                {/* ================================= */}
+
+                <div className="hidden md:block">
+
+                    <table className="w-full">
+
+                        <thead>
+                            <tr className="text-text uppercase text-xs bg-[#FAFBFC]">
+
+                                <th className="p-4 text-left">
+                                    <div className="flex items-center gap-3">
+
+                                        <input
+                                            type="checkbox"
+                                            checked={isAllCurrentCategoriesSelected}
+                                            onChange={handleSelectAll}
+                                            className="w-4 h-4 cursor-pointer"
+                                        />
+
+                                        <span>Category Name</span>
+
+                                    </div>
+                                </th>
+
+                                <th className="p-4 text-left">
+                                    Description
+                                </th>
+
+                                <th className="p-4 text-left">
+                                    Products
+                                </th>
+
+                                <th className="p-4 text-left">
+                                    Actions
+                                </th>
+
+                            </tr>
+                        </thead>
+
+
+                        <tbody className="bg-white">
+
+                            {currentProducts.length > 0 ? (
+
+                                currentProducts.map((data) => (
+
+                                    <tr
+                                        key={data._id}
+                                        className="border-t border-[#E8ECF1] hover:bg-[#FAFBFC] transition-colors"
+                                    >
+
+                                        {/* Category Name */}
+                                        <td className="p-4">
+
+                                            <div className="flex items-center gap-3">
+
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedCategories.includes(
+                                                        data._id
+                                                    )}
+                                                    onChange={() =>
+                                                        handleSelectCategory(
+                                                            data._id
+                                                        )
+                                                    }
+                                                    className="w-4 h-4 cursor-pointer"
+                                                />
+
                                                 <span className="text-sm font-semibold">
                                                     {data.categoryName}
                                                 </span>
+
+                                            </div>
+
+                                        </td>
+
+
+                                        {/* Description */}
+                                        <td className="p-4">
+
+                                            <span className="inline-block bg-[#E8ECF1] text-xs px-2 py-1 rounded-sm font-semibold text-text max-w-[300px] truncate">
+                                                {data.description || "-"}
+                                            </span>
+
+                                        </td>
+
+
+                                        {/* Products */}
+                                        <td className="p-4 text-sm">
+                                            {data.productCount ?? 0}
+                                        </td>
+
+
+                                        {/* Actions */}
+                                        <td className="p-4">
+
+                                            <div className="flex gap-3">
+
+                                                {/* View */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleView(data._id)
+                                                    }
+                                                    className="text-blue-500"
+                                                >
+                                                    <Eye
+                                                        size={16}
+                                                        className="stroke-text hover:stroke-primary transition-transform duration-300 hover:scale-110"
+                                                    />
+                                                </button>
+
+
+                                                {/* Edit */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedCategory(data);
+                                                        setShowEditModal(true);
+                                                    }}
+                                                    className="text-green-500"
+                                                >
+                                                    <Pencil
+                                                        size={16}
+                                                        className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110"
+                                                    />
+                                                </button>
+
+
+                                                {/* Delete */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleDeleteCategory(
+                                                            data._id
+                                                        )
+                                                    }
+                                                    className="text-red-500"
+                                                >
+                                                    <Trash2
+                                                        size={16}
+                                                        className="stroke-text hover:stroke-red-500 transition-transform duration-300 hover:scale-110"
+                                                    />
+                                                </button>
+
+                                            </div>
+
+                                        </td>
+
+                                    </tr>
+
+                                ))
+
+                            ) : (
+
+                                <tr>
+                                    <td
+                                        colSpan="4"
+                                        className="text-center py-9 text-text"
+                                    >
+                                        No Category Found
+                                    </td>
+                                </tr>
+
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                {/* ================================= */}
+                {/* MOBILE CARDS */}
+                {/* ================================= */}
+
+                <div className="md:hidden bg-[#F8FAFC] p-3">
+
+                    {currentProducts.length > 0 ? (
+
+                        <div className="space-y-3">
+
+                            {currentProducts.map((data) => (
+
+                                <div
+                                    key={data._id}
+                                    className="bg-white border border-[#E8ECF1] rounded-xl p-4"
+                                >
+
+                                    {/* Card Header */}
+                                    <div className="flex items-start justify-between gap-3">
+
+                                        <div className="flex items-start gap-3 min-w-0">
+
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedCategories.includes(
+                                                    data._id
+                                                )}
+                                                onChange={() =>
+                                                    handleSelectCategory(
+                                                        data._id
+                                                    )
+                                                }
+                                                className="w-4 h-4 mt-1 shrink-0 cursor-pointer"
+                                            />
+
+                                            <div className="min-w-0">
+
+                                                <h3 className="text-sm font-semibold text-gray-900 break-words">
+                                                    {data.categoryName}
+                                                </h3>
+
+                                                <span className="inline-block mt-1 text-[10px] font-medium text-gray-500">
+                                                    Category
+                                                </span>
+
                                             </div>
 
                                         </div>
-                                    </td>
-                                    <td className="p-4 text-left">
-                                        <span className="bg-[#E8ECF1] text-xs p-1 rounded-sm font-semibold text-text">{data.description}</span>
-                                    </td>
-                                    <td className="p-4 text-left text-sm">
-                                        <span>{data.productCount}</span>
-                                    </td>
 
-                                    <td className="p-4 text-left">
-                                        <div className="flex gap-3">
 
+                                        {/* Product Count */}
+                                        <div className="shrink-0 text-right">
+
+                                            <p className="text-[10px] text-gray-400">
+                                                Products
+                                            </p>
+
+                                            <p className="text-sm font-semibold text-secondary">
+                                                {data.productCount ?? 0}
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    {/* Description */}
+                                    <div className="mt-4 pt-3 border-t border-[#E8ECF1]">
+
+                                        <p className="text-[11px] text-gray-400 mb-1">
+                                            Description
+                                        </p>
+
+                                        <p className="text-sm text-text leading-5 break-words">
+                                            {data.description || "No description available"}
+                                        </p>
+
+                                    </div>
+
+
+                                    {/* Actions */}
+                                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#E8ECF1]">
+
+                                        <span className="text-xs text-gray-400">
+                                            Category ID: {data._id.slice(-6)}
+                                        </span>
+
+
+                                        <div className="flex items-center gap-2">
+
+                                            {/* View */}
                                             <button
-                                                className="text-blue-500 text-sm"
-                                                onClick={() => handleView(data._id)}
+                                                type="button"
+                                                onClick={() =>
+                                                    handleView(data._id)
+                                                }
+                                                className="p-2 rounded-lg bg-blue-50 text-blue-500"
                                             >
-                                                <Eye size={15} className="stroke-text hover:stroke-primary transition-transform duration-300 hover:scale-110" />
+                                                <Eye size={16} />
                                             </button>
 
+
+                                            {/* Edit */}
                                             <button
-                                                className="text-green-500 text-sm"
+                                                type="button"
                                                 onClick={() => {
                                                     setSelectedCategory(data);
                                                     setShowEditModal(true);
                                                 }}
+                                                className="p-2 rounded-lg bg-green-50 text-green-500"
                                             >
-                                                <Pencil size={15} className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110" />
+                                                <Pencil size={16} />
                                             </button>
 
+
+                                            {/* Delete */}
                                             <button
-                                                className="text-red-500 text-sm"
-                                                onClick={() => handleDeleteCategory(data._id)}
+                                                type="button"
+                                                onClick={() =>
+                                                    handleDeleteCategory(
+                                                        data._id
+                                                    )
+                                                }
+                                                className="p-2 rounded-lg bg-red-50 text-red-500"
                                             >
-                                                <Trash2 size={15} className="stroke-text hover:stroke-red-500 transition-transform duration-300 hover:scale-110" />
+                                                <Trash2 size={16} />
                                             </button>
 
                                         </div>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="4" className="text-center py-8">
-                                    No Category Found
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-                <div className="flex items-center justify-between p-4 border-t">
-                    <p className="text-sm text-text">
+
+                                    </div>
+
+                                </div>
+
+                            ))}
+
+                        </div>
+
+                    ) : (
+
+                        <div className="bg-white rounded-xl py-10 text-center text-text text-sm">
+                            No Category Found
+                        </div>
+
+                    )}
+
+                </div>
+
+
+                {/* ================================= */}
+                {/* PAGINATION */}
+                {/* ================================= */}
+
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-t bg-white">
+
+                    <p className="text-xs sm:text-sm text-text">
+
                         {searchCategory.length > 0
                             ? `Showing ${indexOfFirstCategory + 1}-${Math.min(
                                 indexOfLastCategory,
                                 searchCategory.length
                             )} of ${searchCategory.length}`
                             : "Showing 0-0 of 0"}
+
                     </p>
 
-                    <div className="flex gap-2">
+
+                    <div className="flex items-center justify-between sm:justify-end gap-2">
+
                         <button
                             disabled={currentPage === 1}
-                            onClick={() => setCurrentPage((prev) => prev - 1)}
-                            className="px-3 py-1 border rounded disabled:opacity-50"
+                            onClick={() =>
+                                setCurrentPage((prev) => prev - 1)
+                            }
+                            className="px-3 py-1.5 text-xs sm:text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Previous
                         </button>
 
-                        <span className="px-3 py-1">
+                        <span className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm whitespace-nowrap">
                             {currentPage} / {totalPages || 1}
                         </span>
 
                         <button
-                            disabled={currentPage === totalPages || totalPages === 0}
-                            onClick={() => setCurrentPage((prev) => prev + 1)}
-                            className="px-3 py-1 border rounded disabled:opacity-50"
+                            disabled={
+                                currentPage === totalPages ||
+                                totalPages === 0
+                            }
+                            onClick={() =>
+                                setCurrentPage((prev) => prev + 1)
+                            }
+                            className="px-3 py-1.5 text-xs sm:text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Next
                         </button>
+
                     </div>
+
                 </div>
+
             </div>
+
 
         </div>
     )

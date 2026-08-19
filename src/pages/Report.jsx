@@ -1,3 +1,4 @@
+import LastParams from "../components/lastParams";
 import { useEffect, useState } from "react";
 import {
    getReportSummary,
@@ -319,136 +320,140 @@ export default function Reports() {
    });
 
    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-         <div className="flex items-center justify-between mb-6">
-            <div>
-               <h1 className="text-2xl font-bold text-gray-900">
-                  Reports & Analytics
-               </h1>
-               <p className="text-sm text-gray-500 mt-1">
-                  Track your shop performance, sales, products, and inventory.
-               </p>
-            </div>
-            <div className="flex items-center gap-3">
-               <select
-                  value={selectedRange}
-                  onChange={(e) => setSelectedRange(e.target.value)}
-                  className="border border-gray-200 bg-white rounded-lg px-4 py-2 text-sm outline-none"
-               >
-                  <option value="today">
-                     Today
-                  </option>
-                  <option value="thisWeek">
-                     This Week
-                  </option>
-                  <option value="thisMonth">
-                     This Month
-                  </option>
-                  <option value="lastMonth">
-                     Last Month
-                  </option>
-                  <option value="thisYear">
-                     This Year
-                  </option>
-                  <option value="custom">
-                     Custom Range
-                  </option>
-               </select>
-               <button
-                  type="button"
-                  onClick={handleExportReport}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700"
-               >
-                  ↓ Export Report
-               </button>
-            </div>
+      <div>
+         <div>
+            <LastParams />
          </div>
-         <div className="grid grid-cols-4 gap-4 mb-5">
-            <div className="bg-white border border-gray-200 rounded-xl p-5">
-               <p className="text-xs text-gray-500">
-                  Total Sales
-               </p>
-               <h2 className="text-2xl font-bold mt-2">
-                  ₹{summary.totalSales.toLocaleString("en-IN")}
-               </h2>
-               <p className="text-xs text-green-600 mt-2">
-                  ↑ 12.4%
-               </p>
-               <p className="text-xs text-gray-400 mt-1">
-                  vs previous period
-               </p>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-xl p-5">
-               <p className="text-xs text-gray-500">
-                  Total Orders
-               </p>
-               <h2 className="text-2xl font-bold mt-2">
-                  {summary.totalOrders.toLocaleString("en-IN")}
-               </h2>
-               <p className="text-xs text-green-600 mt-2">
-                  ↑ 8.2%
-               </p>
-               <p className="text-xs text-gray-400 mt-1">
-                  vs previous period
-               </p>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-xl p-5">
-               <p className="text-xs text-gray-500">
-                  Avg Order Value
-               </p>
-               <h2 className="text-2xl font-bold mt-2">
-                  ₹{summary.averageOrderValue.toLocaleString("en-IN", {
-                     maximumFractionDigits: 2
-                  })}
-               </h2>
-               <p className="text-xs text-red-500 mt-2">
-                  ↓ 2.1%
-               </p>
-               <p className="text-xs text-gray-400 mt-1">
-                  vs previous period
-               </p>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-xl p-5">
-               <p className="text-xs text-gray-500">
-                  Products Sold
-               </p>
-               <h2 className="text-2xl font-bold mt-2">
-                  {summary.productsSold.toLocaleString("en-IN")}
-               </h2>
-               <p className="text-xs text-green-600 mt-2">
-                  ↑ 18.7%
-               </p>
-               <p className="text-xs text-gray-400 mt-1">
-                  vs previous period
-               </p>
-            </div>
-         </div>
-         <div className="bg-white border border-gray-200 rounded-xl p-4 mb-5">
-            <div className="flex items-center gap-4">
-               <span className="text-sm font-semibold">
-                  Filters
-               </span>
-
-               <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
-               >
-                  <option value="all">
-                     All Categories
-                  </option>
-
-                  {categories.map((item) => (
-                     <option
-                        key={item._id}
-                        value={item._id}
-                     >
-                        {item.categoryName}
+         <div className="min-h-screen bg-gray-50 p-6">
+            <div className="flex items-center justify-between mb-6">
+               <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                     Reports & Analytics
+                  </h1>
+                  <p className="text-sm text-gray-500 mt-1">
+                     Track your shop performance, sales, products, and inventory.
+                  </p>
+               </div>
+               <div className="flex items-center gap-3">
+                  <select
+                     value={selectedRange}
+                     onChange={(e) => setSelectedRange(e.target.value)}
+                     className="border border-gray-200 bg-white rounded-lg px-4 py-2 text-sm outline-none"
+                  >
+                     <option value="today">
+                        Today
                      </option>
-                  ))}
-               </select>
+                     <option value="thisWeek">
+                        This Week
+                     </option>
+                     <option value="thisMonth">
+                        This Month
+                     </option>
+                     <option value="lastMonth">
+                        Last Month
+                     </option>
+                     <option value="thisYear">
+                        This Year
+                     </option>
+                     <option value="custom">
+                        Custom Range
+                     </option>
+                  </select>
+                  <button
+                     type="button"
+                     onClick={handleExportReport}
+                     className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700"
+                  >
+                     ↓ Export Report
+                  </button>
+               </div>
+            </div>
+            <div className="grid grid-cols-4 gap-4 mb-5">
+               <div className="bg-white border border-gray-200 rounded-xl p-5">
+                  <p className="text-xs text-gray-500">
+                     Total Sales
+                  </p>
+                  <h2 className="text-2xl font-bold mt-2">
+                     ₹{summary.totalSales.toLocaleString("en-IN")}
+                  </h2>
+                  <p className="text-xs text-green-600 mt-2">
+                     ↑ 12.4%
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                     vs previous period
+                  </p>
+               </div>
+               <div className="bg-white border border-gray-200 rounded-xl p-5">
+                  <p className="text-xs text-gray-500">
+                     Total Orders
+                  </p>
+                  <h2 className="text-2xl font-bold mt-2">
+                     {summary.totalOrders.toLocaleString("en-IN")}
+                  </h2>
+                  <p className="text-xs text-green-600 mt-2">
+                     ↑ 8.2%
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                     vs previous period
+                  </p>
+               </div>
+               <div className="bg-white border border-gray-200 rounded-xl p-5">
+                  <p className="text-xs text-gray-500">
+                     Avg Order Value
+                  </p>
+                  <h2 className="text-2xl font-bold mt-2">
+                     ₹{summary.averageOrderValue.toLocaleString("en-IN", {
+                        maximumFractionDigits: 2
+                     })}
+                  </h2>
+                  <p className="text-xs text-red-500 mt-2">
+                     ↓ 2.1%
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                     vs previous period
+                  </p>
+               </div>
+               <div className="bg-white border border-gray-200 rounded-xl p-5">
+                  <p className="text-xs text-gray-500">
+                     Products Sold
+                  </p>
+                  <h2 className="text-2xl font-bold mt-2">
+                     {summary.productsSold.toLocaleString("en-IN")}
+                  </h2>
+                  <p className="text-xs text-green-600 mt-2">
+                     ↑ 18.7%
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                     vs previous period
+                  </p>
+               </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-4 mb-5">
+               <div className="flex items-center gap-4">
+                  <span className="text-sm font-semibold">
+                     Filters
+                  </span>
 
-               {/* <select
+                  <select
+                     value={category}
+                     onChange={(e) => setCategory(e.target.value)}
+                     className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                  >
+                     <option value="all">
+                        All Categories
+                     </option>
+
+                     {categories.map((item) => (
+                        <option
+                           key={item._id}
+                           value={item._id}
+                        >
+                           {item.categoryName}
+                        </option>
+                     ))}
+                  </select>
+
+                  {/* <select
                   value={orderStatus}
                   onChange={(e) => setOrderStatus(e.target.value)}
                   className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
@@ -473,580 +478,581 @@ export default function Reports() {
                   </option>
                </select> */}
 
-               <div className="ml-auto flex gap-2">
-                  <button
-                     type="button"
-                     onClick={handleResetReportFilters}
-                     className="border border-gray-200 px-4 py-2 rounded-lg text-sm"
-                  >
-                     Reset
-                  </button>
-                  <button
-                     type="button"
-                     onClick={handleReportFilters}
-                     className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
-                  >
-                     Apply Filters
-                  </button>
+                  <div className="ml-auto flex gap-2">
+                     <button
+                        type="button"
+                        onClick={handleResetReportFilters}
+                        className="border border-gray-200 px-4 py-2 rounded-lg text-sm"
+                     >
+                        Reset
+                     </button>
+                     <button
+                        type="button"
+                        onClick={handleReportFilters}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
+                     >
+                        Apply Filters
+                     </button>
+                  </div>
                </div>
             </div>
-         </div>
-         <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
-            <div className="mb-5">
-               <h2 className="text-lg font-bold text-gray-900">
-                  Sales Overview
-               </h2>
-               <p className="text-sm text-gray-500 mt-1">
-                  Track your sales performance over time.
-               </p>
-            </div>
-            {overviewLoading ? (
-               <div className="h-[300px] flex items-center justify-center text-gray-500">
-                  Loading sales overview...
-               </div>
-            ) : salesOverview.length === 0 ? (
-               <div className="h-[300px] flex items-center justify-center text-gray-500">
-                  No sales data available for this period.
-               </div>
-            ) : (
-               <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={salesOverview}>
-                     <CartesianGrid strokeDasharray="3 3" />
-                     <XAxis
-                        dataKey="_id"
-                     />
-                     <Tooltip />
-                     <Line
-                        type="monotone"
-                        dataKey="totalSales"
-                        stroke="#2563eb"
-                        strokeWidth={3}
-                        dot={{ r: 4 }}
-                     />
-                  </LineChart>
-               </ResponsiveContainer>
-            )}
-         </div>
-         <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
-            <div className="mb-5 flex items-center justify-between">
-
-               <div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
+               <div className="mb-5">
                   <h2 className="text-lg font-bold text-gray-900">
-                     Top Selling Products
+                     Sales Overview
                   </h2>
-
                   <p className="text-sm text-gray-500 mt-1">
-                     {topSellingType === "quantity"
-                        ? "Your best performing products by quantity sold."
-                        : "Your best performing products by total sales."
-                     }
+                     Track your sales performance over time.
                   </p>
                </div>
-
-               {/* Quantity / Price Toggle */}
-               <div className="flex items-center bg-gray-100 rounded-lg p-1">
-
-                  <button
-                     type="button"
-                     onClick={() => setTopSellingType("quantity")}
-                     className={`px-4 py-2 text-sm font-medium rounded-md transition ${topSellingType === "quantity"
-                        ? "bg-white text-blue-600 shadow-sm"
-                        : "text-gray-500 hover:text-gray-700"
-                        }`}
-                  >
-                     Quantity
-                  </button>
-
-                  <button
-                     type="button"
-                     onClick={() => setTopSellingType("price")}
-                     className={`px-4 py-2 text-sm font-medium rounded-md transition ${topSellingType === "price"
-                        ? "bg-white text-blue-600 shadow-sm"
-                        : "text-gray-500 hover:text-gray-700"
-                        }`}
-                  >
-                     Price
-                  </button>
-
-               </div>
-
+               {overviewLoading ? (
+                  <div className="h-[300px] flex items-center justify-center text-gray-500">
+                     Loading sales overview...
+                  </div>
+               ) : salesOverview.length === 0 ? (
+                  <div className="h-[300px] flex items-center justify-center text-gray-500">
+                     No sales data available for this period.
+                  </div>
+               ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                     <LineChart data={salesOverview}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis
+                           dataKey="_id"
+                        />
+                        <Tooltip />
+                        <Line
+                           type="monotone"
+                           dataKey="totalSales"
+                           stroke="#2563eb"
+                           strokeWidth={3}
+                           dot={{ r: 4 }}
+                        />
+                     </LineChart>
+                  </ResponsiveContainer>
+               )}
             </div>
-            {topProducts.length === 0 ? (
-               <div className="py-10 text-center text-gray-500">
-                  No product sales available.
-               </div>
-            ) : (
-               <div className="overflow-x-auto">
-                  <table className="w-full">
-                     <thead>
-                        <tr className="border-b border-gray-200 text-left">
-                           <th className="py-3 px-3 text-xs font-semibold text-gray-500">
-                              Product
-                           </th>
-                           <th className="py-3 px-3 text-xs font-semibold text-gray-500">
-                              Quantity Sold
-                           </th>
-                           <th className="py-3 px-3 text-xs font-semibold text-gray-500">
-                              Total Sales
-                           </th>
-                        </tr>
-                     </thead>
-                     <tbody>
-                        {topProducts.map((product, index) => (
-                           <tr
-                              key={product._id}
-                              className="border-b border-gray-100 last:border-b-0"
-                           >
-                              <td className="py-4 px-3">
-                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-sm font-bold text-blue-600">
-                                       {index + 1}
-                                    </div>
-                                    <div>
-                                       <p className="text-sm font-semibold text-gray-900">
-                                          {product.productName}
-                                       </p>
-                                       <p className="text-xs text-gray-400">
-                                          Product ID: {product._id}
-                                       </p>
-                                    </div>
-                                 </div>
-                              </td>
-                              <td className="py-4 px-3">
-                                 <span className="text-sm font-semibold">
-                                    {product.quantitySold}
-                                 </span>
-                              </td>
-                              <td className="py-4 px-3">
-                                 <span className="text-sm font-semibold">
-                                    ₹{product.totalSales.toLocaleString("en-IN")}
-                                 </span>
-                              </td>
-                           </tr>
-                        ))}
-                     </tbody>
-                  </table>
-               </div>
-            )}
-         </div>
-         <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
-            <div className="mb-5">
-               <h2 className="text-sm font-semibold text-gray-900">
-                  Category Performance
-               </h2>
-               <p className="text-xs text-gray-500 mt-1">
-                  Sales performance by product category.
-               </p>
-            </div>
-            {categoryLoading ? (
-               <div className="py-8 text-center text-sm text-gray-500">
-                  Loading category performance...
-               </div>
-            ) : categoryError ? (
-               <div className="py-8 text-center text-sm text-red-500">
-                  {categoryError}
-               </div>
-            ) : categoryPerformance.length === 0 ? (
-               <div className="py-8 text-center text-sm text-gray-500">
-                  No category data found.
-               </div>
-            ) : (
-               <div className="overflow-x-auto">
-                  <table className="w-full">
-                     <thead>
-                        <tr className="border-b border-gray-100">
-                           <th className="text-left text-xs font-semibold text-gray-500 py-3">
-                              Category
-                           </th>
-                           <th className="text-left text-xs font-semibold text-gray-500 py-3">
-                              Products Sold
-                           </th>
-                           <th className="text-left text-xs font-semibold text-gray-500 py-3">
-                              Total Sales
-                           </th>
-                        </tr>
-                     </thead>
-                     <tbody>
-                        {categoryPerformance.map((category) => (
-                           <tr
-                              key={category._id}
-                              className="border-b border-gray-100 last:border-b-0"
-                           >
-                              <td className="py-4 text-sm font-medium text-gray-900">
-                                 {category.categoryName}
-                              </td>
-                              <td className="py-4 text-sm text-gray-600">
-                                 {category.productsSold.toLocaleString("en-IN")}
-                              </td>
-                              <td className="py-4 text-sm font-semibold text-gray-900">
-                                 ₹{category.totalSales.toLocaleString("en-IN")}
-                              </td>
-                           </tr>
-                        ))}
-                     </tbody>
-                  </table>
-               </div>
-            )}
-         </div>
-         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mt-6">
-            <div className="px-5 py-4 border-b border-gray-200">
-               <div className="flex items-center justify-between">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
+               <div className="mb-5 flex items-center justify-between">
 
                   <div>
-                     <h2 className="text-lg font-semibold text-gray-900">
-                        Recent Transactions
+                     <h2 className="text-lg font-bold text-gray-900">
+                        Top Selling Products
                      </h2>
 
                      <p className="text-sm text-gray-500 mt-1">
-                        View your latest sales and subscription transactions.
+                        {topSellingType === "quantity"
+                           ? "Your best performing products by quantity sold."
+                           : "Your best performing products by total sales."
+                        }
                      </p>
                   </div>
 
-                  {/* Subscription / Billing Toggle */}
+                  {/* Quantity / Price Toggle */}
                   <div className="flex items-center bg-gray-100 rounded-lg p-1">
 
                      <button
                         type="button"
-                        onClick={() => setTransactionView("subscription")}
-                        className={`px-4 py-2 text-sm font-medium rounded-md transition ${transactionView === "subscription"
+                        onClick={() => setTopSellingType("quantity")}
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition ${topSellingType === "quantity"
                            ? "bg-white text-blue-600 shadow-sm"
                            : "text-gray-500 hover:text-gray-700"
                            }`}
                      >
-                        Subscription Plan
+                        Quantity
                      </button>
 
                      <button
                         type="button"
-                        onClick={() => setTransactionView("billing")}
-                        className={`px-4 py-2 text-sm font-medium rounded-md transition ${transactionView === "billing"
+                        onClick={() => setTopSellingType("price")}
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition ${topSellingType === "price"
                            ? "bg-white text-blue-600 shadow-sm"
                            : "text-gray-500 hover:text-gray-700"
                            }`}
                      >
-                        Billing Plan
+                        Price
                      </button>
 
                   </div>
 
                </div>
+               {topProducts.length === 0 ? (
+                  <div className="py-10 text-center text-gray-500">
+                     No product sales available.
+                  </div>
+               ) : (
+                  <div className="overflow-x-auto">
+                     <table className="w-full">
+                        <thead>
+                           <tr className="border-b border-gray-200 text-left">
+                              <th className="py-3 px-3 text-xs font-semibold text-gray-500">
+                                 Product
+                              </th>
+                              <th className="py-3 px-3 text-xs font-semibold text-gray-500">
+                                 Quantity Sold
+                              </th>
+                              <th className="py-3 px-3 text-xs font-semibold text-gray-500">
+                                 Total Sales
+                              </th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           {topProducts.map((product, index) => (
+                              <tr
+                                 key={product._id}
+                                 className="border-b border-gray-100 last:border-b-0"
+                              >
+                                 <td className="py-4 px-3">
+                                    <div className="flex items-center gap-3">
+                                       <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-sm font-bold text-blue-600">
+                                          {index + 1}
+                                       </div>
+                                       <div>
+                                          <p className="text-sm font-semibold text-gray-900">
+                                             {product.productName}
+                                          </p>
+                                          <p className="text-xs text-gray-400">
+                                             Product ID: {product._id}
+                                          </p>
+                                       </div>
+                                    </div>
+                                 </td>
+                                 <td className="py-4 px-3">
+                                    <span className="text-sm font-semibold">
+                                       {product.quantitySold}
+                                    </span>
+                                 </td>
+                                 <td className="py-4 px-3">
+                                    <span className="text-sm font-semibold">
+                                       ₹{product.totalSales.toLocaleString("en-IN")}
+                                    </span>
+                                 </td>
+                              </tr>
+                           ))}
+                        </tbody>
+                     </table>
+                  </div>
+               )}
             </div>
-            <div className="p-5 border-b border-gray-200">
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Customer Name
-                     </label>
-                     <input
-                        type="text"
-                        placeholder="Search customer"
-                        value={transactionFilters.customerName}
-                        onChange={(e) =>
-                           handleTransactionFilterChange(
-                              "customerName",
-                              e.target.value
-                           )
-                        }
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
-                     />
-                  </div>
-                  <div>
-                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Product / Plan
-                     </label>
-                     <input
-                        type="text"
-                        placeholder="Search product or plan"
-                        value={transactionFilters.productName}
-                        onChange={(e) =>
-                           handleTransactionFilterChange(
-                              "productName",
-                              e.target.value
-                           )
-                        }
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
-                     />
-                  </div>
-                  <div>
-                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Amount
-                     </label>
-                     <input
-                        type="number"
-                        placeholder="Enter amount"
-                        value={transactionFilters.amount}
-                        onChange={(e) =>
-                           handleTransactionFilterChange(
-                              "amount",
-                              e.target.value
-                           )
-                        }
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
-                     />
-                  </div>
-                  <div>
-                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Status
-                     </label>
-                     <select
-                        value={transactionFilters.status}
-                        onChange={(e) =>
-                           handleTransactionFilterChange(
-                              "status",
-                              e.target.value
-                           )
-                        }
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
-                     >
-
-                        <option value="all">
-                           All Status
-                        </option>
-
-                        <option value="Paid">
-                           Paid
-                        </option>
-
-                        <option value="Pending">
-                           Pending
-                        </option>
-
-                        <option value="Failed">
-                           Failed
-                        </option>
-
-                     </select>
-                  </div>
-
-                  <div>
-
-                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Date
-                     </label>
-
-                     <input
-                        type="date"
-                        value={transactionFilters.date}
-                        onChange={(e) =>
-                           handleTransactionFilterChange(
-                              "date",
-                              e.target.value
-                           )
-                        }
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
-                     />
-                  </div>
-                  <div>
-                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Payment Type
-                     </label>
-                     <select
-                        value={transactionFilters.type}
-                        onChange={(e) =>
-                           handleTransactionFilterChange(
-                              "type",
-                              e.target.value
-                           )
-                        }
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
-                     >
-                        <option value="all">
-                           All Types
-                        </option>
-                        <option value="Cash">
-                           Cash
-                        </option>
-                        <option value="Card">
-                           Card
-                        </option>
-                        <option value="UPI">
-                           UPI
-                        </option>
-                        <option value="Razorpay">
-                           Razorpay
-                        </option>
-                     </select>
-                  </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
+               <div className="mb-5">
+                  <h2 className="text-sm font-semibold text-gray-900">
+                     Category Performance
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-1">
+                     Sales performance by product category.
+                  </p>
                </div>
-
-               <div className="flex justify-end gap-3 mt-4">
-
-                  <button
-                     type="button"
-                     onClick={handleResetTransactionFilters}
-                     className="border border-gray-200 hover:bg-gray-50 px-5 py-2 rounded-lg text-sm font-medium text-gray-700"
-                  >
-                     Reset Filters
-                  </button>
-
-                  <button
-                     type="button"
-                     onClick={handleApplyTransactionFilters}
-                     className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium"
-                  >
-                     Apply Filters
-                  </button>
-
-               </div>
-
+               {categoryLoading ? (
+                  <div className="py-8 text-center text-sm text-gray-500">
+                     Loading category performance...
+                  </div>
+               ) : categoryError ? (
+                  <div className="py-8 text-center text-sm text-red-500">
+                     {categoryError}
+                  </div>
+               ) : categoryPerformance.length === 0 ? (
+                  <div className="py-8 text-center text-sm text-gray-500">
+                     No category data found.
+                  </div>
+               ) : (
+                  <div className="overflow-x-auto">
+                     <table className="w-full">
+                        <thead>
+                           <tr className="border-b border-gray-100">
+                              <th className="text-left text-xs font-semibold text-gray-500 py-3">
+                                 Category
+                              </th>
+                              <th className="text-left text-xs font-semibold text-gray-500 py-3">
+                                 Products Sold
+                              </th>
+                              <th className="text-left text-xs font-semibold text-gray-500 py-3">
+                                 Total Sales
+                              </th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           {categoryPerformance.map((category) => (
+                              <tr
+                                 key={category._id}
+                                 className="border-b border-gray-100 last:border-b-0"
+                              >
+                                 <td className="py-4 text-sm font-medium text-gray-900">
+                                    {category.categoryName}
+                                 </td>
+                                 <td className="py-4 text-sm text-gray-600">
+                                    {category.productsSold.toLocaleString("en-IN")}
+                                 </td>
+                                 <td className="py-4 text-sm font-semibold text-gray-900">
+                                    ₹{category.totalSales.toLocaleString("en-IN")}
+                                 </td>
+                              </tr>
+                           ))}
+                        </tbody>
+                     </table>
+                  </div>
+               )}
             </div>
-            {transactionLoading ? (
-               <div className="px-5 py-10 text-center text-gray-500">
-                  Loading transactions...
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mt-6">
+               <div className="px-5 py-4 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+
+                     <div>
+                        <h2 className="text-lg font-semibold text-gray-900">
+                           Recent Transactions
+                        </h2>
+
+                        <p className="text-sm text-gray-500 mt-1">
+                           View your latest sales and subscription transactions.
+                        </p>
+                     </div>
+
+                     {/* Subscription / Billing Toggle */}
+                     <div className="flex items-center bg-gray-100 rounded-lg p-1">
+
+                        <button
+                           type="button"
+                           onClick={() => setTransactionView("subscription")}
+                           className={`px-4 py-2 text-sm font-medium rounded-md transition ${transactionView === "subscription"
+                              ? "bg-white text-blue-600 shadow-sm"
+                              : "text-gray-500 hover:text-gray-700"
+                              }`}
+                        >
+                           Subscription Plan
+                        </button>
+
+                        <button
+                           type="button"
+                           onClick={() => setTransactionView("billing")}
+                           className={`px-4 py-2 text-sm font-medium rounded-md transition ${transactionView === "billing"
+                              ? "bg-white text-blue-600 shadow-sm"
+                              : "text-gray-500 hover:text-gray-700"
+                              }`}
+                        >
+                           Billing Plan
+                        </button>
+
+                     </div>
+
+                  </div>
                </div>
-            ) : transactionError ? (
-               <div className="px-5 py-10 text-center text-red-500">
-                  {transactionError}
+               <div className="p-5 border-b border-gray-200">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                     <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                           Customer Name
+                        </label>
+                        <input
+                           type="text"
+                           placeholder="Search customer"
+                           value={transactionFilters.customerName}
+                           onChange={(e) =>
+                              handleTransactionFilterChange(
+                                 "customerName",
+                                 e.target.value
+                              )
+                           }
+                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                        />
+                     </div>
+                     <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                           Product / Plan
+                        </label>
+                        <input
+                           type="text"
+                           placeholder="Search product or plan"
+                           value={transactionFilters.productName}
+                           onChange={(e) =>
+                              handleTransactionFilterChange(
+                                 "productName",
+                                 e.target.value
+                              )
+                           }
+                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                        />
+                     </div>
+                     <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                           Amount
+                        </label>
+                        <input
+                           type="number"
+                           placeholder="Enter amount"
+                           value={transactionFilters.amount}
+                           onChange={(e) =>
+                              handleTransactionFilterChange(
+                                 "amount",
+                                 e.target.value
+                              )
+                           }
+                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                        />
+                     </div>
+                     <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                           Status
+                        </label>
+                        <select
+                           value={transactionFilters.status}
+                           onChange={(e) =>
+                              handleTransactionFilterChange(
+                                 "status",
+                                 e.target.value
+                              )
+                           }
+                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                        >
+
+                           <option value="all">
+                              All Status
+                           </option>
+
+                           <option value="Paid">
+                              Paid
+                           </option>
+
+                           <option value="Pending">
+                              Pending
+                           </option>
+
+                           <option value="Failed">
+                              Failed
+                           </option>
+
+                        </select>
+                     </div>
+
+                     <div>
+
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                           Date
+                        </label>
+
+                        <input
+                           type="date"
+                           value={transactionFilters.date}
+                           onChange={(e) =>
+                              handleTransactionFilterChange(
+                                 "date",
+                                 e.target.value
+                              )
+                           }
+                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                        />
+                     </div>
+                     <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                           Payment Type
+                        </label>
+                        <select
+                           value={transactionFilters.type}
+                           onChange={(e) =>
+                              handleTransactionFilterChange(
+                                 "type",
+                                 e.target.value
+                              )
+                           }
+                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                        >
+                           <option value="all">
+                              All Types
+                           </option>
+                           <option value="Cash">
+                              Cash
+                           </option>
+                           <option value="Card">
+                              Card
+                           </option>
+                           <option value="UPI">
+                              UPI
+                           </option>
+                           <option value="Razorpay">
+                              Razorpay
+                           </option>
+                        </select>
+                     </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 mt-4">
+
+                     <button
+                        type="button"
+                        onClick={handleResetTransactionFilters}
+                        className="border border-gray-200 hover:bg-gray-50 px-5 py-2 rounded-lg text-sm font-medium text-gray-700"
+                     >
+                        Reset Filters
+                     </button>
+
+                     <button
+                        type="button"
+                        onClick={handleApplyTransactionFilters}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium"
+                     >
+                        Apply Filters
+                     </button>
+
+                  </div>
+
                </div>
-            ) : displayedTransactions.length === 0 ? (
-               <div className="px-5 py-10 text-center text-gray-500">
-                  No transactions found.
-               </div>
-            ) : (
-               <div className="overflow-x-auto">
-                  <table className="w-full min-w-[900px]">
-                     <thead className="bg-gray-50">
-                        <tr>
-                           <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
-                              Transaction ID
-                           </th>
-                           <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
-                              Customer
-                           </th>
-                           <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
-                              Product / Plan
-                           </th>
-                           <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
-                              Amount
-                           </th>
-                           <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
-                              Status
-                           </th>
-                           <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
-                              Date
-                           </th>
-                           <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
-                              Type
-                           </th>
-                        </tr>
-                     </thead>
-                     <tbody>
-                        {displayedTransactions.map((transaction) => (
-                           <tr
-                              key={`${transaction.transactionType}-${transaction.transactionId}`}
-                              className="border-t border-gray-100 hover:bg-gray-50"
-                           >
-                              <td className="px-5 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
-                                 {transaction.transactionId || "-"}
-                              </td>
-                              <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap">
-                                 {transaction.customerName || "-"}
-                              </td>
-                              <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap">
-                                 {transaction.transactionName || "-"}
-                              </td>
-                              <td className="px-5 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap">
-                                 ₹
-                                 {Number(
-                                    transaction.amount || 0
-                                 ).toLocaleString("en-IN")}
-                              </td>
-                              <td className="px-5 py-4 whitespace-nowrap">
-                                 <span
-                                    className={`
+               {transactionLoading ? (
+                  <div className="px-5 py-10 text-center text-gray-500">
+                     Loading transactions...
+                  </div>
+               ) : transactionError ? (
+                  <div className="px-5 py-10 text-center text-red-500">
+                     {transactionError}
+                  </div>
+               ) : displayedTransactions.length === 0 ? (
+                  <div className="px-5 py-10 text-center text-gray-500">
+                     No transactions found.
+                  </div>
+               ) : (
+                  <div className="overflow-x-auto">
+                     <table className="w-full min-w-[900px]">
+                        <thead className="bg-gray-50">
+                           <tr>
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                                 Transaction ID
+                              </th>
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                                 Customer
+                              </th>
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                                 Product / Plan
+                              </th>
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                                 Amount
+                              </th>
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                                 Status
+                              </th>
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                                 Date
+                              </th>
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                                 Type
+                              </th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           {displayedTransactions.map((transaction) => (
+                              <tr
+                                 key={`${transaction.transactionType}-${transaction.transactionId}`}
+                                 className="border-t border-gray-100 hover:bg-gray-50"
+                              >
+                                 <td className="px-5 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                                    {transaction.transactionId || "-"}
+                                 </td>
+                                 <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap">
+                                    {transaction.customerName || "-"}
+                                 </td>
+                                 <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap">
+                                    {transaction.transactionName || "-"}
+                                 </td>
+                                 <td className="px-5 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap">
+                                    ₹
+                                    {Number(
+                                       transaction.amount || 0
+                                    ).toLocaleString("en-IN")}
+                                 </td>
+                                 <td className="px-5 py-4 whitespace-nowrap">
+                                    <span
+                                       className={`
                               px-2.5
                               py-1
                               rounded-full
                               text-xs
                               font-medium
                               ${transaction.status?.toLowerCase() === "paid"
-                                          ? "bg-green-100 text-green-700"
-                                          : transaction.status?.toLowerCase() === "failed"
-                                             ? "bg-red-100 text-red-700"
-                                             : "bg-yellow-100 text-yellow-700"
-                                       }
+                                             ? "bg-green-100 text-green-700"
+                                             : transaction.status?.toLowerCase() === "failed"
+                                                ? "bg-red-100 text-red-700"
+                                                : "bg-yellow-100 text-yellow-700"
+                                          }
                            `}
-                                 >
-                                    {transaction.status || "-"}
-                                 </span>
-                              </td>
-                              <td className="px-5 py-4 text-sm text-gray-500 whitespace-nowrap">
-                                 {transaction.date
-                                    ? new Date(
-                                       transaction.date
-                                    ).toLocaleDateString("en-IN")
-                                    : "-"
+                                    >
+                                       {transaction.status || "-"}
+                                    </span>
+                                 </td>
+                                 <td className="px-5 py-4 text-sm text-gray-500 whitespace-nowrap">
+                                    {transaction.date
+                                       ? new Date(
+                                          transaction.date
+                                       ).toLocaleDateString("en-IN")
+                                       : "-"
+                                    }
+                                 </td>
+                                 <td className="px-5 py-4 whitespace-nowrap">
+                                    <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                       {transaction.type || "-"}
+                                    </span>
+                                 </td>
+                              </tr>
+                           ))}
+                        </tbody>
+                     </table>
+                     {totalTransactions > 0 && (
+                        <div className="flex items-center justify-between px-5 py-4 border-t border-gray-200">
+
+                           <p className="text-sm text-gray-500">
+                              Showing{" "}
+                              <span className="font-medium text-gray-700">
+                                 {(currentPage - 1) * transactionsPerPage + 1}
+                              </span>
+                              {" "}to{" "}
+                              <span className="font-medium text-gray-700">
+                                 {Math.min(
+                                    currentPage * transactionsPerPage,
+                                    totalTransactions
+                                 )}
+                              </span>
+                              {" "}of{" "}
+                              <span className="font-medium text-gray-700">
+                                 {totalTransactions}
+                              </span>
+                              {" "}transactions
+                           </p>
+
+                           <div className="flex items-center gap-2">
+
+                              <button
+                                 type="button"
+                                 disabled={currentPage === 1}
+                                 onClick={() =>
+                                    handleTransactionPageChange(
+                                       currentPage - 1
+                                    )
                                  }
-                              </td>
-                              <td className="px-5 py-4 whitespace-nowrap">
-                                 <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                    {transaction.type || "-"}
-                                 </span>
-                              </td>
-                           </tr>
-                        ))}
-                     </tbody>
-                  </table>
-                  {totalTransactions > 0 && (
-                     <div className="flex items-center justify-between px-5 py-4 border-t border-gray-200">
+                                 className="px-3 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                              >
+                                 Previous
+                              </button>
 
-                        <p className="text-sm text-gray-500">
-                           Showing{" "}
-                           <span className="font-medium text-gray-700">
-                              {(currentPage - 1) * transactionsPerPage + 1}
-                           </span>
-                           {" "}to{" "}
-                           <span className="font-medium text-gray-700">
-                              {Math.min(
-                                 currentPage * transactionsPerPage,
-                                 totalTransactions
-                              )}
-                           </span>
-                           {" "}of{" "}
-                           <span className="font-medium text-gray-700">
-                              {totalTransactions}
-                           </span>
-                           {" "}transactions
-                        </p>
+                              <span className="px-3 py-2 text-sm font-medium">
+                                 Page {currentPage} of {totalPages}
+                              </span>
 
-                        <div className="flex items-center gap-2">
+                              <button
+                                 type="button"
+                                 disabled={currentPage === totalPages}
+                                 onClick={() =>
+                                    handleTransactionPageChange(
+                                       currentPage + 1
+                                    )
+                                 }
+                                 className="px-3 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                              >
+                                 Next
+                              </button>
 
-                           <button
-                              type="button"
-                              disabled={currentPage === 1}
-                              onClick={() =>
-                                 handleTransactionPageChange(
-                                    currentPage - 1
-                                 )
-                              }
-                              className="px-3 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                           >
-                              Previous
-                           </button>
-
-                           <span className="px-3 py-2 text-sm font-medium">
-                              Page {currentPage} of {totalPages}
-                           </span>
-
-                           <button
-                              type="button"
-                              disabled={currentPage === totalPages}
-                              onClick={() =>
-                                 handleTransactionPageChange(
-                                    currentPage + 1
-                                 )
-                              }
-                              className="px-3 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                           >
-                              Next
-                           </button>
+                           </div>
 
                         </div>
-
-                     </div>
-                  )}
-               </div>
-            )}
+                     )}
+                  </div>
+               )}
+            </div>
          </div>
       </div>
    );
