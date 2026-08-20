@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { updateProduct } from "../../services/productService";
 import { getCategory } from "../../services/categoryService";
 
+
 const inputData = [
     {
         id: 1,
@@ -11,7 +12,6 @@ const inputData = [
         type: "text",
         label: "Product Name",
         placeholder: "eg. Iphone 17 Pro Max",
-        width: "w-[49%]",
         required: true,
     },
     {
@@ -20,7 +20,6 @@ const inputData = [
         type: "select",
         label: "Product Category",
         placeholder: "",
-        width: "w-[49%]",
         required: true,
     },
     {
@@ -29,7 +28,6 @@ const inputData = [
         type: "number",
         label: "Stock",
         placeholder: "0-100000",
-        width: "w-[49%]",
         required: true,
     },
     {
@@ -38,7 +36,7 @@ const inputData = [
         type: "number",
         label: "Purchase Price",
         placeholder: "150.00",
-        width: "w-[49%]",
+        required: false,
     },
     {
         id: 5,
@@ -46,7 +44,7 @@ const inputData = [
         type: "number",
         label: "Selling Price",
         placeholder: "299.00",
-        width: "w-[49%]"
+        required: false,
     },
     {
         id: 6,
@@ -54,22 +52,25 @@ const inputData = [
         type: "date",
         label: "Expiry Date",
         placeholder: "",
-        width: "w-[49%]",
         required: true,
     },
     {
-        id: 6,
+        id: 7,
         name: "supplierName",
         type: "text",
         label: "Supplier Name",
         placeholder: "eg. TATA",
-        width: "w-[98.5%]"
+        required: false,
+        fullWidth: true,
     },
-]
+];
 
 
-
-export default function AddProductModal({ product, onClose, onUpdate }) {
+export default function EditProductModal({
+    product,
+    onClose,
+    onUpdate
+}) {
 
     const [editProductData, setEditProductData] = useState({
         productName: "",
@@ -79,134 +80,300 @@ export default function AddProductModal({ product, onClose, onUpdate }) {
         sellingPrice: "",
         ExpiryDate: "",
         supplierName: "",
-    })
+    });
+
+    const [categories, setCategories] = useState([]);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+
+
+    /* ================= LOAD PRODUCT ================= */
 
     useEffect(() => {
+
         if (product) {
+
             setEditProductData({
-                productName: product.productName,
-                productCategory: product.productCategory?._id || "",
-                stock: product.stock,
-                purchase: product.purchase,
-                sellingPrice: product.sellingPrice,
+                productName: product.productName || "",
+
+                productCategory:
+                    product.productCategory?._id || "",
+
+                stock: product.stock ?? "",
+
+                purchase: product.purchase ?? "",
+
+                sellingPrice: product.sellingPrice ?? "",
+
                 ExpiryDate: product.ExpiryDate
                     ? product.ExpiryDate.slice(0, 10)
                     : "",
-                supplierName: product.supplierName
-            })
-        }
-    }, [product])
 
-    const [error, setError] = useState("");
+                supplierName: product.supplierName || "",
+            });
+
+        }
+
+    }, [product]);
+
+
+    /* ================= LOAD CATEGORIES ================= */
+
+    useEffect(() => {
+
+        const fetchCategories = async () => {
+
+            try {
+
+                const res = await getCategory();
+
+                setCategories(res.result || []);
+
+            } catch (err) {
+
+                console.log(err);
+
+            }
+
+        };
+
+        fetchCategories();
+
+    }, []);
+
+
+    /* ================= CHANGE ================= */
 
     const handleChange = (e) => {
-        setEditProductData({
-            ...editProductData,
-            [e.target.name]: e.target.value
-        })
-    }
+
+        const { name, value } = e.target;
+
+        setEditProductData((prev) => ({
+            ...prev,
+            [name]: value
+        }));
+
+        if (error) {
+            setError("");
+        }
+    };
+
+
+    /* ================= SUBMIT ================= */
 
     const handleSubmit = async (e) => {
+
         e.preventDefault();
+
         try {
+
+            setLoading(true);
+            setError("");
+
             const result = await updateProduct(
                 product._id,
                 editProductData
             );
-            alert('product edit successfully');
-        } catch (err) {
-            setError(
-                err.response?.data?.message || 'something went wrong'
-            )
-            console.log(err.message || 'something went wrong');
-        }
-    }
 
-    const [categories, setCategories] = useState([]);
-
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const res = await getCategory();
-                setCategories(res.result);
-            } catch (err) {
-                console.log(err);
+            /*
+             * If your API returns the updated product,
+             * update the product in the parent component.
+             */
+            if (result.product && onUpdate) {
+                onUpdate(result.product);
             }
-        };
-        fetchCategories();
-    }, [])
+
+            alert("Product updated successfully");
+
+            onClose();
+
+        } catch (err) {
+
+            console.log(err);
+
+            setError(
+                err.response?.data?.message ||
+                "Something went wrong"
+            );
+
+        } finally {
+
+            setLoading(false);
+
+        }
+    };
+
 
     return (
-        <div className="w-full fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm overflow-y-auto">
-            <div className="w-full max-w-[900px] bg-white m-auto border rounded items-center justify-center flex flex-col p-6">
-                <div className="w-full flex justify-between">
-                    <h3 className="text-xl font-semibold">Add Product</h3>
+
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+
+            {/* ================= MODAL ================= */}
+
+            <div className="w-full max-w-[900px] max-h-[95vh] sm:max-h-[90vh] bg-white rounded-xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden">
+
+
+                {/* ================= HEADER ================= */}
+
+                <div className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-100 flex-shrink-0">
+
+                    <div>
+
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                            Edit Product
+                        </h3>
+
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                            Update your product information.
+                        </p>
+
+                    </div>
+
+
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="text-gray-400 hover:text-primary transition">
+                        className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-primary hover:bg-gray-50 transition flex-shrink-0"
+                    >
                         <X size={20} />
                     </button>
+
                 </div>
-                <div className="w-full mt-4">
+
+
+                {/* ================= CONTENT ================= */}
+
+                <div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
+
                     <form
                         onSubmit={handleSubmit}
-                        className="w-full">
-                        <div className="flex flex-wrap gap-4">
-                            {inputData.map((data) => {
-                                return (
-                                    <div key={data.id} className={` flex flex-col gap-1 ${data.width} `}>
-                                        <lable className="text-sm text-text font-semibold">{data.label}</lable>
+                        className="w-full"
+                    >
 
-                                        {data.type === "select" ? (
-                                            <select
-                                                name={data.name}
-                                                value={editProductData[data.name]}
-                                                onChange={handleChange}
-                                                required={data.required}
-                                                className="focus:outline-none focus:ring-0 rounded border p-2 text-sm"
-                                            >
-                                                <option value=''>Select Categories</option>
-                                                {categories.map((items) => (
-                                                    <option
-                                                        key={items._id}
-                                                        value={items._id}
-                                                    >
-                                                        {items.categoryName}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        ) : (
-                                            <input
-                                                name={data.name}
-                                                type={data.type}
-                                                placeholder={data.placeholder}
-                                                required={data.required}
-                                                value={editProductData[data.name]}
-                                                onChange={handleChange}
-                                                className="focus:outline-none border rounded p-2 text-sm"
-                                            />
+                        {/* ================= INPUTS ================= */}
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+
+                            {inputData.map((data) => (
+
+                                <div
+                                    key={data.id}
+                                    className={
+                                        data.fullWidth
+                                            ? "sm:col-span-2"
+                                            : ""
+                                    }
+                                >
+
+                                    {/* LABEL */}
+
+                                    <label className="block text-xs sm:text-sm text-gray-700 font-semibold mb-1.5">
+
+                                        {data.label}
+
+                                        {data.required && (
+                                            <span className="text-red-500 ml-1">
+                                                *
+                                            </span>
                                         )}
 
-                                    </div>
-                                )
-                            })}
+                                    </label>
+
+
+                                    {/* SELECT */}
+
+                                    {data.type === "select" ? (
+
+                                        <select
+                                            name={data.name}
+                                            value={
+                                                editProductData[data.name]
+                                            }
+                                            onChange={handleChange}
+                                            required={data.required}
+                                            className="w-full h-11 bg-white border border-gray-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+
+                                            <option value="">
+                                                Select Category
+                                            </option>
+
+                                            {categories.map((item) => (
+
+                                                <option
+                                                    key={item._id}
+                                                    value={item._id}
+                                                >
+                                                    {item.categoryName}
+                                                </option>
+
+                                            ))}
+
+                                        </select>
+
+                                    ) : (
+
+                                        <input
+                                            name={data.name}
+                                            type={data.type}
+                                            placeholder={data.placeholder}
+                                            required={data.required}
+                                            value={
+                                                editProductData[data.name]
+                                            }
+                                            onChange={handleChange}
+                                            className="w-full h-11 border border-gray-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+
+                                    )}
+
+                                </div>
+
+                            ))}
+
                         </div>
-                        <div className="mt-6">
+
+
+                        {/* ================= ERROR ================= */}
+
+                        {error && (
+
+                            <div className="mt-5 rounded-lg bg-red-50 border border-red-200 px-3 py-2.5">
+
+                                <p className="text-xs sm:text-sm text-red-500 text-center">
+                                    {error}
+                                </p>
+
+                            </div>
+
+                        )}
+
+
+                        {/* ================= BUTTON ================= */}
+
+                        <div className="mt-5 sm:mt-6">
+
                             <button
                                 type="submit"
-                                className="text-sm w-full p-3 bg-primary text-white font-semibold rounded"
+                                disabled={loading}
+                                className="w-full h-11 text-sm bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Add Product
+
+                                {loading
+                                    ? "Updating..."
+                                    : "Update Product"
+                                }
+
                             </button>
+
                         </div>
-                        <div>
-                            {error && (
-                                <p className="text-xs text-red-400 mt-2 text-center">{error}</p>
-                            )}
-                        </div>
+
                     </form>
+
                 </div>
+
             </div>
+
         </div>
-    )
+    );
 }

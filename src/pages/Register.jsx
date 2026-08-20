@@ -1,8 +1,21 @@
 import MeditaskIcon from "../components/Icons/mediTaskIcon";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-import { Box, ChartColumn, Bell, Calendar, House, User, Phone, Mail, MapPin, Lock, Building2, BookOpen, Shield, Building, ArrowRight } from "lucide-react";
+import {
+    House,
+    User,
+    Phone,
+    Mail,
+    MapPin,
+    Lock,
+    Building2,
+    BookOpen,
+    Shield,
+    Building,
+    ArrowRight,
+    ArrowLeft
+} from "lucide-react";
 
 import LoginRegisterSidebar from "../components/loginRegisterSideBar";
 
@@ -17,7 +30,6 @@ const InputData = [
         icon: House,
         type: "text",
         placeholder: "eg. City Medical",
-        width: "w-[49%]",
         required: true
     },
     {
@@ -27,7 +39,6 @@ const InputData = [
         icon: User,
         type: "text",
         placeholder: "Full Name",
-        width: "w-[49%]",
         required: true
     },
     {
@@ -35,9 +46,8 @@ const InputData = [
         name: "mobileNumber",
         label: "Mobile Number",
         icon: Phone,
-        type: "number",
+        type: "tel",
         placeholder: "10-digit number",
-        width: "w-[49%]",
         required: true
     },
     {
@@ -47,7 +57,6 @@ const InputData = [
         icon: Mail,
         type: "email",
         placeholder: "your@example.com",
-        width: "w-[49%]",
         required: true
     },
     {
@@ -57,7 +66,6 @@ const InputData = [
         icon: Lock,
         type: "password",
         placeholder: "Min. 8 Characters",
-        width: "w-[49%]",
         required: true
     },
     {
@@ -67,7 +75,6 @@ const InputData = [
         icon: Shield,
         type: "password",
         placeholder: "Repeat Password",
-        width: "w-[49%]",
         required: true
     },
     {
@@ -77,7 +84,7 @@ const InputData = [
         icon: MapPin,
         type: "text",
         placeholder: "Street Address, building name",
-        width: "w-[98.5%]",
+        fullWidth: true,
         required: true
     },
     {
@@ -87,7 +94,6 @@ const InputData = [
         icon: Building2,
         type: "text",
         placeholder: "e.g. Mumbai",
-        width: "w-[49%]",
         required: true
     },
     {
@@ -97,7 +103,6 @@ const InputData = [
         icon: Building,
         type: "text",
         placeholder: "State",
-        width: "w-[49%]",
         required: true
     },
     {
@@ -107,7 +112,6 @@ const InputData = [
         icon: BookOpen,
         type: "text",
         placeholder: "22AAAAA000A1Z5",
-        width: "w-[49%]",
         required: true
     },
     {
@@ -117,13 +121,13 @@ const InputData = [
         icon: Shield,
         type: "text",
         placeholder: "MH/DRUG/2024/XXXX",
-        width: "w-[49%]",
         required: false
-    },
-]
+    }
+];
 
 
 export default function Register() {
+
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -132,90 +136,199 @@ export default function Register() {
         mobileNumber: "",
         email: "",
         Password: "",
+        confirmPassword: "",
         shopAddress: "",
         city: "",
         state: "",
         gstNumber: "",
         licenseNumber: "",
-    })
+    });
 
     const handleChange = (e) => {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
-        })
-    }
+        });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         try {
             const result = await registerUser(formData);
+
             console.log(result);
-            alert('registeration successfull');
-            localStorage.setItem("token", result.token)
-            navigate('/login', { replace: true });
+
+            alert("Registration successful");
+
+            localStorage.setItem("token", result.token);
+
+            navigate("/login", {
+                replace: true
+            });
 
         } catch (err) {
-            console.log(err.message || 'something went wrong');
+            console.log(
+                err.message ||
+                "Something went wrong"
+            );
         }
-    }
+    };
 
     return (
-        <div className="w-full min-h-full">
-            <div className={`w-full min-h-full bg-white text-black flex`}>
-                <div className="w-[20%] min-h-full">
+        <div className="w-full min-h-screen bg-white text-black">
+
+            <div className="w-full min-h-screen flex">
+
+                {/* ================= SIDEBAR ================= */}
+
+                <div className="hidden lg:block lg:w-[20%] lg:flex-shrink-0">
                     <LoginRegisterSidebar />
                 </div>
 
-                <div className="w-[80%] p-8 overflow-y-auto">
-                    <div>
-                        <h2 className="font-bold text-2xl">Register your pharmacy</h2>
-                        <p className="text-text text-sm mt-2 font-normal">Set up your MediStock account in under 2 minutes.</p>
-                    </div>
 
-                    <form
-                        onSubmit={handleSubmit}
-                    >
-                        <div className="flex flex-wrap gap-x-2 gap-y-5 mt-10">
-                            {InputData.map((data) => {
-                                const Icon = data.icon;
-                                return (
-                                    <div key={data.id} className={`${data.width}`}>
-                                        <label className="font-semibold text-black/70 text-xs">{data.label}</label>
-                                        <div className="border border-black/10 rounded-lg flex gap-1 pl-3 items-center">
-                                            <Icon className="stroke-text stroke-1 h-4 w-4" />
-                                            <input
-                                                type={data.type}
-                                                name={data.name}
-                                                placeholder={data.placeholder}
-                                                value={formData[data.name]}
-                                                onChange={handleChange}
-                                                className="text-sm text-text focus:outline-none focus:ring-0 w-full h-full p-3"
-                                                required={data.required}
-                                            />
+                {/* ================= REGISTER CONTENT ================= */}
+
+                <div className="w-full lg:w-[80%] p-4 sm:p-6 lg:p-8 overflow-y-auto">
+
+                    <div className="max-w-5xl mx-auto">
+                        {/* Back Button */}
+                        <button
+                            type="button"
+                            onClick={() => navigate("/login")}
+                            className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition mb-5"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            Back
+                        </button>
+                        {/* Header */}
+                        <div>
+
+                            <h2 className="font-bold text-xl sm:text-2xl">
+                                Register your pharmacy
+                            </h2>
+
+                            <p className="text-text text-xs sm:text-sm mt-2 font-normal">
+                                Set up your MediStock account in under 2 minutes.
+                            </p>
+
+                        </div>
+
+
+                        {/* Form */}
+                        <form
+                            onSubmit={handleSubmit}
+                            className="mt-6 sm:mt-8 lg:mt-10"
+                        >
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+
+                                {InputData.map((data) => {
+
+                                    const Icon = data.icon;
+
+                                    return (
+                                        <div
+                                            key={data.id}
+                                            className={
+                                                data.fullWidth
+                                                    ? "sm:col-span-2"
+                                                    : ""
+                                            }
+                                        >
+
+                                            {/* Label */}
+                                            <label className="block font-semibold text-black/70 text-xs mb-2">
+                                                {data.label}
+                                            </label>
+
+
+                                            {/* Input */}
+                                            <div className="border border-black/10 rounded-lg flex gap-2 pl-3 items-center bg-white focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+
+                                                <Icon
+                                                    className="stroke-text stroke-1 h-4 w-4 flex-shrink-0"
+                                                />
+
+                                                <input
+                                                    type={data.type}
+                                                    name={data.name}
+                                                    placeholder={data.placeholder}
+                                                    value={
+                                                        formData[data.name]
+                                                    }
+                                                    onChange={handleChange}
+                                                    className="text-sm text-text focus:outline-none focus:ring-0 w-full min-w-0 p-3 bg-transparent"
+                                                    required={
+                                                        data.required
+                                                    }
+                                                />
+
+                                            </div>
+
                                         </div>
-                                    </div>
-                                )
-                            })}
+                                    );
+                                })}
 
-                            <div className="flex gap-1 items-center w-full">
-                                <input
-                                    type="checkbox"
-                                    className="cursor-pointer"
-                                />
-                                <p className="text-xs text-text">I Agree to MediStock's <Link to='#' className="text-primary hover:underline">Terms Of Service</Link> and <Link href="#" className="text-primary hover:underline">Privacy Policy</Link></p>
                             </div>
 
-                            <button type="submit" className="flex gap-2 items-center justify-center w-full p-3 bg-primary text-white font-semibold cursor-pointer rounded hover:bg-[#1b5ce9] hover:shadow"
 
+                            {/* ================= TERMS ================= */}
+
+                            <div className="flex items-start gap-2 mt-5">
+
+                                <input
+                                    type="checkbox"
+                                    required
+                                    className="mt-0.5 cursor-pointer flex-shrink-0"
+                                />
+
+                                <p className="text-xs text-text leading-5">
+
+                                    I Agree to MediStock's{" "}
+
+                                    <Link
+                                        to="#"
+                                        className="text-primary hover:underline"
+                                    >
+                                        Terms Of Service
+                                    </Link>
+
+                                    {" "}and{" "}
+
+                                    <Link
+                                        to="#"
+                                        className="text-primary hover:underline"
+                                    >
+                                        Privacy Policy
+                                    </Link>
+
+                                </p>
+
+                            </div>
+
+
+                            {/* ================= SUBMIT ================= */}
+
+                            <button
+                                type="submit"
+                                className="flex gap-2 items-center justify-center w-full p-3 mt-5 bg-primary text-white font-semibold cursor-pointer rounded-lg hover:bg-[#1b5ce9] hover:shadow transition"
                             >
+
                                 Create Account
+
                                 <ArrowRight className="h-5 w-5" />
+
                             </button>
-                        </div>
-                    </form>
+
+                        </form>
+
+                    </div>
+
                 </div>
+
             </div>
+
         </div>
-    )
+    );
 }

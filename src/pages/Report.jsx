@@ -325,7 +325,7 @@ export default function Reports() {
             <LastParams />
          </div>
          <div className="min-h-screen bg-gray-50 p-6">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between mb-6">
                <div>
                   <h1 className="text-2xl font-bold text-gray-900">
                      Reports & Analytics
@@ -334,7 +334,7 @@ export default function Reports() {
                      Track your shop performance, sales, products, and inventory.
                   </p>
                </div>
-               <div className="flex items-center gap-3">
+               <div className="flex items-start w-full sm:w-auto sm:items-center mt-4 sm:mt-0 gap-3">
                   <select
                      value={selectedRange}
                      onChange={(e) => setSelectedRange(e.target.value)}
@@ -368,7 +368,7 @@ export default function Reports() {
                   </button>
                </div>
             </div>
-            <div className="grid grid-cols-4 gap-4 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
                <div className="bg-white border border-gray-200 rounded-xl p-5">
                   <p className="text-xs text-gray-500">
                      Total Sales
@@ -428,74 +428,55 @@ export default function Reports() {
                   </p>
                </div>
             </div>
+
+            {/* filters */}
             <div className="bg-white border border-gray-200 rounded-xl p-4 mb-5">
-               <div className="flex items-center gap-4">
-                  <span className="text-sm font-semibold">
-                     Filters
-                  </span>
+               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div className="flex items-center sm:w-auto w-full gap-4">
+                     <span className="text-sm font-semibold">
+                        Filters
+                     </span>
 
-                  <select
-                     value={category}
-                     onChange={(e) => setCategory(e.target.value)}
-                     className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
-                  >
-                     <option value="all">
-                        All Categories
-                     </option>
-
-                     {categories.map((item) => (
-                        <option
-                           key={item._id}
-                           value={item._id}
-                        >
-                           {item.categoryName}
+                     <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="border border-gray-200 rounded-lg sm:w-auto w-full px-3 py-2 text-sm"
+                     >
+                        <option value="all">
+                           All Categories
                         </option>
-                     ))}
-                  </select>
 
-                  {/* <select
-                  value={orderStatus}
-                  onChange={(e) => setOrderStatus(e.target.value)}
-                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
-               >
-                  <option value="all">
-                     All Orders
-                  </option>
-                  <option value="completed">
-                     Completed
-                  </option>
-                  <option value="processing">
-                     Processing
-                  </option>
-                  <option value="pending">
-                     Pending
-                  </option>
-                  <option value="cancelled">
-                     Cancelled
-                  </option>
-                  <option value="failed">
-                     Failed
-                  </option>
-               </select> */}
-
-                  <div className="ml-auto flex gap-2">
-                     <button
-                        type="button"
-                        onClick={handleResetReportFilters}
-                        className="border border-gray-200 px-4 py-2 rounded-lg text-sm"
-                     >
-                        Reset
-                     </button>
-                     <button
-                        type="button"
-                        onClick={handleReportFilters}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
-                     >
-                        Apply Filters
-                     </button>
+                        {categories.map((item) => (
+                           <option
+                              key={item._id}
+                              value={item._id}
+                           >
+                              {item.categoryName}
+                           </option>
+                        ))}
+                     </select>
+                  </div>
+                  <div className="flex sm:w-auto w-full">
+                     <div className="ml-auto w-full flex gap-2">
+                        <button
+                           type="button"
+                           onClick={handleResetReportFilters}
+                           className="border border-gray-200 px-4 py-2 sm:w-auto w-full rounded-lg text-sm"
+                        >
+                           Reset
+                        </button>
+                        <button
+                           type="button"
+                           onClick={handleReportFilters}
+                           className="bg-blue-600 text-white px-4 py-2 sm:w-auto w-full rounded-lg text-sm"
+                        >
+                           Apply Filters
+                        </button>
+                     </div>
                   </div>
                </div>
             </div>
+
             <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
                <div className="mb-5">
                   <h2 className="text-lg font-bold text-gray-900">
@@ -532,15 +513,17 @@ export default function Reports() {
                   </ResponsiveContainer>
                )}
             </div>
+
+            {/* Top Selling product */}
             <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
-               <div className="mb-5 flex items-center justify-between">
+               <div className="mb-5 flex items-start sm:items-center sm:gap-0 gap-4 justify-between">
 
                   <div>
-                     <h2 className="text-lg font-bold text-gray-900">
+                     <h2 className="sm:text-lg text-sm font-bold text-gray-900">
                         Top Selling Products
                      </h2>
 
-                     <p className="text-sm text-gray-500 mt-1">
+                     <p className="text-xs sm:text-sm text-gray-500 mt-1">
                         {topSellingType === "quantity"
                            ? "Your best performing products by quantity sold."
                            : "Your best performing products by total sales."
@@ -554,7 +537,7 @@ export default function Reports() {
                      <button
                         type="button"
                         onClick={() => setTopSellingType("quantity")}
-                        className={`px-4 py-2 text-sm font-medium rounded-md transition ${topSellingType === "quantity"
+                        className={`px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition ${topSellingType === "quantity"
                            ? "bg-white text-blue-600 shadow-sm"
                            : "text-gray-500 hover:text-gray-700"
                            }`}
@@ -565,7 +548,7 @@ export default function Reports() {
                      <button
                         type="button"
                         onClick={() => setTopSellingType("price")}
-                        className={`px-4 py-2 text-sm font-medium rounded-md transition ${topSellingType === "price"
+                        className={`px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition ${topSellingType === "price"
                            ? "bg-white text-blue-600 shadow-sm"
                            : "text-gray-500 hover:text-gray-700"
                            }`}
@@ -634,6 +617,8 @@ export default function Reports() {
                   </div>
                )}
             </div>
+
+            {/* Category Performance */}
             <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
                <div className="mb-5">
                   <h2 className="text-sm font-semibold text-gray-900">
@@ -693,27 +678,29 @@ export default function Reports() {
                   </div>
                )}
             </div>
+
+            {/* Recent Transaction */}
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mt-6">
                <div className="px-5 py-4 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 sm:gap-0 justify-between">
 
                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900">
+                        <h2 className="text-sm sm:text-lg font-semibold text-gray-900">
                            Recent Transactions
                         </h2>
 
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">
                            View your latest sales and subscription transactions.
                         </p>
                      </div>
 
                      {/* Subscription / Billing Toggle */}
-                     <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                     <div className="flex items-start sm:items-center bg-gray-100 rounded-lg p-1">
 
                         <button
                            type="button"
                            onClick={() => setTransactionView("subscription")}
-                           className={`px-4 py-2 text-sm font-medium rounded-md transition ${transactionView === "subscription"
+                           className={`px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition ${transactionView === "subscription"
                               ? "bg-white text-blue-600 shadow-sm"
                               : "text-gray-500 hover:text-gray-700"
                               }`}
@@ -724,7 +711,7 @@ export default function Reports() {
                         <button
                            type="button"
                            onClick={() => setTransactionView("billing")}
-                           className={`px-4 py-2 text-sm font-medium rounded-md transition ${transactionView === "billing"
+                           className={`px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition ${transactionView === "billing"
                               ? "bg-white text-blue-600 shadow-sm"
                               : "text-gray-500 hover:text-gray-700"
                               }`}

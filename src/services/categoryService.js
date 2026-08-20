@@ -1,13 +1,12 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/category";
-// const API = process.env.REACT_APP_API_URL;
+const API = process.env.REACT_APP_API_URL;
 
 export const addCategory = async (productData) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.post(
-        `${API}/add`,
+        `${API}/category/add`,
         productData,
         {
             headers: {
@@ -21,7 +20,7 @@ export const getCategory = async () => {
     const token = localStorage.getItem("token");
 
     const response = await axios.get(
-        `${API}/get`,
+        `${API}/category/get`,
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -34,7 +33,7 @@ export const deleteCategory = async (id) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.delete(
-        `${API}/delete/${id}`,
+        `${API}/category/delete/${id}`,
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -47,7 +46,7 @@ export const updateCategory = async (id, categoryData) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.put(
-        `${API}/update/${id}`,
+        `${API}/category/update/${id}`,
         categoryData,
         {
             headers: {
@@ -61,7 +60,7 @@ export const viewCategory = async(id) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.get(
-        `${API}/single/${id}`,
+        `${API}/category/single/${id}`,
         {
             headers:{
                 Authorization:`Bearer ${token}`
@@ -74,7 +73,7 @@ export const deleteSingleCategories = async(ids) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.delete(
-        `${API}/delete-selected`,
+        `${API}/category/delete-selected`,
         {
             data:{
                 ids
@@ -90,7 +89,7 @@ export const deleteAllCategories = async() => {
     const token = localStorage.getItem("token");
 
     const response = await axios.delete(
-        `${API}/delete-all`,
+        `${API}/category/delete-all`,
         {
             headers:{
                 Authorization:`Bearer ${token}`

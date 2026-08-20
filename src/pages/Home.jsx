@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { getDashboardSummary } from "../services/dashboardService"
+import { getDashboardSummary } from "../services/dashboardService";
 
 import LastParams from "../components/lastParams";
 
@@ -19,42 +18,16 @@ import CartIcon from "../components/Icons/CartIcon";
 import { getTopSellingProducts } from "../services/reportService";
 import { getProfile } from "../services/userService";
 
-// const counterData = [
-//     { number: "₹8,420", content: "Today's Revenue" },
-//     { number: "34", content: "Orders Today" },
-//     { number: "5", content: "Low Stock" },
-//     { number: "3", content: "Expiring Soon" },
-// ]
-
-// const BoxesData = [
-//     { icon: CapsuleIcon, number: "1,284", content: "Total Product", status: "12% This Week" },
-//     { icon: AlertIcon, number: "5", content: "Low Stock Items", status: "Needs attention" },
-//     { icon: CalenderIcon, number: "3", content: "Expiring Soon", status: "Within 30 days" },
-//     { icon: MoneyIcon, number: "₹8,420", content: "Today's Sales", status: "↑ 18% vs yesterday" },
-//     { icon: GraphIcon, number: "₹30,200", content: "Monthly Profit", status: "↑ 8% vs last month" },
-//     { icon: RailIcon, number: "24", content: "Total Suppliers", status: "3 new this month" },
-//     { icon: ProfileIcon, number: "8", content: "Employees", status: "All active" },
-//     { icon: CartIcon, number: "2", content: "Pending Purchases", status: "All active" },
-// ]
-
-// const topSellingData = [
-//     { id: 1, TabletName: "Dolo 650mg", unit: "1,842 units", price: "₹18,420", increase: "12" },
-//     { id: 2, TabletName: "Crocin Advance", unit: "1,420 units", price: "₹14,200", increase: "8" },
-//     { id: 3, TabletName: "Pantop 40mg", unit: "980 units", price: "₹29,400", increase: "5" },
-//     { id: 4, TabletName: "Combiflam", unit: "870 units", price: "₹8,700", increase: "-2" },
-//     { id: 5, TabletName: "Metformin 500mg", unit: "760 units", price: "₹7,600", increase: "3" }
-// ]
-
 export default function Dashboard() {
 
-    const [currentUser, setCurrentUser ] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(false);
 
     const [dashboardSummary, setDashboardSummary] = useState({
-        "todaysRevenue": 0,
-        "ordersToday": 0,
-        "lowStock": 0,
-        "expiringSoon": 0
+        todaysRevenue: 0,
+        ordersToday: 0,
+        lowStock: 0,
+        expiringSoon: 0
     });
 
     const [dashboardBoxes, setDashboardBoxes] = useState({
@@ -80,10 +53,13 @@ export default function Dashboard() {
         const fetchDashboardSummary = async () => {
             try {
                 setDashboardLoading(true);
+
                 const data = await getDashboardSummary();
+
                 console.log(data);
+
                 setDashboardSummary(data.summary || {});
-                setDashboardBoxes(data.summary || {})
+                setDashboardBoxes(data.summary || {});
 
             } catch (err) {
                 console.log(err);
@@ -91,6 +67,7 @@ export default function Dashboard() {
                 setDashboardLoading(false);
             }
         };
+
         fetchDashboardSummary();
     }, []);
 
@@ -117,19 +94,24 @@ export default function Dashboard() {
 
     useEffect(() => {
         const fetchCurrentUser = async () => {
-            try{
+            try {
                 setLoading(true);
+
                 const data = await getProfile();
-                console.log("Profile data ======>",data)
-                setCurrentUser(data.user)
-            }catch(err){
+
+                console.log("Profile data ======>", data);
+
+                setCurrentUser(data.user);
+
+            } catch (err) {
                 console.log(err);
-            }finally{
+            } finally {
                 setLoading(false);
             }
         };
+
         fetchCurrentUser();
-    }, [])
+    }, []);
 
     const counterData = [
         {
@@ -139,35 +121,35 @@ export default function Dashboard() {
             content: "Today's Revenue"
         },
         {
-            number: dashboardSummary.ordersToday,
+            number: dashboardSummary.ordersToday || 0,
             content: "Orders Today"
         },
         {
-            number: dashboardSummary.lowStock,
+            number: dashboardSummary.lowStock || 0,
             content: "Low Stock"
         },
         {
-            number: dashboardSummary.expiringSoon,
+            number: dashboardSummary.expiringSoon || 0,
             content: "Expiring Soon"
         }
-    ]
+    ];
 
     const BoxesData = [
         {
             icon: CapsuleIcon,
-            number: dashboardBoxes.totalProducts,
+            number: dashboardBoxes.totalProducts || 0,
             content: "Total Product",
             status: "Total products"
         },
         {
             icon: AlertIcon,
-            number: dashboardBoxes.lowStock,
+            number: dashboardBoxes.lowStock || 0,
             content: "Low Stock Items",
             status: "Needs attention"
         },
         {
             icon: CalenderIcon,
-            number: dashboardBoxes.expiringSoon,
+            number: dashboardBoxes.expiringSoon || 0,
             content: "Expiring Soon",
             status: "Within 30 days"
         },
@@ -189,7 +171,7 @@ export default function Dashboard() {
         },
         {
             icon: RailIcon,
-            number: dashboardBoxes.totalSuppliers,
+            number: dashboardBoxes.totalSuppliers || 0,
             content: "Total Suppliers",
             status: "Active suppliers"
         },
@@ -203,131 +185,285 @@ export default function Dashboard() {
         },
         {
             icon: CartIcon,
-            number: dashboardSummary.totalCategories,
+            number: dashboardSummary.totalCategories || 0,
             content: "Total Categories",
             status: "All categories"
         }
     ];
 
     return (
-        <div className="w-full">
+        <div className="w-full min-w-0">
 
             {/* Params */}
-            <div>
+            <div className="w-full">
                 <LastParams />
             </div>
 
-            {/* Welcome Div */}
-            <div className="bg-primary text-white p-4 rounded-2xl mt-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="pt-3 pb-3">
-                        <h2 className="text-2xl font-semibold capitalize">
+            {/* Welcome */}
+            <div className="bg-primary text-white p-4 sm:p-5 rounded-2xl mt-4">
+
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+
+                    {/* Welcome text */}
+                    <div className="min-w-0">
+
+                        <h2 className="text-xl sm:text-2xl font-semibold capitalize break-words">
                             {loading
-                            ? "welcome..."
-                            : `Welcome ${currentUser?.ownerName?.split(" ")[0] || ""}`
-                        } 👋                                                
+                                ? "Welcome..."
+                                : `Welcome ${
+                                    currentUser?.ownerName?.split(" ")[0] || ""
+                                }`
+                            } 👋
                         </h2>
-                        <p className="text-sm text-[#BEDBFF]">Here's what's happening at City Medicals today.</p>
+
+                        <p className="text-xs sm:text-sm text-[#BEDBFF] mt-1">
+                            Here's what's happening at City Medicals today.
+                        </p>
+
                     </div>
-                    <div className="flex flex-row gap-2 w-full sm:w-auto">
-                        <FilledButton name="Quick sale" link="/settings" />
-                        <TransparentButton name="Add a Product" link="/Product" />
+
+                    {/* Buttons */}
+                    <div className="flex flex-col xs:flex-row sm:flex-row gap-2 w-full lg:w-auto">
+
+                        <div className="w-full sm:w-auto">
+                            <FilledButton
+                                name="Quick Sale"
+                                link="/settings"
+                            />
+                        </div>
+
+                        <div className="w-full sm:w-auto">
+                            <TransparentButton
+                                name="Add a Product"
+                                link="/Product"
+                            />
+                        </div>
+
                     </div>
+
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 border-t-1 border-[#ffffff4a] pt-3 pb-3 mt-3">
+
+                {/* Summary */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-5 gap-x-3 border-t border-[#ffffff4a] pt-4 mt-5">
+
                     {counterData.map((item, index) => (
-                        <div key={index}>
-                            <h2 className="text-lg sm:text-xl font-semibold">
+
+                        <div
+                            key={index}
+                            className={`
+                                min-w-0
+                                ${
+                                    index !== 0
+                                        ? "sm:border-l sm:border-[#ffffff25] sm:pl-4"
+                                        : ""
+                                }
+                            `}
+                        >
+
+                            <h2 className="text-base sm:text-xl font-semibold truncate">
                                 {dashboardLoading
                                     ? "..."
                                     : item.number
                                 }
                             </h2>
-                            <p className="text-xs text-[#BEDBFF]">{item.content}</p>
+
+                            <p className="text-[10px] sm:text-xs text-[#BEDBFF] mt-1">
+                                {item.content}
+                            </p>
+
                         </div>
+
                     ))}
+
                 </div>
+
             </div>
 
-            {/* Boxes */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-5">
+            {/* Dashboard Boxes */}
+            <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-4 sm:mt-5">
+
                 {BoxesData.map((item, index) => {
+
                     const Icons = item.icon;
+
                     return (
-                        <div key={index} className="shadow-lg border-1 border-[#d8d8d86b] rounded-2xl p-4 sm:p-5 flex cursor-pointer hover:shadow-xl">
-                            <div className="w-[50%]">
-                                <Icons className="h-12 w-12" />
-                                <h2 className="text-2xl font-bold mt-5">{item.number}</h2>
-                                <p className="text-sm text-[#939393] ">{item.content}</p>
+
+                        <div
+                            key={index}
+                            className="
+                                border
+                                border-[#d8d8d86b]
+                                rounded-2xl
+                                p-4
+                                sm:p-5
+                                flex
+                                justify-between
+                                gap-3
+                                min-w-0
+                                bg-white
+                                cursor-pointer
+                                transition
+                                hover:shadow-lg
+                            "
+                        >
+
+                            {/* Left */}
+                            <div className="min-w-0 flex-1">
+
+                                <Icons className="h-9 w-9 sm:h-11 sm:w-11" />
+
+                                <h2 className="text-xl sm:text-2xl font-bold mt-4 sm:mt-5 truncate">
+                                    {item.number}
+                                </h2>
+
+                                <p className="text-xs sm:text-sm text-[#939393] truncate mt-1">
+                                    {item.content}
+                                </p>
+
                             </div>
-                            <div className="w-[50%] item-center flex justify-end">
-                                <p className="text-xs text-secondary font-medium">{item.status}</p>
+
+                            {/* Right */}
+                            <div className="flex-shrink-0 flex items-start justify-end">
+
+                                <p className="text-[10px] sm:text-xs text-secondary font-medium text-right">
+                                    {item.status}
+                                </p>
+
                             </div>
+
                         </div>
-                    )
+
+                    );
                 })}
+
             </div>
 
-            {/* Graph and top selling */}
-            <div className='flex mt-5 gap-4'>
-                <div className='w-[100%] rounded-xl border-1 border-[#9393934a] shadow-xl p-4'>
-                    <div className='flex justify-between items-center'>
-                        <h3 className='font-bold text-xl'>
+            {/* Top Selling */}
+            <div className="mt-4 sm:mt-5">
+
+                <div className="w-full rounded-xl border border-[#9393934a] shadow-sm sm:shadow-lg p-4 sm:p-5">
+
+                    {/* Header */}
+                    <div className="flex items-center justify-between gap-3">
+
+                        <h3 className="font-bold text-base sm:text-xl">
                             Top Selling Medicines
                         </h3>
+
                         <a
                             href="/reports"
-                            className='text-primary font-semibold bg-blue-100 pt-1 pb-1 pr-2 pl-2 rounded-full text-xs'
+                            className="
+                                flex-shrink-0
+                                text-primary
+                                font-semibold
+                                bg-blue-100
+                                px-2.5
+                                py-1
+                                rounded-full
+                                text-[10px]
+                                sm:text-xs
+                            "
                         >
                             See All
                         </a>
+
                     </div>
-                    <div className='mt-4 flex flex-col gap-3'>
+
+                    {/* Products */}
+                    <div className="mt-4 flex flex-col">
+
                         {topProductsLoading ? (
-                            <div className="py-5 text-center text-sm text-gray-500">
+
+                            <div className="py-8 text-center text-sm text-gray-500">
                                 Loading...
                             </div>
+
                         ) : topProducts.length === 0 ? (
-                            <div className="py-5 text-center text-sm text-gray-500">
+
+                            <div className="py-8 text-center text-sm text-gray-500">
                                 No product sales available.
                             </div>
+
                         ) : (
+
                             topProducts.slice(0, 5).map((product, index) => (
+
                                 <div
-                                    className='flex justify-between'
+                                    className="
+                                        flex
+                                        items-center
+                                        justify-between
+                                        gap-3
+                                        py-3
+                                        border-b
+                                        last:border-b-0
+                                    "
                                     key={product._id}
                                 >
-                                    <div className='flex gap-3 items-center'>
-                                        <div>
-                                            <p className='text-xs text-text font-semibold bg-gray-200 rounded-full px-2 py-1'>
+
+                                    {/* Product info */}
+                                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+
+                                        <div className="flex-shrink-0">
+
+                                            <p className="
+                                                text-[10px]
+                                                sm:text-xs
+                                                text-text
+                                                font-semibold
+                                                bg-gray-200
+                                                rounded-full
+                                                w-6
+                                                h-6
+                                                flex
+                                                items-center
+                                                justify-center
+                                            ">
                                                 {index + 1}
                                             </p>
+
                                         </div>
-                                        <div>
-                                            <h3 className='text-base font-medium'>
+
+                                        <div className="min-w-0">
+
+                                            <h3 className="text-sm sm:text-base font-medium truncate">
                                                 {product.productName}
                                             </h3>
-                                            <p className='text-xs text-[#939393]'>
+
+                                            <p className="text-[10px] sm:text-xs text-[#939393]">
                                                 {Number(
                                                     product.quantitySold || 0
-                                                ).toLocaleString("en-IN")} units
+                                                ).toLocaleString("en-IN")}{" "}
+                                                units
                                             </p>
+
                                         </div>
+
                                     </div>
-                                    <div>
-                                        <h3 className='font-semibold text-sm'>
+
+                                    {/* Sales */}
+                                    <div className="flex-shrink-0 text-right">
+
+                                        <h3 className="font-semibold text-xs sm:text-sm">
                                             ₹{Number(
                                                 product.totalSales || 0
                                             ).toLocaleString("en-IN")}
                                         </h3>
+
                                     </div>
+
                                 </div>
+
                             ))
+
                         )}
+
                     </div>
+
                 </div>
+
             </div>
 
         </div>
-    )
+    );
 }

@@ -1,8 +1,12 @@
-import { useEffect, useState } from "react"
-import SettingsHeading from "./settingHeading"
-import { getPreferences, updatePreferences } from "../../services/userService"
+import { useEffect, useState } from "react";
+import SettingsHeading from "./settingHeading";
+import {
+    getPreferences,
+    updatePreferences
+} from "../../services/userService";
 
 export default function Preferences() {
+
     const [preferences, setPreferences] = useState({
         language: "English",
         currency: "INR",
@@ -10,7 +14,7 @@ export default function Preferences() {
         dateFormat: "DD/MM/YYYY",
         defaultPage: "dashboard",
         theme: "light"
-    })
+    });
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -20,66 +24,86 @@ export default function Preferences() {
         fetchPreferences();
     }, []);
 
-    const fetchPreferences = async() => {
+    const fetchPreferences = async () => {
         try {
             setLoading(true);
 
             const data = await getPreferences();
 
             if (data.preferences) {
-                setPreferences(data.preferences)
+                setPreferences(data.preferences);
             }
 
         } catch (err) {
             console.log(err);
-            setError(err?.response?.data?.message || "something went wrong")
+
+            setError(
+                err?.response?.data?.message ||
+                "Something went wrong"
+            );
+
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+
         setPreferences((prev) => ({
             ...prev,
             [name]: value
         }));
-    }
+    };
 
     const handleSave = async () => {
         try {
             setSaving(true);
             setError("");
 
-            const response = await updatePreferences(preferences);
+            await updatePreferences(preferences);
 
-            alert("preferences updated successfully");
+            alert("Preferences updated successfully");
 
         } catch (err) {
             console.log(err);
-            setError(err?.response?.data?.message || "somethings went wrong")
+
+            setError(
+                err?.response?.data?.message ||
+                "Something went wrong"
+            );
+
         } finally {
             setSaving(false);
         }
-    }
+    };
 
     return (
-        <div>
+        <div className="w-full">
+
             <SettingsHeading
                 heading="Preferences"
                 content="Customize your regional and display preferences."
             />
+
+
+            {/* Loading */}
             {loading ? (
-                <div>
-                    Loading.....
+
+                <div className="py-10 text-center text-sm text-gray-500">
+                    Loading preferences...
                 </div>
+
             ) : (
-                <div className="p-6">
+
+                <div className="mt-5">
 
                     {/* Preferences Card */}
-                    <div className="border border-gray-200 rounded-xl p-6">
+                    <div className="border border-gray-200 rounded-xl p-4 sm:p-6">
 
-                        <div className="grid grid-cols-2 gap-5">
+                        {/* Form */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+
 
                             {/* Language */}
                             <div>
@@ -91,7 +115,7 @@ export default function Preferences() {
                                     name="language"
                                     value={preferences.language}
                                     onChange={handleChange}
-                                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="English">
                                         English
@@ -114,7 +138,7 @@ export default function Preferences() {
                                     name="currency"
                                     value={preferences.currency}
                                     onChange={handleChange}
-                                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="INR">
                                         INR (₹)
@@ -141,7 +165,7 @@ export default function Preferences() {
                                     name="timezone"
                                     value={preferences.timezone}
                                     onChange={handleChange}
-                                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="Asia/Kolkata">
                                         India (Asia/Kolkata)
@@ -172,7 +196,7 @@ export default function Preferences() {
                                     name="dateFormat"
                                     value={preferences.dateFormat}
                                     onChange={handleChange}
-                                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="DD/MM/YYYY">
                                         DD/MM/YYYY
@@ -199,7 +223,7 @@ export default function Preferences() {
                                     name="defaultPage"
                                     value={preferences.defaultPage}
                                     onChange={handleChange}
-                                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="dashboard">
                                         Dashboard
@@ -226,7 +250,7 @@ export default function Preferences() {
                                     name="theme"
                                     value={preferences.theme}
                                     onChange={handleChange}
-                                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="light">
                                         Light
@@ -247,9 +271,11 @@ export default function Preferences() {
 
                         {/* Error */}
                         {error && (
-                            <p className="mt-4 text-sm text-red-500">
-                                {error}
-                            </p>
+                            <div className="mt-5 rounded-lg bg-red-50 border border-red-200 px-3 py-2.5">
+                                <p className="text-xs sm:text-sm text-red-600">
+                                    {error}
+                                </p>
+                            </div>
                         )}
 
 
@@ -258,7 +284,7 @@ export default function Preferences() {
                             type="button"
                             onClick={handleSave}
                             disabled={saving}
-                            className="mt-6 bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
+                            className="mt-5 sm:mt-6 w-full sm:w-auto bg-blue-600 text-white text-sm px-5 py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {saving
                                 ? "Saving..."
@@ -270,6 +296,7 @@ export default function Preferences() {
 
                 </div>
             )}
+
         </div>
-    )
+    );
 }

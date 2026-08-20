@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/supplier";
+const API = process.env.REACT_APP_API_URL;
 
 const getAuthConfig = () => {
     const token = localStorage.getItem("token");
@@ -12,36 +12,30 @@ const getAuthConfig = () => {
     };
 };
 
-
-// Get all suppliers
 export const getSuppliers = async () => {
 
     const response = await axios.get(
-        `${API_URL}/all-supplier`,
+        `${API}/supplier/all-supplier`,
         getAuthConfig()
     );
 
     return response.data;
 };
 
-
-// Get supplier by ID
 export const getSupplierById = async (id) => {
 
     const response = await axios.get(
-        `${API_URL}/single/${id}`,
+        `${API}/supplier/single/${id}`,
         getAuthConfig()
     );
 
     return response.data;
 };
 
-
-// Create supplier
 export const createSupplier = async (supplierData) => {
 
     const response = await axios.post(
-        `${API_URL}/create`,
+        `${API}/supplier/create`,
         supplierData,
         getAuthConfig()
     );
@@ -49,12 +43,10 @@ export const createSupplier = async (supplierData) => {
     return response.data;
 };
 
-
-// Update supplier
 export const updateSupplier = async (id, supplierData) => {
 
     const response = await axios.put(
-        `${API_URL}/update/${id}`,
+        `${API}/supplier/update/${id}`,
         supplierData,
         getAuthConfig()
     );
@@ -62,12 +54,10 @@ export const updateSupplier = async (id, supplierData) => {
     return response.data;
 };
 
-
-// Delete supplier
 export const deleteSupplier = async (id) => {
 
     const response = await axios.delete(
-        `${API_URL}/delete/${id}`,
+        `${API}/supplier/delete/${id}`,
         getAuthConfig()
     );
 
@@ -78,7 +68,7 @@ export const deleteSelectedSuppliers = async (supplierIds) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.delete(
-        `${API_URL}/delete-selected`,
+        `${API}/supplier/delete-selected`,
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -92,13 +82,30 @@ export const deleteSelectedSuppliers = async (supplierIds) => {
     return response.data;
 };
 
-
 export const deleteAllSuppliers = async () => {
     const token = localStorage.getItem("token");
 
     const response = await axios.delete(
-        `${API_URL}/delete-all`,
+        `${API}/supplier/delete-all`,
         {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    return response.data;
+};
+
+export const searchSuppliers = async (name) => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.get(
+        `${API}/supplier/search`,
+        {
+            params: {
+                name
+            },
             headers: {
                 Authorization: `Bearer ${token}`
             }

@@ -12,6 +12,8 @@ import {
    deleteAllSuppliers
 } from "../services/supplierService"
 
+const API = process.env.REACT_APP_API_URL;
+
 export default function Suppliers() {
 
    const [suppliers, setSuppliers] = useState([]);
@@ -289,7 +291,7 @@ export default function Suppliers() {
          setImportProgress(10);
 
          const response = await axios.post(
-            "http://localhost:5000/supplier/import",
+            `${API}/supplier/import`,
             {
                suppliers: importData
             },
@@ -381,7 +383,7 @@ export default function Suppliers() {
             <LastParams />
          </div>
          <div className="bg-white mt-4 border border-gray-200 rounded-xl overflow-hidden">
-            <div className="flex justify-between px-5 py-4 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row justify-between px-5 py-4 border-b border-gray-200">
                <div>
                   <h2 className="text-lg font-semibold text-gray-900">
                      Suppliers
@@ -390,7 +392,7 @@ export default function Suppliers() {
                      Manage your suppliers and their information.
                   </p>
                </div>
-               <div className="">
+               <div className="flex md:block mt-4 md:mt-0">
                   <input
                      type="file"
                      accept=".csv"
@@ -406,14 +408,14 @@ export default function Suppliers() {
                            .getElementById("supplier-csv-input")
                            .click()
                      }
-                     className="px-4 py-2 text-sm mr-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                     className="px-4 py-2 text-xs sm:text-sm mr-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
                   >
                      Import CSV
                   </button>
                   <button
                      type="button"
                      onClick={exportSuppliersCSV}
-                     className="mr-2 px-4 py-2 border text-sm border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                     className="mr-2 px-4 py-2 border text-xs sm:text-sm border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
                   >
                      Export CSV
                   </button>
@@ -432,7 +434,7 @@ export default function Suppliers() {
 
                         setShowModal(true);
                      }}
-                     className="px-4 py-2 bg-primary text-sm text-white rounded-lg hover:bg-blue-700 shadow-lg"
+                     className="px-4 py-2 bg-primary text-xs sm:text-sm text-white rounded-lg hover:bg-blue-700 shadow-lg"
                   >
                      + Add Supplier
                   </button>

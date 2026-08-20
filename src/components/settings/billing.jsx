@@ -6,6 +6,7 @@ export default function Billing() {
     const [billing, setBilling] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
     useEffect(() => {
         fetchBillingDetails()
     }, []);
@@ -30,7 +31,7 @@ export default function Billing() {
                     content="Manage your subscription and payment history."
                 />
 
-                <div className="p-6 text-center text-gray-500">
+                <div className="p-4 sm:p-6 text-center text-gray-500">
                     Loading billing details...
                 </div>
             </div>
@@ -38,43 +39,52 @@ export default function Billing() {
     }
 
     return (
-        <div>
+        <div className="w-full">
+
             <SettingsHeading
                 heading="Billing & Payments"
                 content="Manage payment methods and view billing history."
             />
 
-            <div>
+            <div className="mt-4 sm:mt-6">
+
+                {/* Current Subscription */}
                 {billing.currentSubscription ? (
-                    <div className="border rounded-xl p-5 bg-primary text-white">
-                        <div className="flex justify-between">
+
+                    <div className="border rounded-xl p-4 sm:p-5 bg-primary text-white">
+
+                        {/* Plan + Price */}
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
 
                             <div>
-                                <p className="text-xs">
+                                <p className="text-xs opacity-80">
                                     Current Plan
                                 </p>
 
-                                <h2 className="text-xl font-bold capitalize">
+                                <h2 className="text-lg sm:text-xl font-bold capitalize">
                                     {billing.currentSubscription.plan} Plan
                                 </h2>
                             </div>
 
-                            <div className="text-right">
-                                <p className="text-xs ">
+                            <div className="text-left sm:text-right">
+
+                                <p className="text-xs opacity-80">
                                     Current Price
                                 </p>
 
-                                <p className="text-xl font-bold">
+                                <p className="text-lg sm:text-xl font-bold">
                                     ₹{billing.currentSubscription.price}
                                 </p>
+
                             </div>
 
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4 mt-6">
+                        {/* Subscription Details */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5 sm:mt-6">
 
                             <div>
-                                <p className="text-xs">
+                                <p className="text-xs opacity-80">
                                     Billing Cycle
                                 </p>
 
@@ -84,7 +94,7 @@ export default function Billing() {
                             </div>
 
                             <div>
-                                <p className="text-xs ">
+                                <p className="text-xs opacity-80">
                                     Start Date
                                 </p>
 
@@ -96,7 +106,7 @@ export default function Billing() {
                             </div>
 
                             <div>
-                                <p className="text-xs ">
+                                <p className="text-xs opacity-80">
                                     Expiry Date
                                 </p>
 
@@ -108,29 +118,42 @@ export default function Billing() {
                             </div>
 
                         </div>
+
                     </div>
+
                 ) : (
-                    <div className="border rounded-xl p-6 text-center text-gray-500">
+
+                    <div className="border rounded-xl p-5 sm:p-6 text-center text-gray-500">
                         No active subscription found.
                     </div>
+
                 )}
 
-                <div className="px-6 pb-6 mt-6">
+
+                {/* Payment History */}
+                <div className="mt-6">
 
                     <h3 className="text-sm font-semibold text-gray-900 mb-4">
                         Payment History
                     </h3>
 
-                    <div className="border rounded-xl overflow-hidden">
 
+                    {/* ================= DESKTOP TABLE ================= */}
+                    <div className="hidden sm:block border rounded-xl overflow-hidden">
+
+                        {/* Header */}
                         <div className="grid grid-cols-5 gap-4 bg-gray-50 px-5 py-3 text-xs font-semibold text-gray-500">
+
                             <div>Plan</div>
                             <div>Duration</div>
                             <div>Amount</div>
                             <div>Status</div>
                             <div>Date</div>
+
                         </div>
 
+
+                        {/* Rows */}
                         {billing?.paymentHistory?.length > 0 ? (
 
                             billing.paymentHistory.map((payment) => (
@@ -177,7 +200,93 @@ export default function Billing() {
                         )}
 
                     </div>
+
+
+                    {/* ================= MOBILE CARDS ================= */}
+                    <div className="sm:hidden space-y-3">
+
+                        {billing?.paymentHistory?.length > 0 ? (
+
+                            billing.paymentHistory.map((payment) => (
+
+                                <div
+                                    key={payment._id}
+                                    className="border rounded-xl p-4 bg-white"
+                                >
+
+                                    {/* Top Row */}
+                                    <div className="flex items-start justify-between gap-3">
+
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Plan
+                                            </p>
+
+                                            <p className="text-sm font-semibold text-gray-900 capitalize">
+                                                {payment.plan}
+                                            </p>
+                                        </div>
+
+                                        <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700 whitespace-nowrap">
+                                            {payment.paymentStatus}
+                                        </span>
+
+                                    </div>
+
+
+                                    {/* Payment Details */}
+                                    <div className="grid grid-cols-2 gap-4 mt-4">
+
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Duration
+                                            </p>
+
+                                            <p className="text-sm font-medium capitalize text-gray-900">
+                                                {payment.duration}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Amount
+                                            </p>
+
+                                            <p className="text-sm font-semibold text-gray-900">
+                                                ₹{payment.price}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Date
+                                            </p>
+
+                                            <p className="text-sm text-gray-700">
+                                                {new Date(
+                                                    payment.createdAt
+                                                ).toLocaleDateString()}
+                                            </p>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            ))
+
+                        ) : (
+
+                            <div className="border rounded-xl px-4 py-8 text-center text-gray-500">
+                                No payment history found.
+                            </div>
+
+                        )}
+
+                    </div>
+
                 </div>
+
             </div>
         </div>
     )

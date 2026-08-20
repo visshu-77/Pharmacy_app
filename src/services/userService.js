@@ -1,12 +1,12 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api";
+const API = process.env.REACT_APP_API_URL;
 
 export const getProfile = async () => {
     const token = localStorage.getItem("token");
 
     const response = await axios.get(
-        `${API}/profile`,
+        `${API}/api/profile`,
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -21,7 +21,7 @@ export const updateProfile = async (profileData) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.put(
-        `${API}/update-profile`,
+        `${API}/api/update-profile`,
         profileData,
         {
             headers: {
@@ -38,7 +38,7 @@ export const changePassword = async (data) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.post(
-        `${API}/change-password`,
+        `${API}/api/change-password`,
         data,
         {
             headers:{
@@ -53,7 +53,7 @@ export const changePassword = async (data) => {
 export const getNotification = async()=>{
     const token = localStorage.getItem("token");
     const response = await axios.get(
-        `${API}/notification-settings`,
+        `${API}/api/notification-settings`,
         {
             headers:{
                 Authorization: `Bearer ${token}`,
@@ -67,7 +67,7 @@ export const getNotification = async()=>{
 export const updateNotification = async(notificationData) => {
     const token = localStorage.getItem("token");
     const response = await axios.put(
-        `${API}/notification-setting`,
+        `${API}/api/notification-setting`,
         notificationData,
         {
             headers:{
@@ -82,7 +82,7 @@ export const updateNotification = async(notificationData) => {
 export const getPreferences = async () => {
     const token = localStorage.getItem("token");
     const response = await axios.get(
-        `${API}/preferences`,
+        `${API}/api/preferences`,
         {
             headers:{
                 Authorization:`Bearer ${token}`,
@@ -96,7 +96,7 @@ export const getPreferences = async () => {
 export const updatePreferences = async(prefrenceData) => {
     const token = localStorage.getItem("token");
     const response = await axios.put(
-        `${API}/preferences`,
+        `${API}/api/preferences`,
         prefrenceData,
         {
             headers:{
@@ -111,7 +111,7 @@ export const updatePreferences = async(prefrenceData) => {
 export const getBillingDetails = async() => {
     const token = localStorage.getItem("token");
     const response = await axios.get(
-        `${API}/billing-details`,
+        `${API}/api/billing-details`,
         {
             headers:{
                 Authorization:`Bearer ${token}`,

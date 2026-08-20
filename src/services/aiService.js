@@ -1,12 +1,12 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/ai";
+const API = process.env.REACT_APP_API_URL;
 
 export const askCustomerQuery = async (question) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.post(
-        `${API}/customer-query`,
+        `${API}/ai/customer-query`,
         {
             question
         },

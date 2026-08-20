@@ -1,13 +1,13 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/dashboard";
+const API = process.env.REACT_APP_API_URL;
 
 export const getDashboardSummary = async () => {
 
     const token = localStorage.getItem("token");
 
     const response = await axios.get(
-        `${API}/summary`,
+        `${API}/dashboard/summary`,
         {
             headers: {
                 Authorization: `Bearer ${token}`

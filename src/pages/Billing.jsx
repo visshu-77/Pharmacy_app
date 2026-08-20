@@ -103,7 +103,7 @@ export default function Billing() {
                     onNewBill={() => setCreatedOrder(null)}
                 />
             ) : (
-                <div className=" p-6 bg-[#F4F6F9] mt-4">
+                <div className="p-6 bg-[#F4F6F9] mt-4">
                     <h1 className="text-2xl font-bold">
                         Create New Bill
                     </h1>
@@ -111,8 +111,8 @@ export default function Billing() {
                         Add products and create a new customer invoice
                     </p>
 
-                    <div className="flex gap-6">
-                        <div className="w-[75%]">
+                    <div className="flex flex-col sm:flex-row gap-6">
+                        <div className="w-full sm:w-[75%]">
                             <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow">
                                 <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
                                     Customer Details
@@ -236,7 +236,7 @@ export default function Billing() {
                             </div>
 
                         </div>
-                        <div className="w-[25%]">
+                        <div className="w-full sm:w-[25%]">
                             <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow">
                                 <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
                                     Bill Summary
@@ -298,7 +298,7 @@ export default function Billing() {
                                 </h2>
                                 <div className="grid grid-cols-3 gap-3 items-center justify-between mt-4">
                                     <button
-                                        className="flex flex-col items-center gap-3 mb-3 text-xs text-gray-500 border border-gray-300 rounded p-4 w-full hover:bg-gray-50 hover:border-blue-300 transition"
+                                        className="flex flex-col items-center gap-3 mb-3 text-xs text-gray-500 border border-gray-300 rounded p-2 sm:p-4 w-full hover:bg-gray-50 hover:border-blue-300 transition"
                                         type="button"
                                         onClick={() => setPaymentMethod("Cash")}
                                         style={{
@@ -312,7 +312,7 @@ export default function Billing() {
                                         <span className="text-[21px]">💵</span>
                                         Cash
                                     </button>
-                                    <button className="flex flex-col items-center gap-3 mb-3 text-xs text-gray-500 border border-gray-300 rounded p-4 w-full hover:bg-gray-50 hover:border-blue-300 transition"
+                                    <button className="flex flex-col items-center gap-3 mb-3 text-xs text-gray-500 border border-gray-300 rounded p-2 sm:p-4 w-full hover:bg-gray-50 hover:border-blue-300 transition"
                                         type="button"
                                         onClick={() => setPaymentMethod("UPI")}
                                         style={{
@@ -327,7 +327,7 @@ export default function Billing() {
                                         <span className="text-[21px]">📱</span>
                                         Phone Pay
                                     </button>
-                                    <button className="flex flex-col items-center gap-3 mb-3 text-xs text-gray-500 border border-gray-300 rounded p-4 w-full hover:bg-gray-50 hover:border-blue-300 transition"
+                                    <button className="flex flex-col items-center gap-3 mb-3 text-xs text-gray-500 border border-gray-300 rounded p-2 sm:p-4 w-full hover:bg-gray-50 hover:border-blue-300 transition"
                                         type="button"
                                         onClick={() => setPaymentMethod("Card")}
                                         style={{

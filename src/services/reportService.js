@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/report";
+const API = process.env.REACT_APP_API_URL;
 
 export const getReportSummary = async (range, category = 'all') => {
     const token = localStorage.getItem("token");
@@ -12,7 +12,7 @@ export const getReportSummary = async (range, category = 'all') => {
         params.category = category;
     }
     const response = await axios.get(
-        `${API}/summary`,
+        `${API}/report/summary`,
         {
             params,
             headers: {
@@ -26,7 +26,7 @@ export const getReportSummary = async (range, category = 'all') => {
 export const getSalesOverview = async (range = "thisMonth") => {
     const token = localStorage.getItem("token");
     const response = await axios.get(
-        `${API}/sales-overview`,
+        `${API}/report/sales-overview`,
         {
             params: {
                 range
@@ -42,7 +42,7 @@ export const getSalesOverview = async (range = "thisMonth") => {
 export const getTopSellingProducts = async (sortBy = 'quantity') => {
     const token = localStorage.getItem("token");
     const response = await axios.get(
-        `${API}/top-selling-products`,
+        `${API}/report/top-selling-products`,
         {
             params:{
                 sortBy
@@ -59,7 +59,7 @@ export const getCategoryPerformance = async () => {
     const token = localStorage.getItem("token");
 
     const response = await axios.get(
-        `${API}/category-performance`,
+        `${API}/report/category-performance`,
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -74,7 +74,7 @@ export const getRecentTransactions = async (filters = {}) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.get(
-        `${API}/recent-transactions`,
+        `${API}/report/recent-transactions`,
         {
             params: filters,
             headers: {
@@ -89,7 +89,7 @@ export const getRecentTransactions = async (filters = {}) => {
 export const exportReport = async () => {
     const token = localStorage.getItem("token");
     const response = await axios.get(
-        `${API}/export`,
+        `${API}/report/export`,
         {
             headers: {
                 Authorization: `Bearer ${token}`

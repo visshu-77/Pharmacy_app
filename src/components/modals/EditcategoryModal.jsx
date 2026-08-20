@@ -3,100 +3,221 @@ import { useEffect, useState } from "react";
 
 import { updateCategory } from "../../services/categoryService";
 
-export default function EditCategoryModal({ category, onClose, onUpdate }) {
+
+export default function EditCategoryModal({
+    category,
+    onClose,
+    onUpdate
+}) {
+
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const [categoryData, setCategoryData] = useState({
         categoryName: "",
         description: ""
     });
 
+
     useEffect(() => {
+
         if (category) {
+
             setCategoryData({
-                categoryName: category.categoryName,
-                description: category.description
+                categoryName: category.categoryName || "",
+                description: category.description || ""
             });
+
         }
+
     }, [category]);
 
+
     const handleChange = (e) => {
+
         setCategoryData({
             ...categoryData,
             [e.target.name]: e.target.value
-        })
-    }
+        });
+
+        if (error) {
+            setError("");
+        }
+    };
+
 
     const handleSubmit = async (e) => {
+
         e.preventDefault();
+
         try {
+
+            setLoading(true);
+            setError("");
+
             const result = await updateCategory(
                 category._id,
                 categoryData
-            )
-            onUpdate(result.category)
-            onClose();
-            alert("Category edit successfully")
-        } catch (err) {
-            setError(
-                err.response?.data?.message || "something went wrong"
             );
+
+            onUpdate(result.category);
+
+            onClose();
+
+            alert("Category updated successfully");
+
+        } catch (err) {
+
+            setError(
+                err.response?.data?.message ||
+                "Something went wrong"
+            );
+
+            console.log(err);
+
+        } finally {
+
+            setLoading(false);
+
         }
-    }
+    };
+
 
     return (
-        <div className="w-full fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm overflow-y-auto">
-            <div className="w-full max-w-[900px] bg-white m-auto border rounded items-center justify-center flex flex-col p-6">
-                <div className="w-full flex justify-between">
-                    <h3 className="text-xl font-semibold">Edit Category</h3>
+
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+
+            {/* ================= MODAL ================= */}
+
+            <div className="w-full max-w-[600px] max-h-[95vh] sm:max-h-[90vh] bg-white rounded-xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden">
+
+
+                {/* ================= HEADER ================= */}
+
+                <div className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-100">
+
+                    <div>
+
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                            Edit Category
+                        </h3>
+
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                            Update your category information.
+                        </p>
+
+                    </div>
+
+
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="text-gray-400 hover:text-primary transition">
+                        className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-primary hover:bg-gray-50 transition flex-shrink-0"
+                    >
                         <X size={20} />
                     </button>
+
                 </div>
-                <div className="w-full mt-4">
+
+
+                {/* ================= CONTENT ================= */}
+
+                <div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
+
                     <form
                         onSubmit={handleSubmit}
-                        className="w-full">
-                        <div className="flex flex-col gap-4">
-                            <div className="flex flex-col gap-1">
-                                <lable className="text-sm text-text font-semibold">Category Name</lable>
+                        className="w-full"
+                    >
+
+                        <div className="space-y-4">
+
+
+                            {/* ================= CATEGORY NAME ================= */}
+
+                            <div>
+
+                                <label className="block text-xs sm:text-sm text-gray-700 font-semibold mb-1.5">
+
+                                    Category Name
+
+                                    <span className="text-red-500 ml-1">
+                                        *
+                                    </span>
+
+                                </label>
+
                                 <input
                                     name="categoryName"
                                     value={categoryData.categoryName}
                                     onChange={handleChange}
                                     placeholder="Category Name"
-                                    className="focus:outline-none focus:ring-0 border rounded p-2 text-sm w-[100%]"
+                                    required
+                                    className="w-full h-11 border border-gray-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
 
-                                <lable className="text-sm text-text font-semibold">Description</lable>
-                                <input
+                            </div>
+
+
+                            {/* ================= DESCRIPTION ================= */}
+
+                            <div>
+
+                                <label className="block text-xs sm:text-sm text-gray-700 font-semibold mb-1.5">
+                                    Description
+                                </label>
+
+                                <textarea
                                     name="description"
                                     value={categoryData.description}
                                     onChange={handleChange}
-                                    placeholder="description"
-                                    className="focus:outline-none focus:ring-0 border rounded p-2 text-sm"
+                                    placeholder="Enter category description"
+                                    rows={4}
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
+
                             </div>
 
                         </div>
-                        <div className="mt-6">
+
+
+                        {/* ================= ERROR ================= */}
+
+                        {error && (
+
+                            <div className="mt-4 rounded-lg bg-red-50 border border-red-200 px-3 py-2.5">
+
+                                <p className="text-xs sm:text-sm text-red-500 text-center">
+                                    {error}
+                                </p>
+
+                            </div>
+
+                        )}
+
+
+                        {/* ================= BUTTON ================= */}
+
+                        <div className="mt-5 sm:mt-6">
+
                             <button
                                 type="submit"
-                                className="text-sm w-full p-3 bg-primary text-white font-semibold rounded"
+                                disabled={loading}
+                                className="w-full h-11 text-sm bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Update Category
+                                {loading
+                                    ? "Updating..."
+                                    : "Update Category"
+                                }
                             </button>
+
                         </div>
-                        <div>
-                            {error && (
-                                <p className="text-xs text-red-400 mt-2 text-center">{error}</p>
-                            )}
-                        </div>
+
                     </form>
+
                 </div>
+
             </div>
+
         </div>
-    )
+    );
 }

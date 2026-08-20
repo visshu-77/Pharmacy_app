@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 
 import { addProduct } from "../../services/productService";
 import { getCategory } from "../../services/categoryService";
+import { searchSuppliers } from "../../services/supplierService";
 
 const inputData = [
     {
@@ -11,7 +12,6 @@ const inputData = [
         type: "text",
         label: "Product Name",
         placeholder: "eg. Iphone 17 Pro Max",
-        width: "w-[49%]",
         required: true,
     },
     {
@@ -20,7 +20,6 @@ const inputData = [
         type: "select",
         label: "Product Category",
         placeholder: "",
-        width: "w-[49%]",
         required: true,
     },
     {
@@ -29,7 +28,6 @@ const inputData = [
         type: "number",
         label: "Stock",
         placeholder: "0-100000",
-        width: "w-[49%]",
         required: true,
     },
     {
@@ -38,7 +36,7 @@ const inputData = [
         type: "number",
         label: "Purchase Price",
         placeholder: "150.00",
-        width: "w-[49%]",
+        required: false,
     },
     {
         id: 5,
@@ -46,7 +44,7 @@ const inputData = [
         type: "number",
         label: "Selling Price",
         placeholder: "299.00",
-        width: "w-[49%]"
+        required: false,
     },
     {
         id: 6,
@@ -54,22 +52,25 @@ const inputData = [
         type: "date",
         label: "Expiry Date",
         placeholder: "",
-        width: "w-[49%]",
-        required: true,
+        required: false,
     },
     {
-        id: 6,
+        id: 7,
         name: "supplierName",
         type: "text",
         label: "Supplier Name",
         placeholder: "eg. TATA",
-        width: "w-[98.5%]"
+        fullWidth: true,
+        required: true,
     },
-]
+];
 
 
+export default function AddProductModal({
+    onClose,
+    onProductAdded
+}) {
 
-export default function AddProductModal({ onClose, onProductAdded }) {
     const [productData, setProductData] = useState({
         productName: "",
         productCategory: "",
@@ -78,78 +79,201 @@ export default function AddProductModal({ onClose, onProductAdded }) {
         sellingPrice: "",
         ExpiryDate: "",
         supplierName: "",
-    })
+    });
 
     const [error, setError] = useState("");
+    const [categories, setCategories] = useState([]);
+
+    const [supplierSuggestions, setSupplierSuggestions] = useState([]);
+    const [supplierLoading, setSupplierLoading] = useState(false);
+    const [showSupplierSuggestions, setShowSupplierSuggestions] = useState(false);
+
+    const [selectedSupplierId, setSelectedSupplierId] = useState("");
 
     const handleChange = (e) => {
+
         setProductData({
             ...productData,
             [e.target.name]: e.target.value
-        })
-    }
+        });
+
+        if (error) {
+            setError("");
+        }
+    };
+
+    const handleSupplierSearch = async (value) => {
+
+        setProductData((prev) => ({
+            ...prev,
+            supplierName: value
+        }));
+
+        // User is typing again, so previously selected supplier
+        // should no longer be considered selected.
+        setSelectedSupplierId("");
+
+        if (!value.trim()) {
+            setSupplierSuggestions([]);
+            setShowSupplierSuggestions(false);
+            return;
+        }
+
+        try {
+
+            setSupplierLoading(true);
+            setShowSupplierSuggestions(true);
+
+            const data = await searchSuppliers(value);
+
+            setSupplierSuggestions(data.suppliers || []);
+
+        } catch (error) {
+
+            console.log(
+                "Supplier search error:",
+                error
+            );
+
+            setSupplierSuggestions([]);
+
+        } finally {
+
+            setSupplierLoading(false);
+
+        }
+    };
+
+
+    const handleSupplierSelect = (supplier) => {
+
+        setProductData((prev) => ({
+            ...prev,
+            supplierName: supplier.supplierName
+        }));
+
+        setSelectedSupplierId(supplier._id);
+
+        setSupplierSuggestions([]);
+        setShowSupplierSuggestions(false);
+    };
+
 
     const handleSubmit = async (e) => {
+
         e.preventDefault();
+
         try {
+
             const result = await addProduct(productData);
+
             if (result.product) {
                 onProductAdded(result.product);
             }
-            onClose();
-            alert('product added successfully');
-        } catch (err) {
-            setError(
-                err.response?.data?.message || 'something went wrong'
-            )
-            console.log(err.message || 'something went wrong');
-        }
-    }
 
-    const [categories, setCategories] = useState([]);
+            onClose();
+
+            alert("Product added successfully");
+
+        } catch (err) {
+
+            setError(
+                err.response?.data?.message ||
+                "Something went wrong"
+            );
+
+            console.log(
+                err.message ||
+                "Something went wrong"
+            );
+        }
+    };
+
 
     useEffect(() => {
+
         const fetchCategories = async () => {
+
             try {
+
                 const res = await getCategory();
+
                 setCategories(res.result);
+
             } catch (err) {
+
                 console.log(err);
+
             }
         };
+
         fetchCategories();
-    }, [])
+
+    }, []);
 
     return (
-        <div className="w-full fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm overflow-y-auto">
-            <div className="w-full max-w-[900px] bg-white m-auto border rounded items-center justify-center flex flex-col p-6">
-                <div className="w-full flex justify-between">
-                    <h3 className="text-xl font-semibold">Add Product</h3>
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+            <div className="w-full max-w-[900px] max-h-[95vh] sm:max-h-[90vh] bg-white rounded-xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-100 flex-shrink-0">
+                    <div>
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                            Add Product
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                            Add a new product to your inventory.
+                        </p>
+                    </div>
+
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="text-gray-400 hover:text-primary transition">
+                        className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-primary hover:bg-gray-50 transition flex-shrink-0"
+                    >
                         <X size={20} />
                     </button>
                 </div>
-                <div className="w-full mt-4">
+
+                <div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
+
                     <form
                         onSubmit={handleSubmit}
-                        className="w-full">
-                        <div className="flex flex-wrap gap-4">
+                        className="w-full"
+                    >
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                             {inputData.map((data) => {
                                 return (
-                                    <div key={data.id} className={` flex flex-col gap-1 ${data.width} `}>
-                                        <lable className="text-sm text-text font-semibold">{data.label}</lable>
+                                    <div
+                                        key={data.id}
+                                        className={
+                                            data.fullWidth
+                                                ? "sm:col-span-2"
+                                                : ""
+                                        }
+                                    >
+
+                                        <label className="block text-xs sm:text-sm text-text font-semibold mb-1.5">
+                                            {data.label}
+                                            {data.required && (
+                                                <span className="text-red-500 ml-1">
+                                                    *
+                                                </span>
+                                            )}
+                                        </label>
 
                                         {data.type === "select" ? (
                                             <select
                                                 name={data.name}
-                                                value={productData[data.name]}
+                                                value={
+                                                    productData[data.name]
+                                                }
                                                 onChange={handleChange}
                                                 required={data.required}
-                                                className="focus:outline-none focus:ring-0 rounded border p-2 text-sm"
+                                                className="w-full h-11 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg border border-gray-200 px-3 text-sm bg-white"
                                             >
-                                                <option value=''>Select Categories</option>
+                                                <option value="">
+                                                    Select Category
+                                                </option>
                                                 {categories.map((items) => (
                                                     <option
                                                         key={items._id}
@@ -159,7 +283,73 @@ export default function AddProductModal({ onClose, onProductAdded }) {
                                                     </option>
                                                 ))}
                                             </select>
+                                        ) : data.name === "supplierName" ? (
+
+                                            <div className="relative">
+
+                                                <input
+                                                    name="supplierName"
+                                                    type="text"
+                                                    placeholder={data.placeholder}
+                                                    value={productData.supplierName}
+                                                    onChange={(e) =>
+                                                        handleSupplierSearch(e.target.value)
+                                                    }
+                                                    onFocus={() => {
+                                                        if (productData.supplierName.trim()) {
+                                                            setShowSupplierSuggestions(true);
+                                                        }
+                                                    }}
+                                                    className="w-full h-11 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg border border-gray-200 px-3 text-sm"
+                                                />
+
+                                                {showSupplierSuggestions && (
+                                                    <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+
+                                                        {supplierLoading ? (
+
+                                                            <div className="px-4 py-3 text-sm text-gray-500">
+                                                                Searching suppliers...
+                                                            </div>
+
+                                                        ) : supplierSuggestions.length > 0 ? (
+
+                                                            supplierSuggestions.map((supplier) => (
+
+                                                                <button
+                                                                    type="button"
+                                                                    key={supplier._id}
+                                                                    onClick={() =>
+                                                                        handleSupplierSelect(supplier)
+                                                                    }
+                                                                    className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                                                                >
+                                                                    <p className="text-sm font-medium text-gray-900">
+                                                                        {supplier.supplierName}
+                                                                    </p>
+
+                                                                    <p className="text-xs text-gray-500 mt-1">
+                                                                        {supplier.phone}
+                                                                    </p>
+                                                                </button>
+
+                                                            ))
+
+                                                        ) : (
+
+                                                            <div className="px-4 py-3 text-sm text-gray-500">
+                                                                No supplier found
+                                                            </div>
+
+                                                        )}
+
+                                                    </div>
+                                                )}
+
+                                            </div>
+
                                         ) : (
+
                                             <input
                                                 name={data.name}
                                                 type={data.type}
@@ -167,30 +357,33 @@ export default function AddProductModal({ onClose, onProductAdded }) {
                                                 required={data.required}
                                                 value={productData[data.name]}
                                                 onChange={handleChange}
-                                                className="focus:outline-none border rounded p-2 text-sm"
+                                                className="w-full h-11 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg border border-gray-200 px-3 text-sm"
                                             />
-                                        )}
 
+                                        )}
                                     </div>
-                                )
+                                );
                             })}
                         </div>
-                        <div className="mt-6">
+
+                        {error && (
+                            <div className="mt-5 rounded-lg bg-red-50 border border-red-200 px-3 py-2.5">
+                                <p className="text-xs sm:text-sm text-red-500 text-center">
+                                    {error}
+                                </p>
+                            </div>
+                        )}
+                        <div className="mt-5 sm:mt-6">
                             <button
                                 type="submit"
-                                className="text-sm w-full p-3 bg-primary text-white font-semibold rounded"
+                                className="text-sm w-full h-11 bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition"
                             >
                                 Add Product
                             </button>
-                        </div>
-                        <div>
-                            {error && (
-                                <p className="text-xs text-red-400 mt-2 text-center">{error}</p>
-                            )}
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-    )
+    );
 }

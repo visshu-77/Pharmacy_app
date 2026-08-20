@@ -17,7 +17,7 @@ import SearchIcon from "../components/Icons/SearchIcon";
 import Pagination from "../components/pagination";
 import HeadingWithButton from "../components/Headings";
 
-import { Products } from "../Product/data.js";
+
 import {
     getProducts,
     deleteProduct,

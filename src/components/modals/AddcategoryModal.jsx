@@ -1,80 +1,172 @@
 import { X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { addCategory } from "../../services/categoryService";
 
-    const inputData = [
-        {
-            id: 1,
-            name: "categoryName",
-            type: "text",
-            label: "Category Name",
-            placeholder: "eg., Mobile, Furniture",
-            width:"w-[100%]",
-            required:true,
-        },
-        {
-            id: 2,
-            name: "description",
-            type: "text",
-            label: "Product Category",
-            placeholder: "",
-            width:"w-[100%]",
-            required:false,
-        }
-    ]
 
+const inputData = [
+    {
+        id: 1,
+        name: "categoryName",
+        type: "text",
+        label: "Category Name",
+        placeholder: "eg. Mobile, Furniture",
+        required: true,
+    },
+    {
+        id: 2,
+        name: "description",
+        type: "textarea",
+        label: "Description",
+        placeholder: "Enter category description",
+        required: false,
+    }
+];
 
 
 export default function AddProductModal({ onClose }) {
+
     const [categoryData, setCategoryData] = useState({
-        categoryName:"",
-        description:"",
-    })
+        categoryName: "",
+        description: "",
+    });
 
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+
 
     const handleChange = (e) => {
+
         setCategoryData({
             ...categoryData,
             [e.target.name]: e.target.value
-        })
-    }
+        });
+
+        if (error) {
+            setError("");
+        }
+    };
+
 
     const handleSubmit = async (e) => {
+
         e.preventDefault();
-        try{
-           const result = await addCategory(categoryData);
-           alert('category Added successfully');
-           onClose(result.result || result.category);
-        }catch(err){
+
+        try {
+
+            setLoading(true);
+            setError("");
+
+            const result = await addCategory(categoryData);
+
+            alert("Category added successfully");
+
+            onClose(result.result || result.category);
+
+        } catch (err) {
+
             setError(
-                err.response?.data?.message || 'something went wrong'
-            )
-            console.log(err.message || 'something went wrong');
+                err.response?.data?.message ||
+                "Something went wrong"
+            );
+
+            console.log(
+                err.message ||
+                "Something went wrong"
+            );
+
+        } finally {
+
+            setLoading(false);
+
         }
-    }
+    };
+
 
     return (
-        <div className="w-full fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm overflow-y-auto">
-            <div className="w-full max-w-[900px] bg-white m-auto border rounded items-center justify-center flex flex-col p-6">
-                <div className="w-full flex justify-between">
-                    <h3 className="text-xl font-semibold">Add Product</h3>
-                     <button 
-                     onClick={onClose}
-                     className="text-gray-400 hover:text-primary transition">
-                        <X size={20}/>
+
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+
+            {/* ================= MODAL ================= */}
+
+            <div className="w-full max-w-[600px] max-h-[95vh] sm:max-h-[90vh] bg-white rounded-xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden">
+
+
+                {/* ================= HEADER ================= */}
+
+                <div className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-100">
+
+                    <div>
+
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                            Add Category
+                        </h3>
+
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                            Create a new product category.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        onClick={() => onClose()}
+                        className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-primary hover:bg-gray-50 transition flex-shrink-0"
+                    >
+                        <X size={20} />
                     </button>
+
                 </div>
-                <div className="w-full mt-4">
-                    <form 
-                    onSubmit={handleSubmit}
-                    className="w-full">
-                        <div className="flex flex-wrap gap-4">
-                            {inputData.map((data) => {
-                                return (
-                                    <div key={data.id} className={` flex flex-col gap-1 ${data.width} `}>
-                                        <lable className="text-sm text-text font-semibold">{data.label}</lable>
+
+
+                {/* ================= CONTENT ================= */}
+
+                <div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
+
+                    <form
+                        onSubmit={handleSubmit}
+                        className="w-full"
+                    >
+
+                        {/* ================= INPUTS ================= */}
+
+                        <div className="space-y-4">
+
+                            {inputData.map((data) => (
+
+                                <div
+                                    key={data.id}
+                                    className="flex flex-col"
+                                >
+
+                                    <label className="text-xs sm:text-sm text-gray-700 font-semibold mb-1.5">
+
+                                        {data.label}
+
+                                        {data.required && (
+                                            <span className="text-red-500 ml-1">
+                                                *
+                                            </span>
+                                        )}
+
+                                    </label>
+
+
+                                    {data.type === "textarea" ? (
+
+                                        <textarea
+                                            name={data.name}
+                                            placeholder={data.placeholder}
+                                            required={data.required}
+                                            value={categoryData[data.name]}
+                                            onChange={handleChange}
+                                            rows={4}
+                                            className="w-full border border-gray-200 rounded-lg px-3 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+
+                                    ) : (
+
                                         <input
                                             name={data.name}
                                             type={data.type}
@@ -82,28 +174,56 @@ export default function AddProductModal({ onClose }) {
                                             required={data.required}
                                             value={categoryData[data.name]}
                                             onChange={handleChange}
-                                            className="focus:outline-none focus:ring-0 border rounded p-2 text-sm"
+                                            className="w-full h-11 border border-gray-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
-                                    </div>
-                                )
-                            })}
+
+                                    )}
+
+                                </div>
+
+                            ))}
+
                         </div>
-                        <div className="mt-6">
-                            <button 
-                            type="submit"
-                            className="text-sm w-full p-3 bg-primary text-white font-semibold rounded"
+
+
+                        {/* ================= ERROR ================= */}
+
+                        {error && (
+
+                            <div className="mt-4 rounded-lg bg-red-50 border border-red-200 px-3 py-2.5">
+
+                                <p className="text-xs sm:text-sm text-red-500 text-center">
+                                    {error}
+                                </p>
+
+                            </div>
+
+                        )}
+
+
+                        {/* ================= BUTTON ================= */}
+
+                        <div className="mt-5 sm:mt-6">
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full h-11 text-sm bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Add Category
+                                {loading
+                                    ? "Adding..."
+                                    : "Add Category"
+                                }
                             </button>
+
                         </div>
-                        <div>
-                            {error && (
-                                <p className="text-xs text-red-400 mt-2 text-center">{error}</p>
-                            )}
-                        </div>
+
                     </form>
+
                 </div>
+
             </div>
+
         </div>
-    )
+    );
 }
