@@ -1,28 +1,3 @@
-// import { Routes, Route, Outlet } from 'react-router-dom';
-
-// import ProfileCard from './components/ProfileCard';
-// import GeminiAssistant from './components/gemini/GeminiAssistant';
-
-// export default function Layout() {
-//     return (    
-//         <div className='p-4'>
-//             <div className='flex gap-10'>
-//                 <aside className='w-[15%]'>
-//                     <ProfileCard />
-//                 </aside>
-
-//                 <main className='w-[85%]'>
-//                     <Outlet />
-//                 </main>
-
-//                 <GeminiAssistant />
-
-//             </div>
-//         </div>
-//     )
-// }
-
-
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
@@ -34,7 +9,7 @@ export default function Layout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="min-h-screen p-2 sm:p-4">
+        <div className="h-screen overflow-hidden p-2 sm:p-4">
 
             {/* Mobile Header */}
             <div className="flex items-center justify-between mb-3 lg:hidden">
@@ -58,19 +33,21 @@ export default function Layout() {
                 />
             )}
 
-            <div className="flex gap-10">
+            {/* Main Layout */}
+            <div className="flex gap-10 h-[calc(100vh-1rem)] sm:h-[calc(100vh-2rem)]">
 
                 {/* Sidebar */}
                 <aside
                     className={`
-                        fixed lg:static
+                        fixed lg:relative
                         top-0 left-0
                         z-50
-                        h-auto
-                        items-self
+                        h-full
                         w-[280px] lg:w-[15%]
+                        flex-shrink-0
                         bg-white
                         transform transition-transform duration-300
+                        overflow-hidden
                         ${sidebarOpen
                             ? 'translate-x-0'
                             : '-translate-x-full lg:translate-x-0'
@@ -92,13 +69,12 @@ export default function Layout() {
                     />
                 </aside>
 
-                {/* Main Content */}
-                <main className="w-full lg:w-[85%]">
+                {/* Main Content - ONLY THIS SCROLLS */}
+                <main className="w-full lg:w-[85%] h-full overflow-y-auto overflow-x-hidden">
                     <Outlet />
                 </main>
 
                 <GeminiAssistant />
-
             </div>
         </div>
     );

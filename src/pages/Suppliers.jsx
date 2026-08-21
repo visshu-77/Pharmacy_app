@@ -8,9 +8,13 @@ import {
    createSupplier,
    updateSupplier,
    deleteSupplier,
-   deleteSelectedSuppliers,
-   deleteAllSuppliers
+   deleteSelectedSuppliers
 } from "../services/supplierService"
+import SupplierModal from "../components/suppliers/SupplierModal";
+import ImportSupplierModal from "../components/suppliers/ImportSupplierModal";
+import DeleteSupplierModal from "../components/suppliers/DeleteSupplierModal";
+import SupplierTable from "../components/suppliers/SupplierTable";
+import SupplierPagination from "../components/suppliers/SupplierPagination";
 
 const API = process.env.REACT_APP_API_URL;
 
@@ -25,7 +29,10 @@ export default function Suppliers() {
    const suppliersPerPage = 10;
 
    const [loading, setLoading] = useState(true);
+
    const [error, setError] = useState('');
+   const [supplierFormError, setSupplierFormError] = useState('');
+   const [supplierSaving, setSupplierSaving] = useState(false);
 
    const [showModal, setShowModal] = useState(false);
    const [editingSupplier, setEditingSupplier] = useState(null);
@@ -36,7 +43,9 @@ export default function Suppliers() {
    const [importProgress, setImportProgress] = useState(0);
    const [importSuccess, setImportSuccess] = useState(false);
    const [importLoading, setImportLoading] = useState(false);
-   const [formData, setFormaData] = useState({
+
+
+   const [formData, setFormData] = useState({
       supplierName: "",
       phone: "",
       email: "",
@@ -49,8 +58,9 @@ export default function Suppliers() {
    const handleEditSupplier = (supplier) => {
 
       setEditingSupplier(supplier);
+      setSupplierFormError("");
 
-      setFormaData({
+      setFormData({
          supplierName: supplier.supplierName || "",
          phone: supplier.phone || "",
          email: supplier.email || "",
@@ -84,7 +94,7 @@ export default function Suppliers() {
    const handleSupplierChange = (e) => {
       const { name, value } = e.target;
 
-      setFormaData((prev) => ({
+      setFormData((prev) => ({
          ...prev,
          [name]: value
       }));
@@ -92,22 +102,26 @@ export default function Suppliers() {
 
    const handleCreateSupplier = async (e) => {
       e.preventDefault();
+
       try {
-         setError("");
+         setSupplierFormError("");
+         setSupplierSaving(true);
+
          if (editingSupplier) {
-            const data = await updateSupplier(
+            await updateSupplier(
                editingSupplier._id,
                formData
             );
-            console.log("Supplier updated:", data);
          } else {
-            const data = await createSupplier(formData);
-            console.log("Supplier created:", data);
+            await createSupplier(formData);
          }
+
          await fetchSuppliers();
+
          setShowModal(false);
          setEditingSupplier(null);
-         setFormaData({
+
+         setFormData({
             supplierName: "",
             phone: "",
             email: "",
@@ -116,12 +130,17 @@ export default function Suppliers() {
             state: "",
             gstNumber: ""
          });
+
       } catch (error) {
          console.log("Supplier save error:", error);
-         setError(
+
+         setSupplierFormError(
             error?.response?.data?.message ||
             "Failed to save supplier"
          );
+
+      } finally {
+         setSupplierSaving(false);
       }
    };
 
@@ -359,10 +378,12 @@ export default function Suppliers() {
       }
    };
 
-
+   useEffect(() => {
+      setCurrentPage(1);
+   }, [supplierSearch]);
 
    const totalPages = Math.ceil(
-      suppliers.length / suppliersPerPage
+      filteredSuppliers.length / suppliersPerPage
    );
 
    const indexOfLastSupplier =
@@ -376,6 +397,60 @@ export default function Suppliers() {
       indexOfLastSupplier
    );
 
+   const handleCancelImport = () => {
+      setShowImportConfirm(false);
+      setImportFile(null);
+      setImportData([]);
+
+      const input = document.getElementById(
+         "supplier-csv-input"
+      );
+
+      if (input) {
+         input.value = "";
+      }
+   };
+
+   const handleImportDone = () => {
+      setShowImportConfirm(false);
+      setImportSuccess(false);
+      setImportProgress(0);
+      setImportFile(null);
+      setImportData([]);
+
+      const input = document.getElementById(
+         "supplier-csv-input"
+      );
+
+      if (input) {
+         input.value = "";
+      }
+   };
+
+   const handleSelectSupplier = (supplierId, checked) => {
+      if (checked) {
+         setSelectedSuppliers((prev) => [
+            ...prev,
+            supplierId
+         ]);
+      } else {
+         setSelectedSuppliers((prev) =>
+            prev.filter((id) => id !== supplierId)
+         );
+      }
+   };
+
+   const handleSelectAll = (checked) => {
+      if (checked) {
+         setSelectedSuppliers(
+            currentSuppliers.map(
+               (supplier) => supplier._id
+            )
+         );
+      } else {
+         setSelectedSuppliers([]);
+      }
+   };
 
    return (
       <>
@@ -421,8 +496,10 @@ export default function Suppliers() {
                   </button>
                   <button
                      onClick={() => {
+
                         setEditingSupplier(null);
-                        setFormaData({
+                        setSupplierFormError("");
+                        setFormData({
                            supplierName: "",
                            phone: "",
                            email: "",
@@ -470,414 +547,27 @@ export default function Suppliers() {
                </div>
             </div>
 
-            {showModal && (
-
-               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-
-                  <div className="bg-white w-full max-w-2xl rounded-xl shadow-xl">
-
-                     {/* Header */}
-
-                     <div className="flex items-center justify-between px-6 py-4 border-b">
-
-                        <div>
-                           <h2 className="text-lg font-semibold text-gray-900">
-                              Add Supplier
-                           </h2>
-
-                           <p className="text-sm text-gray-500 mt-1">
-                              Add a new supplier to your shop.
-                           </p>
-                        </div>
-
-                        <button
-                           type="button"
-                           onClick={() => setShowModal(false)}
-                           className="text-gray-500 hover:text-gray-800 text-xl"
-                        >
-                           ×
-                        </button>
-
-                     </div>
-
-
-                     {/* Form */}
-
-                     <form
-                        onSubmit={handleCreateSupplier}
-                        className="p-6"
-                     >
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                           {/* Supplier Name */}
-
-                           <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                 Supplier Name
-                              </label>
-
-                              <input
-                                 type="text"
-                                 name="supplierName"
-                                 value={formData.supplierName}
-                                 onChange={handleSupplierChange}
-                                 required
-                                 placeholder="Enter supplier name"
-                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                           </div>
-
-
-                           {/* Phone */}
-
-                           <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                 Phone
-                              </label>
-
-                              <input
-                                 type="text"
-                                 name="phone"
-                                 value={formData.phone}
-                                 onChange={handleSupplierChange}
-                                 placeholder="Enter phone number"
-                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                           </div>
-
-
-                           {/* Email */}
-
-                           <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                 Email
-                              </label>
-
-                              <input
-                                 type="email"
-                                 name="email"
-                                 value={formData.email}
-                                 onChange={handleSupplierChange}
-                                 placeholder="Enter email"
-                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                           </div>
-
-
-                           {/* GST */}
-
-                           <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                 GST Number
-                              </label>
-
-                              <input
-                                 type="text"
-                                 name="gstNumber"
-                                 value={formData.gstNumber}
-                                 onChange={handleSupplierChange}
-                                 placeholder="Enter GST number"
-                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                           </div>
-
-
-                           {/* City */}
-
-                           <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                 City
-                              </label>
-
-                              <input
-                                 type="text"
-                                 name="city"
-                                 value={formData.city}
-                                 onChange={handleSupplierChange}
-                                 placeholder="Enter city"
-                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                           </div>
-
-
-                           {/* State */}
-
-                           <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                 State
-                              </label>
-
-                              <input
-                                 type="text"
-                                 name="state"
-                                 value={formData.state}
-                                 onChange={handleSupplierChange}
-                                 placeholder="Enter state"
-                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                           </div>
-
-
-                           {/* Address */}
-
-                           <div className="md:col-span-2">
-
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                 Address
-                              </label>
-
-                              <textarea
-                                 name="address"
-                                 value={formData.address}
-                                 onChange={handleSupplierChange}
-                                 rows="3"
-                                 placeholder="Enter supplier address"
-                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                              />
-
-                           </div>
-
-                        </div>
-
-
-                        {/* Buttons */}
-
-                        <div className="flex justify-end gap-3 mt-6 pt-5 border-t">
-
-                           <button
-                              type="button"
-                              onClick={() => setShowModal(false)}
-                              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                           >
-                              Cancel
-                           </button>
-
-                           <button
-                              type="submit"
-                              className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                           >
-                              {editingSupplier ? "Edit Supplier" : "Add Supplier"}
-                           </button>
-
-                        </div>
-
-                     </form>
-
-                  </div>
-
-               </div>
-
-            )}
-
-            {showImportConfirm && !importSuccess && (
-               <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
-
-                  <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
-
-                     {/* Icon */}
-                     <div className="mx-auto w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center">
-                        <svg
-                           className="w-7 h-7 text-blue-600"
-                           fill="none"
-                           stroke="currentColor"
-                           viewBox="0 0 24 24"
-                        >
-                           <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-                           />
-                        </svg>
-                     </div>
-
-                     {/* Title */}
-                     <h3 className="text-lg font-semibold text-gray-900 text-center mt-4">
-                        Import Suppliers?
-                     </h3>
-
-                     {/* Description */}
-                     <p className="text-sm text-gray-500 text-center mt-2">
-                        You are about to import{" "}
-                        <span className="font-semibold text-gray-900">
-                           {importData.length}
-                        </span>{" "}
-                        suppliers from the selected CSV file.
-                     </p>
-
-                     <p className="text-sm text-gray-500 text-center mt-1">
-                        Do you want to continue?
-                     </p>
-
-                     {/* Buttons */}
-                     <div className="flex gap-3 mt-6">
-
-                        <button
-                           type="button"
-                           onClick={() => {
-                              setShowImportConfirm(false);
-                              setImportFile(null);
-                              setImportData([]);
-
-                              const input =
-                                 document.getElementById(
-                                    "supplier-csv-input"
-                                 );
-
-                              if (input) {
-                                 input.value = "";
-                              }
-                           }}
-                           className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                           Cancel
-                        </button>
-
-                        <button
-                           type="button"
-                           onClick={handleImportSuppliers}
-                           disabled={importLoading}
-                           className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
-                        >
-                           {importLoading ? (
-
-                              <div className="mt-6">
-
-                                 <div className="flex justify-between text-sm mb-2">
-
-                                    <span className="text-gray-600">
-                                       Importing suppliers...
-                                    </span>
-
-                                    <span className="font-semibold text-gray-900">
-                                       {importProgress}%
-                                    </span>
-
-                                 </div>
-
-                                 {/* Progress background */}
-                                 <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
-
-                                    <div
-                                       className="h-full bg-blue-600 rounded-full transition-all duration-500"
-                                       style={{
-                                          width: `${importProgress}%`
-                                       }}
-                                    />
-
-                                 </div>
-
-                                 <p className="text-xs text-gray-500 text-center mt-3">
-                                    Please wait while suppliers are being imported.
-                                 </p>
-
-                              </div>
-
-                           ) : importSuccess ? (
-
-                              <div className="mt-6 text-center">
-
-                                 {/* Green Tick */}
-                                 <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-
-                                    <svg
-                                       className="w-9 h-9 text-green-600"
-                                       fill="none"
-                                       stroke="currentColor"
-                                       viewBox="0 0 24 24"
-                                    >
-                                       <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth="2"
-                                          d="M5 13l4 4L19 7"
-                                       />
-                                    </svg>
-
-                                 </div>
-
-                                 <h3 className="text-lg font-semibold text-gray-900 mt-4">
-                                    Import Successful
-                                 </h3>
-
-                                 <p className="text-sm text-gray-500 mt-1">
-                                    {importData.length} suppliers imported successfully.
-                                 </p>
-
-                                 <button
-                                    type="button"
-                                    onClick={() => {
-
-                                       setShowImportConfirm(false);
-                                       setImportSuccess(false);
-                                       setImportProgress(0);
-                                       setImportFile(null);
-                                       setImportData([]);
-
-                                       const input =
-                                          document.getElementById(
-                                             "supplier-csv-input"
-                                          );
-
-                                       if (input) {
-                                          input.value = "";
-                                       }
-
-                                    }}
-                                    className="mt-5 w-full px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
-                                 >
-                                    Done
-                                 </button>
-
-                              </div>
-
-                           ) : (
-
-                              <div className="">
-
-                                 {/* <button
-                                    type="button"
-                                    onClick={() => {
-
-                                       setShowImportConfirm(false);
-                                       setImportFile(null);
-                                       setImportData([]);
-
-                                       const input =
-                                          document.getElementById(
-                                             "supplier-csv-input"
-                                          );
-
-                                       if (input) {
-                                          input.value = "";
-                                       }
-
-                                    }}
-                                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                 >
-                                    Cancel
-                                 </button> */}
-
-                                 <button
-                                    type="button"
-                                    onClick={handleImportSuppliers}
-                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium"
-                                 >
-                                    Confirm Import
-                                 </button>
-
-                              </div>
-
-                           )}
-                        </button>
-
-                     </div>
-
-                  </div>
-
-               </div>
-            )}
+            <SupplierModal
+               show={showModal}
+               editingSupplier={editingSupplier}
+               formData={formData}
+               onChange={handleSupplierChange}
+               onSubmit={handleCreateSupplier}
+               onClose={() => setShowModal(false)}
+               error={supplierFormError}
+               loading={supplierSaving}
+            />
+
+            <ImportSupplierModal
+               show={showImportConfirm}
+               importData={importData}
+               importLoading={importLoading}
+               importProgress={importProgress}
+               importSuccess={importSuccess}
+               onConfirm={handleImportSuppliers}
+               onCancel={handleCancelImport}
+               onDone={handleImportDone}
+            />
 
 
             {loading ? (
@@ -904,315 +594,36 @@ export default function Suppliers() {
                         </button>
                      )}
                   </div>
-                  <table className="w-full">
-                     <thead className="bg-gray-50">
-                        <tr>
-                           <th>
-                              <input
-                                 type="checkbox"
-                                 className="ml-2"
-                                 checked={
-                                    suppliers.length > 0 &&
-                                    selectedSuppliers.length === suppliers.length
-                                 }
-                                 onChange={(e) => {
-                                    if (e.target.checked) {
-                                       setSelectedSuppliers(
-                                          suppliers.map(
-                                             (supplier) => supplier._id
-                                          )
-                                       );
-                                    } else {
-                                       setSelectedSuppliers([]);
-                                    }
-                                 }}
-                              />
-                           </th>
-                           <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500">
-                              Supplier
-                           </th>
-                           <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500">
-                              Phone
-                           </th>
-                           <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500">
-                              Email
-                           </th>
-                           <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500">
-                              Location
-                           </th>
-                           <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500">
-                              GST
-                           </th>
-                           <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500">
-                              Actions
-                           </th>
-                        </tr>
-                     </thead>
-                     <tbody>
-                        {currentSuppliers.map((supplier) => (
-                           <tr
-                              key={supplier._id}
-                              className="border-t border-gray-100 hover:bg-gray-50"
-                           >
-                              <td>
-                                 <input
-                                    type="checkbox"
-                                    className="ml-4"
-                                    checked={selectedSuppliers.includes(supplier._id)}
-                                    onChange={(e) => {
-                                       if (e.target.checked) {
-                                          setSelectedSuppliers((prev) => [
-                                             ...prev,
-                                             supplier._id
-                                          ]);
-                                       } else {
-                                          setSelectedSuppliers((prev) =>
-                                             prev.filter(
-                                                (id) => id !== supplier._id
-                                             )
-                                          );
-                                       }
-                                    }}
-                                 />
-                              </td>
-                              <td className="px-5 py-4 text-sm font-medium text-gray-900">
-                                 {supplier.supplierName}
-                              </td>
-                              <td className="px-5 py-4 text-sm text-gray-700">
-                                 {supplier.phone || "-"}
-                              </td>
-                              <td className="px-5 py-4 text-sm text-gray-700">
-                                 {supplier.email || "-"}
-                              </td>
-                              <td className="px-5 py-4 text-sm text-gray-700">
-                                 {supplier.city || "-"}
-                              </td>
-                              <td className="px-5 py-4 text-sm text-gray-700">
-                                 {supplier.gstNumber || "-"}
-                              </td>
-                              <td className="px-5 py-4">
-                                 <div className="flex gap-2">
-                                    <button
-                                       onClick={() => handleEditSupplier(supplier)}
-                                       className="text-blue-600 hover:text-blue-800 text-sm"
-                                    >
-                                       Edit
-                                    </button>
-                                    <button
-                                       onClick={() => handleDeleteSupplier(supplier)}
-                                       className="text-red-600 hover:text-red-800 text-sm"
-                                    >
-                                       Delete
-                                    </button>
-                                 </div>
-                              </td>
-                           </tr>
-                        ))}
-                     </tbody>
-                  </table>
-                  {totalPages > 1 && (
-                     <div className="flex items-center justify-between px-5 py-4 border-t border-gray-200">
 
-                        {/* Showing information */}
-                        <div className="text-sm text-gray-500">
-                           Showing{" "}
-                           <span className="font-medium text-gray-700">
-                              {indexOfFirstSupplier + 1}
-                           </span>
-                           {" - "}
-                           <span className="font-medium text-gray-700">
-                              {Math.min(
-                                 indexOfLastSupplier,
-                                 suppliers.length
-                              )}
-                           </span>
-                           {" of "}
-                           <span className="font-medium text-gray-700">
-                              {suppliers.length}
-                           </span>
-                           {" suppliers"}
-                        </div>
+                  <SupplierTable
+                     suppliers={currentSuppliers}
+                     selectedSuppliers={selectedSuppliers}
+                     onSelectSupplier={handleSelectSupplier}
+                     onSelectAll={handleSelectAll}
+                     onEdit={handleEditSupplier}
+                     onDelete={handleDeleteSupplier}
+                  />
 
-                        {/* Pagination */}
-                        <div className="flex items-center gap-2">
+                  <SupplierPagination
+                     currentPage={currentPage}
+                     totalPages={totalPages}
+                     totalItems={filteredSuppliers.length}
+                     itemsPerPage={suppliersPerPage}
+                     onPageChange={setCurrentPage}
+                  />
 
-                           {/* Previous */}
-                           <button
-                              onClick={() =>
-                                 setCurrentPage((prev) =>
-                                    Math.max(prev - 1, 1)
-                                 )
-                              }
-                              disabled={currentPage === 1}
-                              className="px-3 py-2 text-sm border border-gray-300 rounded-lg
-                           hover:bg-gray-50
-                           disabled:opacity-40
-                           disabled:cursor-not-allowed"
-                           >
-                              Previous
-                           </button>
-
-                           {/* Page Numbers */}
-                           <div className="flex items-center gap-1">
-
-                              {/* First page */}
-                              <button
-                                 onClick={() => setCurrentPage(1)}
-                                 className={`w-9 h-9 text-sm rounded-lg border
-            ${currentPage === 1
-                                       ? "bg-blue-600 text-white border-blue-600"
-                                       : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                                    }
-        `}
-                              >
-                                 1
-                              </button>
-
-                              {/* Left dots */}
-                              {currentPage > 4 && (
-                                 <span className="px-2 text-gray-500">
-                                    ...
-                                 </span>
-                              )}
-
-                              {/* Middle pages */}
-                              {Array.from(
-                                 { length: totalPages },
-                                 (_, index) => index + 1
-                              )
-                                 .filter((page) => {
-
-                                    if (page === 1 || page === totalPages) {
-                                       return false;
-                                    }
-
-                                    return (
-                                       page >= currentPage - 2 &&
-                                       page <= currentPage + 2
-                                    );
-                                 })
-                                 .map((page) => (
-                                    <button
-                                       key={page}
-                                       onClick={() => setCurrentPage(page)}
-                                       className={`w-9 h-9 text-sm rounded-lg border
-                    ${currentPage === page
-                                             ? "bg-blue-600 text-white border-blue-600"
-                                             : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                                          }
-                `}
-                                    >
-                                       {page}
-                                    </button>
-                                 ))}
-
-                              {/* Right dots */}
-                              {currentPage < totalPages - 3 && (
-                                 <span className="px-2 text-gray-500">
-                                    ...
-                                 </span>
-                              )}
-
-                              {/* Last page */}
-                              {totalPages > 1 && (
-                                 <button
-                                    onClick={() => setCurrentPage(totalPages)}
-                                    className={`w-9 h-9 text-sm rounded-lg border
-                ${currentPage === totalPages
-                                          ? "bg-blue-600 text-white border-blue-600"
-                                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                                       }
-            `}
-                                 >
-                                    {totalPages}
-                                 </button>
-                              )}
-
-                           </div>
-
-                           {/* Next */}
-                           <button
-                              onClick={() =>
-                                 setCurrentPage((prev) =>
-                                    Math.min(prev + 1, totalPages)
-                                 )
-                              }
-                              disabled={currentPage === totalPages}
-                              className="px-3 py-2 text-sm border border-gray-300 rounded-lg
-                           hover:bg-gray-50
-                           disabled:opacity-40
-                           disabled:cursor-not-allowed"
-                           >
-                              Next
-                           </button>
-
-                        </div>
-
-                     </div>
-                  )}
-               </div>
-            )}
-
-            {showDeleteConfirm && (
-               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-
-                  <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-6">
-
-                     {/* Icon */}
-                     <div className="flex justify-center mb-4">
-                        <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                           <span className="text-red-600 text-xl">
-                              !
-                           </span>
-                        </div>
-                     </div>
-
-                     {/* Title */}
-                     <h2 className="text-lg font-semibold text-gray-900 text-center">
-                        Delete Selected Suppliers?
-                     </h2>
-
-                     {/* Message */}
-                     <p className="text-sm text-gray-500 text-center mt-2">
-                        Are you sure you want to delete{" "}
-                        <span className="font-semibold text-gray-800">
-                           {selectedSuppliers.length}
-                        </span>{" "}
-                        selected supplier
-                        {selectedSuppliers.length > 1 ? "s" : ""}?
-                     </p>
-
-                     {/* Buttons */}
-                     <div className="flex justify-center gap-3 mt-6">
-
-                        {/* Cancel */}
-                        <button
-                           type="button"
-                           onClick={() => setShowDeleteConfirm(false)}
-                           disabled={deleteLoading}
-                           className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                        >
-                           Cancel
-                        </button>
-
-                        {/* Confirm */}
-                        <button
-                           type="button"
-                           onClick={handleDeleteSelected}
-                           disabled={deleteLoading}
-                           className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-                        >
-                           {deleteLoading
-                              ? "Deleting..."
-                              : "Delete"}
-                        </button>
-
-                     </div>
-
-                  </div>
 
                </div>
             )}
+
+            <DeleteSupplierModal
+               show={showDeleteConfirm}
+               selectedCount={selectedSuppliers.length}
+               loading={deleteLoading}
+               onCancel={() => setShowDeleteConfirm(false)}
+               onConfirm={handleDeleteSelected}
+            />
+
          </div>
       </>
    )

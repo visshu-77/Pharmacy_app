@@ -1,13 +1,9 @@
-import axios from "axios";
-
-const API = process.env.REACT_APP_API_URL;
+import { api } from "./api";
 
 export const createSubscription = async (subscriptionData) => {
-
     const token = localStorage.getItem("token");
-
-    const response = await axios.post(
-        `${API}/subscription/create`,
+    const response = await api.post(
+        "/subscription/create",
         subscriptionData,
         {
             headers: {
@@ -15,16 +11,14 @@ export const createSubscription = async (subscriptionData) => {
             }
         }
     );
-
     return response.data;
 };
 
+
 export const createPaymentOrder = async (data) => {
-
     const token = localStorage.getItem("token");
-
-    const response = await axios.post(
-        `${API}/subscription/create-payment`,
+    const response = await api.post(
+        "/subscription/create-payment",
         data,
         {
             headers: {
@@ -32,15 +26,14 @@ export const createPaymentOrder = async (data) => {
             }
         }
     );
-
     return response.data;
 };
+
 
 export const verifyPayment = async (data) => {
     const token = localStorage.getItem("token");
-
-    const response = await axios.post(
-        `${API}/subscription/verify-payment`,
+    const response = await api.post(
+        "/subscription/verify-payment",
         data,
         {
             headers: {
@@ -48,22 +41,19 @@ export const verifyPayment = async (data) => {
             }
         }
     );
-
     return response.data;
 };
 
+
 export const getMySubscription = async () => {
-
     const token = localStorage.getItem("token");
-
-    const response = await axios.get(
-        `${API}/subscription/my-subscription`,
+    const response = await api.get(
+        "/subscription/my-subscription",
         {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         }
     );
-
     return response.data;
 };

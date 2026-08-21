@@ -1,6 +1,4 @@
-import axios from "axios";
-
-const API = process.env.REACT_APP_API_URL;
+import { api } from "./api";
 
 const getAuthConfig = () => {
     const token = localStorage.getItem("token");
@@ -14,8 +12,8 @@ const getAuthConfig = () => {
 
 export const getSuppliers = async () => {
 
-    const response = await axios.get(
-        `${API}/supplier/all-supplier`,
+    const response = await api.get(
+        `/supplier/all-supplier`,
         getAuthConfig()
     );
 
@@ -24,8 +22,8 @@ export const getSuppliers = async () => {
 
 export const getSupplierById = async (id) => {
 
-    const response = await axios.get(
-        `${API}/supplier/single/${id}`,
+    const response = await api.get(
+        `/supplier/single/${id}`,
         getAuthConfig()
     );
 
@@ -34,8 +32,8 @@ export const getSupplierById = async (id) => {
 
 export const createSupplier = async (supplierData) => {
 
-    const response = await axios.post(
-        `${API}/supplier/create`,
+    const response = await api.post(
+        `/supplier/create`,
         supplierData,
         getAuthConfig()
     );
@@ -45,8 +43,8 @@ export const createSupplier = async (supplierData) => {
 
 export const updateSupplier = async (id, supplierData) => {
 
-    const response = await axios.put(
-        `${API}/supplier/update/${id}`,
+    const response = await api.put(
+        `/supplier/update/${id}`,
         supplierData,
         getAuthConfig()
     );
@@ -56,8 +54,8 @@ export const updateSupplier = async (id, supplierData) => {
 
 export const deleteSupplier = async (id) => {
 
-    const response = await axios.delete(
-        `${API}/supplier/delete/${id}`,
+    const response = await api.delete(
+        `/supplier/delete/${id}`,
         getAuthConfig()
     );
 
@@ -67,8 +65,8 @@ export const deleteSupplier = async (id) => {
 export const deleteSelectedSuppliers = async (supplierIds) => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.delete(
-        `${API}/supplier/delete-selected`,
+    const response = await api.delete(
+        `/supplier/delete-selected`,
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -85,8 +83,8 @@ export const deleteSelectedSuppliers = async (supplierIds) => {
 export const deleteAllSuppliers = async () => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.delete(
-        `${API}/supplier/delete-all`,
+    const response = await api.delete(
+        `/supplier/delete-all`,
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -100,8 +98,8 @@ export const deleteAllSuppliers = async () => {
 export const searchSuppliers = async (name) => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.get(
-        `${API}/supplier/search`,
+    const response = await api.get(
+        `/supplier/search`,
         {
             params: {
                 name

@@ -1,12 +1,11 @@
-import axios from "axios";
-
-const API = process.env.REACT_APP_API_URL;
+// import axios from "axios";
+import { api } from "./api";
 
 export const addCategory = async (productData) => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.post(
-        `${API}/category/add`,
+    const response = await api.post(
+        `/category/add`,
         productData,
         {
             headers: {
@@ -19,8 +18,8 @@ export const addCategory = async (productData) => {
 export const getCategory = async () => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.get(
-        `${API}/category/get`,
+    const response = await api.get(
+        `/category/get`,
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -32,8 +31,8 @@ export const getCategory = async () => {
 export const deleteCategory = async (id) => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.delete(
-        `${API}/category/delete/${id}`,
+    const response = await api.delete(
+        `/category/delete/${id}`,
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -45,8 +44,8 @@ export const deleteCategory = async (id) => {
 export const updateCategory = async (id, categoryData) => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.put(
-        `${API}/category/update/${id}`,
+    const response = await api.put(
+        `/category/update/${id}`,
         categoryData,
         {
             headers: {
@@ -59,8 +58,8 @@ export const updateCategory = async (id, categoryData) => {
 export const viewCategory = async(id) => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.get(
-        `${API}/category/single/${id}`,
+    const response = await api.get(
+        `/category/single/${id}`,
         {
             headers:{
                 Authorization:`Bearer ${token}`
@@ -72,8 +71,8 @@ export const viewCategory = async(id) => {
 export const deleteSingleCategories = async(ids) => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.delete(
-        `${API}/category/delete-selected`,
+    const response = await api.delete(
+        `/category/delete-selected`,
         {
             data:{
                 ids
@@ -88,8 +87,8 @@ export const deleteSingleCategories = async(ids) => {
 export const deleteAllCategories = async() => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.delete(
-        `${API}/category/delete-all`,
+    const response = await api.delete(
+        `/category/delete-all`,
         {
             headers:{
                 Authorization:`Bearer ${token}`

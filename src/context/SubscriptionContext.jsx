@@ -17,9 +17,8 @@ export function SubscriptionProvider({ children }) {
 
     const fetchSubscription = async () => {
         try {
-
+            setSubscriptionLoading(true);
             const data = await getMySubscription();
-            console.log("UPDATED SUBSCRIPTION", data);
 
             if (data.hasSubscription) {
                 setSubscription(data.subscription);

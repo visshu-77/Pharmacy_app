@@ -12,10 +12,15 @@ export default function ProductSearch() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // Controls whether search results should be displayed
+    const [showResults, setShowResults] = useState(false);
+
     useEffect(() => {
 
+        // Don't search when input is empty
         if (!search.trim()) {
             setProducts([]);
+            setShowResults(false);
             return;
         }
 
@@ -31,11 +36,15 @@ export default function ProductSearch() {
 
                 setProducts(data.products || []);
 
+                // Show results after a new search
+                setShowResults(true);
+
             } catch (error) {
 
                 console.log("Search product error:", error);
 
                 setProducts([]);
+                setShowResults(false);
 
             } finally {
 
@@ -57,107 +66,117 @@ export default function ProductSearch() {
             return;
         }
 
+        // Add product to cart
         addToCart(product);
 
+        // Hide ALL search results
+        setShowResults(false);
+        setProducts([]);
     };
 
+    const handleClearSearch = () => {
+        setSearch("");
+        setProducts([]);
+        setShowResults(false);
+    };
 
     return (
         <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow">
-
             <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
                 Add Product
             </h2>
-
-            {/* Search Input */}
             <div className="relative mt-4">
-
                 <Search
                     size={20}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
                 />
-
                 <input
                     type="text"
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => {
+                        setSearch(e.target.value);
+                        setShowResults(true);
+                    }}
                     placeholder="Search product..."
                     className="w-full border rounded-lg p-3 pl-10 pr-10 outline-none text-xs bg-[#F8F9FC]"
                 />
-
                 {search && (
                     <button
                         type="button"
-                        onClick={() => setSearch("")}
+                        onClick={handleClearSearch}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition"
                     >
                         <X size={18} />
                     </button>
                 )}
-
             </div>
 
-
-            {/* Loading */}
             {loading && (
                 <p className="text-sm text-gray-500 mt-3">
                     Searching...
                 </p>
             )}
 
-
-            {/* Search Results */}
-            {!loading && products.length > 0 && (
-
-                <div className="border rounded-lg mt-3 overflow-hidden">
-
-                    {products.map((product) => (
-
-                        <div
-                            key={product._id}
-                            className="flex items-center justify-between p-4 border-b hover:bg-[#F2F4F8] transition cursor-pointer"
-                        >
-                            <div className="flex flex-col gap-1">
-                                <p className="font-semibold text-lg capitalize">
-                                    {product.productName}
-                                </p>
-
-                                <p className={` ${product.stock === 0 ? 'bg-red-100 text-red-500' : product.stock < 50 ? 'bg-orange-100 text-orange-500' : 'bg-gray-200 text-black-400'} text-xs py-1 px-2 rounded-lg w-fit font-bold`}>
-                                    Stock: {product.stock}
-                                </p>
-                            </div>
-                            <div className="flex flex-col gap-2 items-center">
-                                <p className="text-sm text-black font-bold">
-                                    ₹ {Number(product.sellingPrice).toLocaleString("en-IN")}
-                                </p>
-                                <button
-                                    onClick={() => handleAddProduct(product)}
-                                    disabled={product.stock <= 0}
-                                    className="flex items-center gap-1 bg-primary text-xs font-bold text-white py-2 px-4 rounded-lg disabled:opacity-50"
-                                >
-                                    <Plus size={10} />
-                                    Add
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-
-                </div>
-
-            )}
-
-
-            {/* No results */}
             {!loading &&
+                showResults &&
+                products.length > 0 && (
+                    <div className="border rounded-lg mt-3 overflow-hidden">
+                        {products.map((product) => (
+                            <div
+                                key={product._id}
+                                className="flex items-center justify-between p-4 border-b hover:bg-[#F2F4F8] transition cursor-pointer"
+                            >
+                                <div className="flex flex-col gap-1">
+                                    <p className="font-semibold text-lg capitalize">
+                                        {product.productName}
+                                    </p>
+                                    <p
+                                        className={`
+                                            ${
+                                                product.stock === 0
+                                                    ? "bg-red-100 text-red-500"
+                                                    : product.stock < 50
+                                                    ? "bg-orange-100 text-orange-500"
+                                                    : "bg-gray-200 text-black-400"
+                                            }
+                                            text-xs py-1 px-2 rounded-lg w-fit font-bold
+                                        `}
+                                    >
+                                        Stock: {product.stock}
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col gap-2 items-center">
+                                    <p className="text-sm text-black font-bold">
+                                        ₹{" "}
+                                        {Number(product.sellingPrice).toLocaleString(
+                                            "en-IN"
+                                        )}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleAddProduct(product)}
+                                        disabled={product.stock <= 0}
+                                        className="flex items-center gap-1 bg-primary text-xs font-bold text-white py-2 px-4 rounded-lg disabled:opacity-50"
+                                    >
+                                        <Plus size={10} />
+                                        Add
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+            {!loading &&
+                showResults &&
                 search.trim() &&
                 products.length === 0 && (
 
                     <p className="text-sm text-gray-500 mt-3">
                         No products found
                     </p>
-
                 )}
-
         </div>
     );
 }

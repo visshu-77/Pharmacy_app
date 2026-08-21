@@ -1,12 +1,10 @@
-import axios from "axios";
-
-const API = process.env.REACT_APP_API_URL;
+import { api } from "./api";
 
 export const getProducts = async () => {
     const token = localStorage.getItem("token");
     console.log("token is =====>",token)
 
-    const response = await axios.get(`${API}/product/get`,{
+    const response = await api.get(`/product/get`,{
         headers: {
             Authorization: `Bearer ${token}`
         }
@@ -18,8 +16,8 @@ export const addProduct = async (productData) => {
     const token = localStorage.getItem("token");
     console.log("token is =====>",token)
 
-    const response = await axios.post(
-        `${API}/product/add`,
+    const response = await api.post(
+        `/product/add`,
         productData,
         {
         headers: {
@@ -32,8 +30,8 @@ export const addProduct = async (productData) => {
 export const deleteProduct = async(id) => {
     const token = localStorage.getItem("token");
     
-    const response = await axios.delete(
-        `${API}/product/delete/${id}`,
+    const response = await api.delete(
+        `/product/delete/${id}`,
         {
             headers:{
                 Authorization: `Bearer ${token}`
@@ -45,8 +43,8 @@ export const deleteProduct = async(id) => {
 export const updateProduct = async(id, productData) => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.put(
-        `${API}/product/update/${id}`,
+    const response = await api.put(
+        `/product/update/${id}`,
         productData,
         {
             headers:{
@@ -59,8 +57,8 @@ export const updateProduct = async(id, productData) => {
 export const exportProducts = async () => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.get(
-        `${API}/product/exports`,
+    const response = await api.get(
+        `/product/exports`,
         {
             headers:{
                 Authorization: `Bearer ${token}`
@@ -75,8 +73,8 @@ export const importProducts = async (file) => {
     const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append("file",file);
-    const response = await axios.post(
-        `${API}/product/imports`,
+    const response = await api.post(
+        `/product/imports`,
         formData,
         {
             headers:{
@@ -89,8 +87,8 @@ export const importProducts = async (file) => {
 
 export const singleProduct = async (id) => {
     const token = localStorage.getItem("token");
-    const response = await axios.get(
-        `${API}/product/single/${id}`,
+    const response = await api.get(
+        `/product/single/${id}`,
         {
             headers:{
                 Authorization:`Bearer ${token}`
@@ -102,8 +100,8 @@ export const singleProduct = async (id) => {
 export const searchProducts = async (search) => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.get(
-        `${API}/product/search`,
+    const response = await api.get(
+        `/product/search`,
         {
             params: {
                 search
@@ -120,8 +118,8 @@ export const searchProducts = async (search) => {
 export const deleteSingleProducts = async (productIds) => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.delete(
-        `${API}/product/delete-selected`,
+    const response = await api.delete(
+        `/product/delete-selected`,
         {
             data:{
                 productIds
@@ -137,8 +135,8 @@ export const deleteSingleProducts = async (productIds) => {
 export const deleteAllProducts = async () => {
     const token = localStorage.getItem("token");
 
-    const response = await axios.delete(
-        `${API}/product/delete-all`,
+    const response = await api.delete(
+        `/product/delete-all`,
         {
             headers:{
                 Authorization:`Bearer ${token}`

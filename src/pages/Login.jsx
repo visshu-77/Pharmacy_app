@@ -3,6 +3,7 @@ import LoginRegisterSidebar from "../components/loginRegisterSideBar";
 import { loginUser } from "../services/authService";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
+import { useSubscription } from "../context/SubscriptionContext";
 
 const loginData = [
     {
@@ -26,6 +27,7 @@ const loginData = [
 export default function Login() {
 
     const navigate = useNavigate();
+    const { fetchSubscription } = useSubscription();
 
     const [formData, setFormData] = useState({
         email: "",
@@ -68,13 +70,11 @@ export default function Login() {
 
             const result = await loginUser(formData);
 
-            console.log(result);
-
             localStorage.setItem(
                 "token",
                 result.token
             );
-
+            await fetchSubscription();
             alert("Login successful");
 
             navigate("/", {
