@@ -84,7 +84,7 @@ export default function SupplierModal({
                         Phone <span className="text-red-500">*</span>
                      </label>
 
-                     <input
+                      <input
                         type="number"
                         name="phone"
                         value={formData.phone}
