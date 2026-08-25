@@ -8,6 +8,14 @@ export default function SubscriptionRoute({ children }) {
         subscriptionLoading
     } = useSubscription();
 
+    const user = JSON.parse(
+        localStorage.getItem("user")
+    );
+
+    if (user?.role === "admin") {
+        return children;
+    }
+
     if (subscriptionLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -17,7 +25,12 @@ export default function SubscriptionRoute({ children }) {
     }
 
     if (!subscription) {
-        return <Navigate to="/subscription" replace />;
+        return (
+            <Navigate
+                to="/subscription"
+                replace
+            />
+        );
     }
 
     return children;

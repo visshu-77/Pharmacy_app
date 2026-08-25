@@ -74,12 +74,26 @@ export default function Login() {
                 "token",
                 result.token
             );
+            localStorage.setItem(
+                "user",
+                JSON.stringify(result.user)
+            );
             await fetchSubscription();
             alert("Login successful");
 
-            navigate("/", {
-                replace: true
-            });
+            if (result.user?.role === "admin") {
+
+                navigate("/admin", {
+                    replace: true
+                });
+
+            } else {
+
+                navigate("/", {
+                    replace: true
+                });
+
+            }
 
         } catch (err) {
 

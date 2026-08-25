@@ -1,4 +1,4 @@
-  import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import './App.css';
 
 import ProtectedRoute from "./components/ProtectedRoutes.jsx";
@@ -19,13 +19,19 @@ import SubscriptionCheckout from "./pages/SubscriptionCheckout.jsx";
 
 import SubscriptionRoute from "./components/SubscriptionRoute.jsx";
 
+import PageNotFound from "./pages/PageNotFound.jsx";
+
 
 // ================= ADMIN =================
 
 import AdminLayout from "./admin/components/AdminLayout.jsx";
 import AdminDashboard from "./admin/pages/AdminDashboard.jsx";
-import AdminCustomers from "./admin/pages/AdminCustomers.jsx";
+import AdminCustomers from "./admin/pages/AdminCustomer.jsx";
 import AdminRoute from "./admin/AdminRoutes.jsx";
+import UserRoute from "./components/UserRoute.jsx";
+
+import AdminCustomerDetails from "./admin/pages/AdminCustomerDetails.jsx";
+import EditCustomer from "./admin/pages/EditCustomer.jsx";
 
 
 function App() {
@@ -44,9 +50,11 @@ function App() {
                         path="/"
                         element={
                             <ProtectedRoute>
-                                <SubscriptionRoute>
-                                    <Dashboard />
-                                </SubscriptionRoute>
+                                <UserRoute>
+                                    <SubscriptionRoute>
+                                        <Dashboard />
+                                    </SubscriptionRoute>
+                                </UserRoute>
                             </ProtectedRoute>
                         }
                     />
@@ -55,9 +63,11 @@ function App() {
                         path="/product"
                         element={
                             <ProtectedRoute>
-                                <SubscriptionRoute>
-                                    <Product />
-                                </SubscriptionRoute>
+                                <UserRoute>
+                                    <SubscriptionRoute>
+                                        <Product />
+                                    </SubscriptionRoute>
+                                </UserRoute>
                             </ProtectedRoute>
                         }
                     />
@@ -66,9 +76,11 @@ function App() {
                         path="/category"
                         element={
                             <ProtectedRoute>
-                                <SubscriptionRoute>
-                                    <Category />
-                                </SubscriptionRoute>
+                                <UserRoute>
+                                    <SubscriptionRoute>
+                                        <Category />
+                                    </SubscriptionRoute>
+                                </UserRoute>
                             </ProtectedRoute>
                         }
                     />
@@ -77,9 +89,11 @@ function App() {
                         path="/billing"
                         element={
                             <ProtectedRoute>
-                                <SubscriptionRoute>
-                                    <Billing />
-                                </SubscriptionRoute>
+                                <UserRoute>
+                                    <SubscriptionRoute>
+                                        <Billing />
+                                    </SubscriptionRoute>
+                                </UserRoute>
                             </ProtectedRoute>
                         }
                     />
@@ -88,9 +102,11 @@ function App() {
                         path="/settings"
                         element={
                             <ProtectedRoute>
-                                <SubscriptionRoute>
-                                    <Settings />
-                                </SubscriptionRoute>
+                                <UserRoute>
+                                    <SubscriptionRoute>
+                                        <Settings />
+                                    </SubscriptionRoute>
+                                </UserRoute>
                             </ProtectedRoute>
                         }
                     />
@@ -99,9 +115,11 @@ function App() {
                         path="/reports"
                         element={
                             <ProtectedRoute>
-                                <SubscriptionRoute>
-                                    <Report />
-                                </SubscriptionRoute>
+                                <UserRoute>
+                                    <SubscriptionRoute>
+                                        <Report />
+                                    </SubscriptionRoute>
+                                </UserRoute>
                             </ProtectedRoute>
                         }
                     />
@@ -110,9 +128,11 @@ function App() {
                         path="/suppliers"
                         element={
                             <ProtectedRoute>
-                                <SubscriptionRoute>
-                                    <Suppliers />
-                                </SubscriptionRoute>
+                                <UserRoute>
+                                    <SubscriptionRoute>
+                                        <Suppliers />
+                                    </SubscriptionRoute>
+                                </UserRoute>
                             </ProtectedRoute>
                         }
                     />
@@ -121,7 +141,9 @@ function App() {
                         path="/subscription"
                         element={
                             <ProtectedRoute>
-                                <Subscription />
+                                <UserRoute>
+                                    <Subscription />
+                                </UserRoute>
                             </ProtectedRoute>
                         }
                     />
@@ -130,7 +152,9 @@ function App() {
                         path="/subscription/checkout"
                         element={
                             <ProtectedRoute>
-                                <SubscriptionCheckout />
+                                <UserRoute>
+                                    <SubscriptionCheckout />
+                                </UserRoute>
                             </ProtectedRoute>
                         }
                     />
@@ -181,7 +205,24 @@ function App() {
                         element={<AdminCustomers />}
                     />
 
+                    <Route
+                        path="customers/:id"
+                        element={<AdminCustomerDetails />}
+                    />
+
+                    <Route 
+                    path="customers/:id/edit"
+                    element={<EditCustomer />}
+                    />
+
                 </Route>
+
+                {/* ================= 404 ================= */}
+
+                <Route
+                    path="*"
+                    element={<PageNotFound />}
+                />
 
             </Routes>
 

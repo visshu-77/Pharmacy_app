@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api } from "../../services/api";
 
 export const getAllCustomers = async ({
     page = 1,
@@ -16,7 +16,7 @@ export const getAllCustomers = async ({
             params: {
                 page,
                 limit,
-                search,
+                search,                     
                 status,
                 plan
             },
@@ -86,7 +86,8 @@ export const toggleCustomerStatus = async (
 };
 
 export const deleteCustomer = async (
-    customerId
+    customerId, 
+    password
 ) => {
 
     const token = localStorage.getItem("token");
@@ -96,6 +97,9 @@ export const deleteCustomer = async (
         {
             headers: {
                 Authorization: `Bearer ${token}`
+            },
+            data : {
+                password
             }
         }
     );
