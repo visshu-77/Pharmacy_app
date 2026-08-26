@@ -8,8 +8,12 @@
     --color-text: #657489;
     --color-sideBackground: #f8fafc;
 
+    --color-darkColor: rgb(34 34 34);
+
     --color-background: var(--background);
     --color-foreground: var(--foreground);
+
+    
 }
 
 /* @media (prefers-color-scheme: dark) {
@@ -47,4 +51,13 @@ body {
     100% {
         background-position: 0% 50%;
     }
+}
+
+.hide-scrollbar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
 }

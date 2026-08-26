@@ -123,7 +123,7 @@ export default function Pagination({
                         onClick={() => onPageChange(page)}
                         className={`min-w-[32px] px-2 py-1 rounded text-sm cursor-pointer ${
                             currentPage === page
-                                ? "bg-primary text-white"
+                                ? "bg-primary dark:bg-black text-white"
                                 : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
                         }`}
                     >

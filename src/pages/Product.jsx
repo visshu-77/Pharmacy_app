@@ -532,34 +532,34 @@ export default function ProductPage() {
             />
 
             {importing && (
-                <div className="bg-white border border-[#E8ECF1] rounded-xl p-5 mt-5">
+                <div className="bg-white dark:bg-darkColor dark:text-white border border-[#E8ECF1] rounded-xl p-5 mt-5">
 
                     <div className="flex items-center justify-between mb-2">
                         <div>
-                            <p className="text-sm font-semibold text-gray-800">
+                            <p className="text-sm font-semibold dark:text-white text-gray-800">
                                 Importing products...
                             </p>
 
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-gray-500 dark:text-white mt-1">
                                 Please wait while your CSV is being processed.
                             </p>
                         </div>
 
-                        <span className="text-sm font-semibold text-blue-600">
+                        <span className="text-sm font-semibold dark:text-white text-blue-600">
                             {importProgress}%
                         </span>
                     </div>
 
                     <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
+                            className="h-full bg-blue-600 dark:bg-black rounded-full transition-all duration-500 ease-out"
                             style={{
                                 width: `${importProgress}%`
                             }}
                         />
                     </div>
 
-                    <p className="text-xs text-gray-400 mt-2">
+                    <p className="text-xs text-gray-400 mt-2 dark:text-white">
                         Please don't close or refresh the page.
                     </p>
 
@@ -571,7 +571,7 @@ export default function ProductPage() {
                 {AnalyticsData.map((items) => {
                     const Icons = items.icon;
                     return (
-                        <div key={items.id} className="flex items-center gap-5 bg-white p-4 border border-[#E8ECF1] rounded-xl">
+                        <div key={items.id} className="flex items-center gap-5 bg-white dark:bg-darkColor dark:text-white p-4 border border-[#E8ECF1] rounded-xl">
                             <div>
                                 <Icons className={`h-9 w-9 ${items.color} ${items.bg} p-2 rounded`} />
                             </div>
@@ -586,15 +586,15 @@ export default function ProductPage() {
 
 
             {/* Search Filter */}
-            <div className="bg-white p-4 border border-[#E8ECF1] rounded-xl mt-5 flex flex-wrap sm:flex-nowrap gap-5 items-center">
+            <div className="bg-white dark:bg-darkColor p-4 border border-[#E8ECF1] rounded-xl mt-5 flex flex-wrap sm:flex-nowrap gap-5 items-center">
                 <div className="flex border border-[#E8ECF1] p-2 rounded-lg w-full sm:w-[50%] gap-2 items-center">
                     <span>
-                        <SearchIcon className="h-4 w-4" />
+                        <SearchIcon className="h-4 w-4 dark:stroke-white" />
                     </span>
-                    <input type="text" value={searchText} onChange={(e) => setSearchtext(e.target.value)} placeholder="Seacrh Products.." className="w-[100%] focus:outline-none focus:ring-0 text-sm text-text" />
+                    <input type="text" value={searchText} onChange={(e) => setSearchtext(e.target.value)} placeholder="Seacrh Products.." className="w-[100%] dark:bg-darkColor dark:text-white focus:outline-none focus:ring-0 text-sm text-text" />
                 </div>
                 <div className="flex flex-wrap sm:flex-nowrap gap-5 items-center">
-                    <FilterIcon className="h-4 w-4" />
+                    <FilterIcon className="h-4 w-4 dark:text-white" />
                     {filterOption.map((filter) => {
 
                         return (
@@ -607,7 +607,7 @@ export default function ProductPage() {
                                         [filter.key]: e.target.value
                                     })
                                 }
-                                className="focus:outline-none focus:ring-0 border border-[#E8ECF1] rounded-lg py-2 px-4 text-text cursor-pointer"
+                                className="dark:bg-darkColor dark:text-white focus:outline-none focus:ring-0 border border-[#E8ECF1] rounded-lg py-2 px-4 text-text cursor-pointer"
                             >
 
                                 <option value="">
@@ -689,7 +689,7 @@ export default function ProductPage() {
 
                         {/* KEEP YOUR EXISTING THEAD */}
                         <thead>
-                            <tr className="text-text uppercase text-xs bg-[#FAFBFC]">
+                            <tr className="text-text uppercase text-xs bg-[#FAFBFC] dark:bg-darkColor dark:text-white">
 
                                 <th className="p-4 text-left">
                                     <div className="flex items-center gap-3">
@@ -724,7 +724,7 @@ export default function ProductPage() {
 
                                     <tr
                                         key={product._id}
-                                        className="border-t border-[#E8ECF1] hover:bg-[#FAFBFC]"
+                                        className="border-t dark:bg-darkColor dark:text-white border-[#E8ECF1] hover:bg-[#FAFBFC]"
                                     >
 
                                         {/* Product */}
@@ -751,7 +751,7 @@ export default function ProductPage() {
 
                                         {/* Category */}
                                         <td className="p-4">
-                                            <span className="bg-[#E8ECF1] text-xs px-2 py-1 rounded-sm font-semibold">
+                                            <span className="bg-[#E8ECF1] text-xs dark:bg-black px-2 py-1 rounded-sm font-semibold">
                                                 {product.productCategory?.categoryName || "-"}
                                             </span>
                                         </td>
@@ -893,7 +893,7 @@ export default function ProductPage() {
 
 
                 {/* ================= MOBILE CARDS ================= */}
-                <div className="md:hidden bg-[#F8FAFC] p-3">
+                <div className="md:hidden bg-[#F8FAFC] dark:bg-darkColor p-3">
 
                     {currentProducts.length > 0 ? (
 
@@ -912,7 +912,7 @@ export default function ProductPage() {
 
                                     <div
                                         key={product._id}
-                                        className="bg-white border border-[#E8ECF1] rounded-xl p-4"
+                                        className="bg-white border dark:bg-darkColor dark:text-white border-[#E8ECF1] rounded-xl p-4"
                                     >
 
                                         {/* Card Header */}
@@ -935,11 +935,11 @@ export default function ProductPage() {
 
                                                 <div className="min-w-0">
 
-                                                    <h3 className="font-semibold text-sm text-gray-900 truncate">
+                                                    <h3 className="font-semibold text-sm dark:text-white text-gray-900 truncate">
                                                         {product.productName}
                                                     </h3>
 
-                                                    <span className="inline-block mt-1 bg-[#E8ECF1] text-xs px-2 py-1 rounded">
+                                                    <span className="inline-block mt-1 bg-[#E8ECF1] dark:bg-black text-xs px-2 py-1 rounded">
                                                         {product.productCategory
                                                             ?.categoryName || "-"}
                                                     </span>
@@ -1095,7 +1095,7 @@ export default function ProductPage() {
                                                     addToCart(product);
                                                     setCartOpen(true);
                                                 }}
-                                                className="flex items-center gap-2 bg-secondary text-white px-3 py-2 rounded-lg text-xs font-medium"
+                                                className="flex items-center gap-2 bg-secondary dark:bg-black text-white px-3 py-2 rounded-lg text-xs font-medium"
                                             >
                                                 <ShoppingCart size={16} />
                                                 Add to Cart
@@ -1123,7 +1123,7 @@ export default function ProductPage() {
 
 
                 {/* ================= PAGINATION ================= */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-t bg-white">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-t bg-white dark:bg-darkColor dark:text-white">
 
                     <p className="text-xs sm:text-sm text-text">
                         {SearchProducts.length > 0

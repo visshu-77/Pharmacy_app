@@ -9,7 +9,7 @@ export default function Layout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="h-screen overflow-hidden p-2 sm:p-4">
+        <div className="h-screen dark:bg-black overflow-hidden p-2 sm:p-4">
 
             {/* Mobile Header */}
             <div className="flex items-center justify-between mb-3 lg:hidden">
@@ -70,7 +70,7 @@ export default function Layout() {
                 </aside>
 
                 {/* Main Content - ONLY THIS SCROLLS */}
-                <main className="w-full lg:w-[85%] h-full overflow-y-auto overflow-x-hidden">
+                <main className="w-full lg:w-[85%] h-full overflow-y-auto overflow-x-hidden hide-scrollbar">
                     <Outlet />
                 </main>
 

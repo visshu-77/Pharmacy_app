@@ -14,7 +14,7 @@ export default function HeadingWithButton({
         <div className="flex sm:flex-row flex-col justify-between mt-5">
 
             <div>
-                <h2 className="text-xl font-semibold">
+                <h2 className="text-xl dark:text-white font-semibold">
                     {mainheading}
                 </h2>
 
@@ -29,7 +29,7 @@ export default function HeadingWithButton({
                 {firstButton && (
                     <button
                         onClick={onFirstButtonClick}
-                        className="px-4 py-2 rounded-lg border-primary text-sm text-text font-semibold border flex items-center gap-2 cursor-pointer"
+                        className="px-4 py-2 rounded-lg border-primary text-sm text-text dark:text-white dark:bg-darkColor dark:border-white/50 font-semibold border flex items-center gap-2 cursor-pointer"
                     >
                         <Download size={15} />
                         {firstButton}
@@ -40,7 +40,7 @@ export default function HeadingWithButton({
                 {secondButton && (
                     <button
                         onClick={onSecondButtonClick}
-                        className="px-4 py-2 rounded-lg border-primary text-sm text-text font-semibold border flex items-center gap-2 cursor-pointer"
+                        className="px-4 py-2 rounded-lg border-primary text-sm text-text dark:text-white dark:bg-darkColor dark:border-white/50 font-semibold border flex items-center gap-2 cursor-pointer"
                     >
                         <Upload size={15} />
                         {secondButton}
@@ -51,7 +51,7 @@ export default function HeadingWithButton({
                 {thirdButton && (
                     <button
                         onClick={onThirdButtonClick}
-                        className="bg-primary px-4 py-2 rounded-lg text-sm text-white font-semibold border flex items-center gap-2 cursor-pointer"
+                        className="bg-primary px-4 py-2 rounded-lg text-sm text-white dark:text-white dark:bg-darkColor dark:border-white/50 font-semibold border flex items-center gap-2 cursor-pointer"
                     >
                         <Plus size={15} />
                         {thirdButton}

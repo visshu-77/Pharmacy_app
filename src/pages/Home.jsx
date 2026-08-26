@@ -192,7 +192,7 @@ export default function Dashboard() {
     ];
 
     return (
-        <div className="w-full min-w-0">
+        <div className="w-full bg-white dark:bg-black min-w-0">
 
             {/* Params */}
             <div className="w-full">
@@ -200,7 +200,7 @@ export default function Dashboard() {
             </div>
 
             {/* Welcome */}
-            <div className="bg-primary text-white p-4 sm:p-5 rounded-2xl mt-4">
+            <div className="bg-primary dark:bg-darkColor text-white dark:text-white  p-4 sm:p-5 rounded-2xl mt-4">
 
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
@@ -301,6 +301,8 @@ export default function Dashboard() {
                                 gap-3
                                 min-w-0
                                 bg-white
+                                dark:bg-darkColor
+                                dark:text-white
                                 cursor-pointer
                                 transition
                                 hover:shadow-lg
@@ -325,7 +327,7 @@ export default function Dashboard() {
                             {/* Right */}
                             <div className="flex-shrink-0 flex items-start justify-end">
 
-                                <p className="text-[10px] sm:text-xs text-secondary font-medium text-right">
+                                <p className="text-[10px] sm:text-xs dark:text-white text-secondary font-medium text-right">
                                     {item.status}
                                 </p>
 
@@ -339,9 +341,9 @@ export default function Dashboard() {
             </div>
 
             {/* Top Selling */}
-            <div className="mt-4 sm:mt-5">
+            <div className="mt-4 sm:mt-5 dark:bg-darkColor">
 
-                <div className="w-full rounded-xl border border-[#9393934a] shadow-sm sm:shadow-lg p-4 sm:p-5">
+                <div className="w-full rounded-xl border dark:text-white border-[#9393934a] shadow-sm sm:shadow-lg p-4 sm:p-5">
 
                     {/* Header */}
                     <div className="flex items-center justify-between gap-3">
@@ -356,6 +358,8 @@ export default function Dashboard() {
                                 flex-shrink-0
                                 text-primary
                                 font-semibold
+                                dark:bg-black
+                                dark:text-white
                                 bg-blue-100
                                 px-2.5
                                 py-1

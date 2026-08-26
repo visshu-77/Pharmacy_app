@@ -85,11 +85,11 @@ export default function EditCategoryModal({
 
     return (
 
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 dark:bg-white/10">
 
             {/* ================= MODAL ================= */}
 
-            <div className="w-full max-w-[600px] max-h-[95vh] sm:max-h-[90vh] bg-white rounded-xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden">
+            <div className="w-full max-w-[600px] max-h-[95vh] sm:max-h-[90vh] bg-white rounded-xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden dark:bg-darkColor dark:text-white">
 
 
                 {/* ================= HEADER ================= */}
@@ -98,7 +98,7 @@ export default function EditCategoryModal({
 
                     <div>
 
-                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                             Edit Category
                         </h3>
 
@@ -136,7 +136,7 @@ export default function EditCategoryModal({
 
                             <div>
 
-                                <label className="block text-xs sm:text-sm text-gray-700 font-semibold mb-1.5">
+                                <label className="block text-xs sm:text-sm text-gray-700 font-semibold mb-1.5 dark:text-white">
 
                                     Category Name
 
@@ -152,7 +152,7 @@ export default function EditCategoryModal({
                                     onChange={handleChange}
                                     placeholder="Category Name"
                                     required
-                                    className="w-full h-11 border border-gray-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full h-11 border border-gray-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white dark:focus:ring-darkColor"
                                 />
 
                             </div>
@@ -162,7 +162,7 @@ export default function EditCategoryModal({
 
                             <div>
 
-                                <label className="block text-xs sm:text-sm text-gray-700 font-semibold mb-1.5">
+                                <label className="block text-xs sm:text-sm text-gray-700 font-semibold mb-1.5 dark:text-white">
                                     Description
                                 </label>
 
@@ -172,7 +172,7 @@ export default function EditCategoryModal({
                                     onChange={handleChange}
                                     placeholder="Enter category description"
                                     rows={4}
-                                    className="w-full border border-gray-200 rounded-lg px-3 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white dark:focus:ring-darkColor"
                                 />
 
                             </div>
@@ -202,7 +202,7 @@ export default function EditCategoryModal({
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full h-11 text-sm bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full h-11 text-sm bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed dark:bg-black"
                             >
                                 {loading
                                     ? "Updating..."

@@ -1,19 +1,17 @@
 import { Link } from "react-router-dom";
 import { UserPlus, LogIn } from 'lucide-react';
+import { useState } from "react";
 
 import DashboardIcon from "../components/Icons/DashboardIcons";
 import ProductIcon from "../components/Icons/ProductIcon";
 import InventoryIcon from "../components/Icons/InventoryIcon";
-import PurchaseIcon from "../components/Icons/Purchase";
-import QuicksalesIcon from "../components/Icons/QuicksalesIcon";
 import SuppliersIcon from "../components/Icons/SuppliersIcon";
-import CustomerIcon from "../components/Icons/CustomersIcon";
 import ReportIcon from "../components/Icons/ReportsIcon";
-import EmployeeIcon from "../components/Icons/EmployeeIcon";
 import NotificationIcon from "../components/Icons/Notification";
 import SubscrptionIcon from "../components/Icons/SubscriptionIcon";
 import SettingIcon from "../components/Icons/SettingsIcon";
 import MeditaskIcon from "./Icons/mediTaskIcon";
+
 
 import { useSubscription } from "../context/SubscriptionContext";
 
@@ -47,7 +45,7 @@ export default function ProfileCard({ closeSidebar }) {
     };
 
     return (
-        <div className="bg-white text-black rounded shadow-lg flex flex-col justify-between min-h-full overflow-y-auto">
+        <div className="bg-white dark:bg-darkColor text-black dark:text-white dark:shadow-[0_0_25px_rgba(255,255,255,0.7)] dark:rounded-[0px] px-2 pt-1 rounded-lg shadow-lg flex flex-col justify-between min-h-full overflow-y-auto">
             <div>
                 {!subscriptionLoading && (subscription ? (
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200">
@@ -71,8 +69,8 @@ export default function ProfileCard({ closeSidebar }) {
                 )}
 
                 <div className="flex p-4 item-center gap-4">
-                    <MeditaskIcon className="h-10 w-10 stroke-black" />
-                    <div><h3 className="font-bold text-xl">MediTask</h3><p className="text-xs text-text">India's No. 1 billing App</p></div>
+                    <MeditaskIcon className="h-10 w-10 stroke-black dark:stroke-white" />
+                    <div><h3 className="font-bold text-xl">MediTask</h3><p className="text-xs dark:text-white text-text">India's No. 1 billing App</p></div>
                 </div>
 
                 <div className="mt-4">
@@ -85,7 +83,7 @@ export default function ProfileCard({ closeSidebar }) {
                                 key={item.id}
                                 onClick={closeSidebar}
                             >
-                                <div className="flex text-text text-sm font-semibold hover:bg-primary hover:text-white hover:shadow-lg p-4 gap-2">
+                                <div className="flex text-text dark:text-white text-sm font-semibold hover:bg-primary hover:text-white hover:shadow-lg p-4 gap-2">
                                     <Icon className="h-5 w-5" />
                                     <h3>{item.name}</h3>
                                 </div>

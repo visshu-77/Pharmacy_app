@@ -9,9 +9,6 @@ import FilterIcon from "../components/Icons/filterIcon";
 
 
 import TotalProductIcon from "../components/Icons/product page icons/totalProductIcon";
-import LowStockIcon from "../components/Icons/product page icons/lowStockIcon";
-import ExpiringSoonIcon from "../components/Icons/product page icons/expiringSoonIcon";
-import OutofStockIcon from "../components/Icons/product page icons/outOfStockIcon";
 
 import AddcategoryModal from "../components/modals/AddcategoryModal";
 
@@ -276,7 +273,7 @@ export default function CategoryPage() {
                 {AnalyticsData.map((items) => {
                     const Icons = items.icon;
                     return (
-                        <div key={items.id} className="flex items-center gap-5 bg-white p-4 border border-[#E8ECF1] rounded-xl">
+                        <div key={items.id} className="flex items-center gap-5 bg-white p-4 border border-[#E8ECF1] dark:bg-darkColor dark:text-white rounded-xl">
                             <div>
                                 <Icons className={`h-9 w-9 ${items.color} ${items.bg} p-2 rounded`} />
                             </div>
@@ -290,7 +287,7 @@ export default function CategoryPage() {
             </div>
 
             {selectedCategories.length > 0 && (
-                <div className="flex items-center justify-between bg-white border border-[#E8ECF1] rounded-xl p-3 mt-4">
+                <div className="flex items-center justify-between bg-white border border-[#E8ECF1] dark:bg-darkColor dark:text-white rounded-xl p-3 mt-4">
 
                     <span className="text-sm text-text">
                         {selectedCategories.length} categories
@@ -301,14 +298,14 @@ export default function CategoryPage() {
 
                         <button
                             onClick={handleDeleteSelected}
-                            className="bg-red-500 text-white px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 transition"
+                            className="bg-red-500 text-white px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 dark:bg-black transition"
                         >
                             Delete Selected
                         </button>
 
                         <button
                             onClick={handleDeleteAll}
-                            className="bg-red-500 text-white px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 transition"
+                            className="bg-red-500 text-white px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 dark:bg-black transition"
                         >
                             Delete All
                         </button>
@@ -319,10 +316,10 @@ export default function CategoryPage() {
             )}
 
             {/* Search Filter */}
-            <div className="bg-white p-4 border border-[#E8ECF1] rounded-xl mt-5">
+            <div className="bg-white dark:bg-darkColor p-4 border border-[#E8ECF1] rounded-xl mt-5">
                 <div className="flex flex-col sm:flex-row gap-3">
                     <div className="flex border border-[#E8ECF1] p-2.5 rounded-lg w-full sm:flex-1 gap-2 items-center">
-                        <SearchIcon className="h-4 w-4 shrink-0" />
+                        <SearchIcon className="h-4 w-4 shrink-0 dark:stroke-white" />
                         <input
                             type="text"
                             placeholder="Search categories..."
@@ -331,14 +328,14 @@ export default function CategoryPage() {
                                 setSearchText(e.target.value);
                                 setCurrentPage(1);
                             }}
-                            className="w-full min-w-0 focus:outline-none focus:ring-0 text-sm text-text"
+                            className="w-full min-w-0 focus:outline-none focus:ring-0 text-sm text-text dark:bg-darkColor dark:text-white"
                         />
                     </div>
 
 
                     {/* Filter */}
                     <div className="flex gap-3 items-center w-full sm:w-[280px]">
-                        <FilterIcon className="h-4 w-4 shrink-0" />
+                        <FilterIcon className="h-4 w-4 shrink-0 dark:stroke-white" />
                         <select
                             value={filters.category}
                             onChange={(e) => {
@@ -349,7 +346,7 @@ export default function CategoryPage() {
 
                                 setCurrentPage(1);
                             }}
-                            className="w-full focus:outline-none focus:ring-0 border border-[#E8ECF1] rounded-lg py-2.5 px-3 text-sm text-text cursor-pointer bg-white"
+                            className="w-full focus:outline-none focus:ring-0 border border-[#E8ECF1] rounded-lg py-2.5 px-3 text-sm text-text cursor-pointer bg-white dark:bg-darkColor dark:text-white"
                         >
                             <option value="">
                                 All Categories
@@ -381,7 +378,7 @@ export default function CategoryPage() {
                     <table className="w-full">
 
                         <thead>
-                            <tr className="text-text uppercase text-xs bg-[#FAFBFC]">
+                            <tr className="text-text uppercase text-xs bg-[#FAFBFC] dark:bg-darkColor dark:text-white">
 
                                 <th className="p-4 text-left">
                                     <div className="flex items-center gap-3">
@@ -422,7 +419,7 @@ export default function CategoryPage() {
 
                                     <tr
                                         key={data._id}
-                                        className="border-t border-[#E8ECF1] hover:bg-[#FAFBFC] transition-colors"
+                                        className="border-t border-[#E8ECF1] hover:bg-[#FAFBFC] transition-colors dark:bg-darkColor dark:text-white"
                                     >
 
                                         {/* Category Name */}
@@ -552,7 +549,7 @@ export default function CategoryPage() {
                 {/* MOBILE CARDS */}
                 {/* ================================= */}
 
-                <div className="md:hidden bg-[#F8FAFC] p-3">
+                <div className="md:hidden bg-[#F8FAFC] dark:bg-darkColor p-3">
 
                     {currentProducts.length > 0 ? (
 
@@ -562,7 +559,7 @@ export default function CategoryPage() {
 
                                 <div
                                     key={data._id}
-                                    className="bg-white border border-[#E8ECF1] rounded-xl p-4"
+                                    className="bg-white border border-[#E8ECF1] dark:bg-darkColor dark:text-white rounded-xl p-4"
                                 >
 
                                     {/* Card Header */}
@@ -585,7 +582,7 @@ export default function CategoryPage() {
 
                                             <div className="min-w-0">
 
-                                                <h3 className="text-sm font-semibold text-gray-900 break-words">
+                                                <h3 className="text-sm font-semibold dark:text-white text-gray-900 break-words">
                                                     {data.categoryName}
                                                 </h3>
 
@@ -701,7 +698,7 @@ export default function CategoryPage() {
                 {/* PAGINATION */}
                 {/* ================================= */}
 
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-t bg-white">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-t bg-white dark:bg-darkColor dark:text-white">
 
                     <p className="text-xs sm:text-sm text-text">
 

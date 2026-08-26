@@ -212,11 +212,11 @@ export default function AddProductModal({
     }, []);
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
-            <div className="w-full max-w-[900px] max-h-[95vh] sm:max-h-[90vh] bg-white rounded-xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-50 bg-black/30 dark:bg-white/30 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+            <div className="w-full max-w-[900px] max-h-[95vh] sm:max-h-[90vh] bg-white dark:bg-darkColor rounded-xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden">
                 <div className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-100 flex-shrink-0">
                     <div>
-                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                        <h3 className="text-lg sm:text-xl dark:text-white font-semibold text-gray-900">
                             Add Product
                         </h3>
                         <p className="text-xs sm:text-sm text-gray-500 mt-1">
@@ -252,10 +252,10 @@ export default function AddProductModal({
                                         }
                                     >
 
-                                        <label className="block text-xs sm:text-sm text-text font-semibold mb-1.5">
+                                        <label className="block text-xs sm:text-sm dark:text-white text-text font-semibold mb-1.5">
                                             {data.label}
                                             {data.required && (
-                                                <span className="text-red-500 ml-1">
+                                                <span className="text-red-500 dark:text-white/50 ml-1">
                                                     *
                                                 </span>
                                             )}
@@ -269,7 +269,7 @@ export default function AddProductModal({
                                                 }
                                                 onChange={handleChange}
                                                 required={data.required}
-                                                className="w-full h-11 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg border border-gray-200 px-3 text-sm bg-white"
+                                                className="w-full h-11 focus:outline-none focus:ring-2 dark:bg-darkColor dark:text-white dark:focus:ring-darkColor focus:ring-blue-500 rounded-lg border border-gray-200 px-3 text-sm bg-white"
                                             >
                                                 <option value="">
                                                     Select Category
@@ -300,11 +300,11 @@ export default function AddProductModal({
                                                             setShowSupplierSuggestions(true);
                                                         }
                                                     }}
-                                                    className="w-full h-11 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg border border-gray-200 px-3 text-sm"
+                                                    className="w-full h-11 focus:outline-none focus:ring-2 dark:text-white focus:ring-blue-500 dark:focus:ring-darkColor dark:bg-darkColor rounded-lg border border-gray-200 px-3 text-sm"
                                                 />
 
                                                 {showSupplierSuggestions && (
-                                                    <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                                                    <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-darkColor border border-gray-200 rounded-lg shadow-lg overflow-hidden">
 
                                                         {supplierLoading ? (
 
@@ -324,7 +324,7 @@ export default function AddProductModal({
                                                                     }
                                                                     className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
                                                                 >
-                                                                    <p className="text-sm font-medium text-gray-900">
+                                                                    <p className="text-sm font-medium dark:text-gray-500 text-gray-900">
                                                                         {supplier.supplierName}
                                                                     </p>
 
@@ -357,7 +357,7 @@ export default function AddProductModal({
                                                 required={data.required}
                                                 value={productData[data.name]}
                                                 onChange={handleChange}
-                                                className="w-full h-11 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg border border-gray-200 px-3 text-sm"
+                                                className="w-full h-11 dark:text-white dark:bg-darkColor dark:focus:ring-darkColor focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg border border-gray-200 px-3 text-sm"
                                             />
 
                                         )}
@@ -376,7 +376,7 @@ export default function AddProductModal({
                         <div className="mt-5 sm:mt-6">
                             <button
                                 type="submit"
-                                className="text-sm w-full h-11 bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+                                className="text-sm w-full h-11 bg-primary dark:bg-black text-white font-semibold rounded-lg hover:bg-blue-700 transition"
                             >
                                 Add Product
                             </button>

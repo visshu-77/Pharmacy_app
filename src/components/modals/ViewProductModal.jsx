@@ -48,7 +48,7 @@ export default function ViewProductModal({
         <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm overflow-y-auto p-3 sm:p-5 md:p-8">
 
             {/* Modal */}
-            <div className="w-full max-w-[900px] bg-white mx-auto my-2 sm:my-5 md:my-10 border rounded-xl shadow-xl">
+            <div className="w-full max-w-[900px] bg-white dark:bg-darkColor dark:border-none mx-auto my-2 sm:my-5 md:my-10 border rounded-xl shadow-xl">
 
                 {/* Header */}
                 <div className="flex items-start justify-between gap-4 p-4 sm:p-6 border-b">
@@ -58,7 +58,7 @@ export default function ViewProductModal({
                             Product Name
                         </p>
 
-                        <h3 className="text-lg sm:text-2xl font-bold capitalize break-words">
+                        <h3 className="text-lg sm:text-2xl font-bold capitalize dark:text-white break-words">
                             {product?.productName || "Product"}
                         </h3>
                     </div>
@@ -93,19 +93,19 @@ export default function ViewProductModal({
                                 {/* Category */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2">
 
-                                    <div className="p-4 bg-gray-50 border-b sm:border-r">
-                                        <p className="text-xs text-gray-500">
+                                    <div className="p-4 bg-gray-50 dark:bg-darkColor border-b sm:border-r">
+                                        <p className="text-xs dark:text-white text-gray-500">
                                             Category
                                         </p>
 
-                                        <p className="text-sm sm:text-base font-semibold mt-1 capitalize">
+                                        <p className="text-sm sm:text-base dark:text-white font-semibold mt-1 capitalize">
                                             {product.productCategory?.categoryName || "-"}
                                         </p>
                                     </div>
 
                                     {/* Stock */}
-                                    <div className="p-4 border-b">
-                                        <p className="text-xs text-gray-500">
+                                    <div className="p-4 border-b dark:bg-darkColor">
+                                        <p className="text-xs dark:text-white text-gray-500">
                                             Stock
                                         </p>
 
@@ -115,19 +115,19 @@ export default function ViewProductModal({
                                     </div>
 
                                     {/* Purchase */}
-                                    <div className="p-4 bg-gray-50 border-b sm:border-r">
-                                        <p className="text-xs text-gray-500">
+                                    <div className="p-4 bg-gray-50 border-b dark:bg-darkColor sm:border-r">
+                                        <p className="text-xs dark:text-white text-gray-500">
                                             Purchase Price
                                         </p>
 
-                                        <p className="text-sm sm:text-base font-semibold mt-1">
+                                        <p className="text-sm sm:text-base dark:text-white font-semibold mt-1">
                                             ₹{Number(product.purchase || 0).toFixed(2)}
                                         </p>
                                     </div>
 
                                     {/* Selling */}
-                                    <div className="p-4 border-b">
-                                        <p className="text-xs text-gray-500">
+                                    <div className="p-4 border-b dark:bg-darkColor">
+                                        <p className="text-xs text-gray-500 dark:text-white">
                                             Selling Price
                                         </p>
 
@@ -137,12 +137,12 @@ export default function ViewProductModal({
                                     </div>
 
                                     {/* Expiry */}
-                                    <div className="p-4 bg-gray-50 border-b sm:border-r">
-                                        <p className="text-xs text-gray-500">
+                                    <div className="p-4 bg-gray-50 border-b sm:border-r dark:bg-darkColor">
+                                        <p className="text-xs text-gray-500 dark:text-white">
                                             Expiry Date
                                         </p>
 
-                                        <p className="text-sm sm:text-base font-semibold mt-1">
+                                        <p className="text-sm sm:text-base font-semibold mt-1 dark:text-white">
                                             {product.ExpiryDate
                                                 ? new Date(
                                                     product.ExpiryDate
@@ -153,19 +153,19 @@ export default function ViewProductModal({
                                     </div>
 
                                     {/* Supplier */}
-                                    <div className="p-4 border-b">
-                                        <p className="text-xs text-gray-500">
+                                    <div className="p-4 border-b dark:bg-darkColor">
+                                        <p className="text-xs text-gray-500 dark:text-white">
                                             Supplier
                                         </p>
 
-                                        <p className="text-sm sm:text-base font-semibold mt-1 capitalize break-words">
+                                        <p className="text-sm sm:text-base dark:text-white font-semibold mt-1 capitalize break-words">
                                             {product.supplierName || "-"}
                                         </p>
                                     </div>
 
                                     {/* Status */}
-                                    <div className="p-4 bg-gray-50 sm:col-span-2">
-                                        <p className="text-xs text-gray-500 mb-2">
+                                    <div className="p-4 bg-gray-50 sm:col-span-2 dark:bg-darkColor">
+                                        <p className="text-xs text-gray-500 mb-2 dark:text-white">
                                             Status
                                         </p>
 
@@ -215,6 +215,7 @@ export default function ViewProductModal({
                                         font-semibold
                                         transition
                                         hover:shadow-lg
+                                        dark:bg-black• Low Stock
                                         active:scale-[0.98]
                                     "
                                 >

@@ -34,17 +34,17 @@ export default function CartDrawer({ open, onClose }) {
             />
 
             {/* Drawer */}
-            <div className="absolute right-0 top-0 h-full w-[420px] bg-white shadow-xl">
+            <div className="absolute right-0 top-0 h-full w-[420px] bg-white dark:bg-darkColor shadow-xl">
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b">
 
-                    <h2 className="text-xl font-semibold">
+                    <h2 className="text-xl dark:text-white font-semibold">
                         Cart
                     </h2>
 
                     <button onClick={onClose}>
-                        <X />
+                        <X className="dark:stroke-white" />
                     </button>
 
                 </div>
@@ -55,7 +55,7 @@ export default function CartDrawer({ open, onClose }) {
 
                     {cart.length === 0 ? (
 
-                        <p className="text-center text-gray-500">
+                        <p className="text-center dark:text-white text-gray-500">
                             Cart is empty
                         </p>
 
@@ -72,7 +72,7 @@ export default function CartDrawer({ open, onClose }) {
 
                                     <div>
 
-                                        <h3 className="font-semibold">
+                                        <h3 className="font-semibold dark:text-white">
                                             {item.productName}
                                         </h3>
 
@@ -103,12 +103,12 @@ export default function CartDrawer({ open, onClose }) {
                                         onClick={() =>
                                             decreaseQuantity(item._id)
                                         }
-                                        className="border p-1 rounded"
+                                        className="border p-1 rounded dark:text-white"
                                     >
                                         <Minus size={15} />
                                     </button>
 
-                                    <span>
+                                    <span className="dark:text-white">
                                         {item.quantity}
                                     </span>
 
@@ -116,7 +116,7 @@ export default function CartDrawer({ open, onClose }) {
                                         onClick={() =>
                                             increaseQuantity(item._id)
                                         }
-                                        className="border p-1 rounded"
+                                        className="border p-1 rounded dark:text-white"
                                     >
                                         <Plus size={15} />
                                     </button>
@@ -125,7 +125,7 @@ export default function CartDrawer({ open, onClose }) {
 
 
                                 {/* Item Total */}
-                                <p className="text-right font-semibold mt-2">
+                                <p className="text-right font-semibold mt-2 dark:text-white">
 
                                     ₹ {(item.sellingPrice * item.quantity)
                                         .toLocaleString("en-IN")}
@@ -142,15 +142,15 @@ export default function CartDrawer({ open, onClose }) {
 
 
                 {/* Bottom */}
-                <div className="absolute bottom-0 left-0 right-0 bg-white border-t p-5">
+                <div className="absolute bottom-0 left-0 right-0 dark:bg-darkColor bg-white border-t p-5">
 
                     <div className="flex justify-between mb-4">
 
-                        <span className="font-semibold">
+                        <span className="font-semibold dark:text-white">
                             Subtotal
                         </span>
 
-                        <span className="font-bold">
+                        <span className="font-bold dark:text-white">
                             ₹ {subtotal.toLocaleString("en-IN")}
                         </span>
 
@@ -162,7 +162,7 @@ export default function CartDrawer({ open, onClose }) {
                             onClose();
                             navigate("/billing");
                         }}
-                        className="w-full bg-primary text-white py-3 rounded"
+                        className="w-full bg-primary text-white py-3 rounded dark:bg-black"
                     >
                         Buy Now
                     </button>

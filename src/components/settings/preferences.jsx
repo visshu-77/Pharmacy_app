@@ -5,7 +5,11 @@ import {
     updatePreferences
 } from "../../services/userService";
 
+import { useTheme } from "../../context/ThemeContext";
+
 export default function Preferences() {
+
+    const { theme, toggleTheme } = useTheme();
 
     const [preferences, setPreferences] = useState({
         language: "English",
@@ -54,6 +58,16 @@ export default function Preferences() {
             ...prev,
             [name]: value
         }));
+
+        if (name === "theme") {
+            if (value === "dark" && theme !== "dark") {
+                toggleTheme();
+            }
+
+            if (value === "light" && theme !== "light") {
+                toggleTheme();
+            }
+        }
     };
 
     const handleSave = async () => {
@@ -258,10 +272,6 @@ export default function Preferences() {
 
                                     <option value="dark">
                                         Dark
-                                    </option>
-
-                                    <option value="system">
-                                        System Default
                                     </option>
                                 </select>
                             </div>

@@ -85,11 +85,11 @@ export default function AddProductModal({ onClose }) {
 
     return (
 
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+        <div className="fixed inset-0 z-50 bg-black/30 dark:bg-white/10 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
 
             {/* ================= MODAL ================= */}
 
-            <div className="w-full max-w-[600px] max-h-[95vh] sm:max-h-[90vh] bg-white rounded-xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden">
+            <div className="w-full max-w-[600px] max-h-[95vh] sm:max-h-[90vh] bg-white dark:bg-darkColor dark:text-white rounded-xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden">
 
 
                 {/* ================= HEADER ================= */}
@@ -98,7 +98,7 @@ export default function AddProductModal({ onClose }) {
 
                     <div>
 
-                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                        <h3 className="text-lg sm:text-xl font-semibold dark:text-white text-gray-900">
                             Add Category
                         </h3>
 
@@ -140,7 +140,7 @@ export default function AddProductModal({ onClose }) {
                                     className="flex flex-col"
                                 >
 
-                                    <label className="text-xs sm:text-sm text-gray-700 font-semibold mb-1.5">
+                                    <label className="text-xs sm:text-sm text-gray-700 font-semibold mb-1.5 dark:text-white">
 
                                         {data.label}
 
@@ -162,7 +162,7 @@ export default function AddProductModal({ onClose }) {
                                             value={categoryData[data.name]}
                                             onChange={handleChange}
                                             rows={4}
-                                            className="w-full border border-gray-200 rounded-lg px-3 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full border border-gray-200 rounded-lg px-3 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white dark:focus:ring-darkColor"
                                         />
 
                                     ) : (
@@ -174,7 +174,7 @@ export default function AddProductModal({ onClose }) {
                                             required={data.required}
                                             value={categoryData[data.name]}
                                             onChange={handleChange}
-                                            className="w-full h-11 border border-gray-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full h-11 border border-gray-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white dark:focus:ring-darkColor"
                                         />
 
                                     )}
@@ -208,7 +208,7 @@ export default function AddProductModal({ onClose }) {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full h-11 text-sm bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full h-11 text-sm bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed dark:bg-black"
                             >
                                 {loading
                                     ? "Adding..."

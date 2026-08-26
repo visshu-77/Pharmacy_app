@@ -1,4 +1,5 @@
 module.exports = {
+  darkMode: "class",
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
 
   theme: {
@@ -8,6 +9,7 @@ module.exports = {
         secondary: "var(--color-secondary)",
         text: "var(--color-text)",
         sideBackground: "var(--color-sideBackground)",
+        darkColor: "var(--color-darkColor)",
       },
 
       animation: {

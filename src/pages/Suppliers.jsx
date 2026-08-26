@@ -457,10 +457,10 @@ export default function Suppliers() {
          <div>
             <LastParams />
          </div>
-         <div className="bg-white mt-4 border border-gray-200 rounded-xl overflow-hidden">
+         <div className="bg-white mt-4 border border-gray-200 rounded-xl overflow-hidden dark:bg-darkColor dark:text-white">
             <div className="flex flex-col sm:flex-row justify-between px-5 py-4 border-b border-gray-200">
                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                      Suppliers
                   </h2>
                   <p className="text-sm text-gray-500 mt-1">
@@ -483,14 +483,14 @@ export default function Suppliers() {
                            .getElementById("supplier-csv-input")
                            .click()
                      }
-                     className="px-4 py-2 text-xs sm:text-sm mr-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                     className="px-4 py-2 text-xs sm:text-sm mr-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition dark:bg-darkColor dark:text-white"
                   >
                      Import CSV
                   </button>
                   <button
                      type="button"
                      onClick={exportSuppliersCSV}
-                     className="mr-2 px-4 py-2 border text-xs sm:text-sm border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                     className="mr-2 px-4 py-2 border text-xs sm:text-sm border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition dark:bg-darkColor dark:text-white"
                   >
                      Export CSV
                   </button>
@@ -511,7 +511,7 @@ export default function Suppliers() {
 
                         setShowModal(true);
                      }}
-                     className="px-4 py-2 bg-primary text-xs sm:text-sm text-white rounded-lg hover:bg-blue-700 shadow-lg"
+                     className="px-4 py-2 bg-primary text-xs sm:text-sm text-white rounded-lg hover:bg-blue-700 shadow-lg dark:bg-darkColor dark:text-white dark:border"
                   >
                      + Add Supplier
                   </button>
@@ -527,7 +527,7 @@ export default function Suppliers() {
                      value={supplierSearch}
                      onChange={(e) => setSupplierSearch(e.target.value)}
                      placeholder="Search supplier..."
-                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                   />
 
                   <svg
