@@ -1,7 +1,10 @@
 import SettingsHeading from "./settingHeading";
 import { useSubscription } from "../../context/SubscriptionContext";
 
+import { useTranslation } from "react-i18next";
+
 const getBillingCycle = (duration) => {
+    
     if (duration === "monthly") {
         return "Monthly";
     }
@@ -74,6 +77,7 @@ const getUsagePercentage = (startDate, endDate) => {
 };
 
 export default function SubscriptionSettings() {
+    const { t, i18n } = useTranslation();
 
     const {
         subscription,
@@ -119,8 +123,8 @@ export default function SubscriptionSettings() {
         <div className="w-full">
 
             <SettingsHeading
-                heading="Subscription"
-                content="Your current plan and billing details."
+                heading={t("SubscriptionInformation.title")}
+                content={t("SubscriptionInformation.content")}
             />
 
             {/* ================= CURRENT PLAN ================= */}
@@ -132,7 +136,7 @@ export default function SubscriptionSettings() {
                     <div className="min-w-0">
 
                         <p className="text-xs uppercase tracking-wide opacity-80">
-                            ⚡ Current Plan
+                            ⚡{t("SubscriptionInformation.CurrentPlan")}
                         </p>
 
                         <h3 className="text-lg sm:text-xl font-bold mt-1 capitalize break-words">
@@ -156,7 +160,7 @@ export default function SubscriptionSettings() {
 
                 <div className="bg-gray-50 sm:bg-transparent rounded-lg p-3 sm:p-0">
                     <p className="text-xs text-gray-500">
-                        Billing Cycle
+                        {t("SubscriptionInformation.BillingCycle")}
                     </p>
 
                     <p className="font-semibold mt-1 text-sm sm:text-base">
@@ -167,7 +171,7 @@ export default function SubscriptionSettings() {
 
                 <div className="bg-gray-50 sm:bg-transparent rounded-lg p-3 sm:p-0">
                     <p className="text-xs text-gray-500">
-                        Price
+                        {t("SubscriptionInformation.Price")}
                     </p>
 
                     <p className="font-semibold mt-1 text-sm sm:text-base">
@@ -178,7 +182,7 @@ export default function SubscriptionSettings() {
 
                 <div className="bg-gray-50 sm:bg-transparent rounded-lg p-3 sm:p-0">
                     <p className="text-xs text-gray-500">
-                        Payment Status
+                        {t("SubscriptionInformation.PaymentStatus")}
                     </p>
 
                     <p className="font-semibold mt-1 text-sm sm:text-base capitalize">
@@ -198,7 +202,7 @@ export default function SubscriptionSettings() {
                     <div>
 
                         <p className="text-xs text-gray-500">
-                            📅 Start Date
+                            {t("SubscriptionInformation.StartDate")}
                         </p>
 
                         <p className="font-semibold text-sm mt-1">
@@ -212,7 +216,7 @@ export default function SubscriptionSettings() {
                     <div>
 
                         <p className="text-xs text-gray-500">
-                            📅 Expiry Date
+                            {t("SubscriptionInformation.ExpiryDate")}
                         </p>
 
                         <p className="font-semibold text-sm mt-1">
@@ -226,7 +230,7 @@ export default function SubscriptionSettings() {
                     <div>
 
                         <p className="text-xs text-gray-500">
-                            ◉ Days Remaining
+                            {t("SubscriptionInformation.DaysRemaining")}
                         </p>
 
                         <p className="font-semibold text-sm mt-1">
@@ -240,7 +244,7 @@ export default function SubscriptionSettings() {
                     <div>
 
                         <p className="text-xs text-gray-500">
-                            ↗ Usage
+                            {t("SubscriptionInformation.Usage")}
                         </p>
 
                         <p className="font-semibold text-sm mt-1">
@@ -258,11 +262,11 @@ export default function SubscriptionSettings() {
                     <div className="flex flex-col sm:flex-row sm:justify-between gap-1 text-xs text-gray-500 mb-2">
 
                         <span>
-                            Subscription period
+                            {t("SubscriptionInformation.SubscriptionPeriod")}
                         </span>
 
                         <span>
-                            {usagePercentage}% elapsed
+                            {usagePercentage}% {t("SubscriptionInformation.elapsed")}
                         </span>
 
                     </div>

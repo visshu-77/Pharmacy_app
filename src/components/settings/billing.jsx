@@ -2,7 +2,12 @@ import { useEffect, useState } from "react"
 import SettingsHeading from "./settingHeading"
 import { getBillingDetails } from "../../services/userService"
 
+import { useTranslation } from "react-i18next";
+
 export default function Billing() {
+    
+    const { t, i18n } = useTranslation();
+
     const [billing, setBilling] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -27,8 +32,8 @@ export default function Billing() {
         return (
             <div className="bg-white">
                 <SettingsHeading
-                    heading="Billing & Payment"
-                    content="Manage your subscription and payment history."
+                    heading={t("BillingInformation.title")}
+                    content={t("BillingInformation.content")}
                 />
 
                 <div className="p-4 sm:p-6 text-center text-gray-500">
@@ -58,7 +63,7 @@ export default function Billing() {
 
                             <div>
                                 <p className="text-xs opacity-80">
-                                    Current Plan
+                                   {t("BillingInformation.CurrentPlan")}
                                 </p>
 
                                 <h2 className="text-lg sm:text-xl font-bold capitalize">
@@ -69,7 +74,7 @@ export default function Billing() {
                             <div className="text-left sm:text-right">
 
                                 <p className="text-xs opacity-80">
-                                    Current Price
+                                    {t("BillingInformation.CurrentPrice")}
                                 </p>
 
                                 <p className="text-lg sm:text-xl font-bold">
@@ -85,7 +90,7 @@ export default function Billing() {
 
                             <div>
                                 <p className="text-xs opacity-80">
-                                    Billing Cycle
+                                    {t("BillingInformation.BillingCycle")}
                                 </p>
 
                                 <p className="text-sm font-semibold capitalize">
@@ -95,7 +100,7 @@ export default function Billing() {
 
                             <div>
                                 <p className="text-xs opacity-80">
-                                    Start Date
+                                    {t("BillingInformation.StartDate")}
                                 </p>
 
                                 <p className="text-sm font-semibold">
@@ -107,7 +112,7 @@ export default function Billing() {
 
                             <div>
                                 <p className="text-xs opacity-80">
-                                    Expiry Date
+                                    {t("BillingInformation.ExpiryDate")}
                                 </p>
 
                                 <p className="text-sm font-semibold">
@@ -134,7 +139,7 @@ export default function Billing() {
                 <div className="mt-6">
 
                     <h3 className="text-sm font-semibold text-gray-900 mb-4 dark:bg-darkColor dark:text-white">
-                        Payment History
+                        {t("BillingInformation.PaymentHistory")}
                     </h3>
 
 
@@ -144,11 +149,11 @@ export default function Billing() {
                         {/* Header */}
                         <div className="grid grid-cols-5 gap-4 bg-gray-50 px-5 py-3 text-xs font-semibold text-gray-500 dark:bg-black dark:text-white">
 
-                            <div>Plan</div>
-                            <div>Duration</div>
-                            <div>Amount</div>
-                            <div>Status</div>
-                            <div>Date</div>
+                            <div>{t("BillingInformation.Plan")}</div>
+                            <div>{t("BillingInformation.Duration")}</div>
+                            <div>{t("BillingInformation.Amount")}</div>
+                            <div>{t("BillingInformation.Status")}</div>
+                            <div>{t("BillingInformation.Date")}</div>
 
                         </div>
 
@@ -219,7 +224,7 @@ export default function Billing() {
 
                                         <div>
                                             <p className="text-xs text-gray-500">
-                                                Plan
+                                                {t("BillingInformation.Plan")}
                                             </p>
 
                                             <p className="text-sm font-semibold text-gray-900 capitalize">
@@ -239,7 +244,7 @@ export default function Billing() {
 
                                         <div>
                                             <p className="text-xs text-gray-500">
-                                                Duration
+                                                {t("BillingInformation.Duration")}
                                             </p>
 
                                             <p className="text-sm font-medium capitalize text-gray-900">
@@ -249,7 +254,7 @@ export default function Billing() {
 
                                         <div>
                                             <p className="text-xs text-gray-500">
-                                                Amount
+                                                {t("BillingInformation.Amount")}
                                             </p>
 
                                             <p className="text-sm font-semibold text-gray-900">
@@ -259,7 +264,7 @@ export default function Billing() {
 
                                         <div>
                                             <p className="text-xs text-gray-500">
-                                                Date
+                                                {t("BillingInformation.Date")}
                                             </p>
 
                                             <p className="text-sm text-gray-700">

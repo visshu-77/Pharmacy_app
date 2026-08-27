@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { UserPlus, LogIn } from 'lucide-react';
-import { useState } from "react";
+
+import { useTranslation } from "react-i18next";
 
 import DashboardIcon from "../components/Icons/DashboardIcons";
 import ProductIcon from "../components/Icons/ProductIcon";
@@ -15,18 +16,20 @@ import MeditaskIcon from "./Icons/mediTaskIcon";
 
 import { useSubscription } from "../context/SubscriptionContext";
 
-
 export default function ProfileCard({ closeSidebar }) {
 
+    const { t, i18n } = useTranslation();
+    // console.log("Current language:", i18n.language);
+
     const sidebarData = [
-        { id: 1, icon: DashboardIcon, name: "Dashboard", path: "/" },
-        { id: 2, icon: ProductIcon, name: "Product", path: "/Product" },
-        { id: 3, icon: InventoryIcon, name: "Category", path: "/Category" },
-        { id: 4, icon: SuppliersIcon, name: "Suppliers", path: "/suppliers" },
-        { id: 5, icon: ReportIcon, name: "Reports", path: "/reports" },
-        { id: 6, icon: NotificationIcon, name: "Billing", path: "/billing" },
-        { id: 7, icon: SubscrptionIcon, name: "Subscription", path: "/subscription" },
-        { id: 8, icon: SettingIcon, name: "Settings", path: "/settings" },
+        { id: 1, icon: DashboardIcon, name: t("sidebar.dashboard"), path: "/" },
+        { id: 2, icon: ProductIcon, name: t("sidebar.product"), path: "/Product" },
+        { id: 3, icon: InventoryIcon, name: t("sidebar.category"), path: "/Category" },
+        { id: 4, icon: SuppliersIcon, name: t("sidebar.suppliers"), path: "/suppliers" },
+        { id: 5, icon: ReportIcon, name: t("sidebar.reports"), path: "/reports" },
+        { id: 6, icon: NotificationIcon, name: t("sidebar.billing"), path: "/billing" },
+        { id: 7, icon: SubscrptionIcon, name: t("sidebar.subscription"), path: "/subscription" },
+        { id: 8, icon: SettingIcon, name: t("sidebar.settings"), path: "/settings" },
         // { id: 9, icon: Profile, name: "Most Selling", path: "/mostSell" },
         // { id: 10, icon: Profile, name: "Staff", path: "/staff" },
     ]
@@ -70,7 +73,7 @@ export default function ProfileCard({ closeSidebar }) {
 
                 <div className="flex p-4 item-center gap-4">
                     <MeditaskIcon className="h-10 w-10 stroke-black dark:stroke-white" />
-                    <div><h3 className="font-bold text-xl">MediTask</h3><p className="text-xs dark:text-white text-text">India's No. 1 billing App</p></div>
+                    <div><h3 className="font-bold text-xl">{t("mainName.title")}</h3><p className="text-xs dark:text-white text-text">{t("mainName.content")}</p></div>
                 </div>
 
                 <div className="mt-4">

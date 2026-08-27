@@ -22,14 +22,7 @@ export default function Pagination({
         }
 
         const pages = [];
-
-        // Always show first page
         pages.push(1);
-
-        // --------------------------------
-        // Current page near beginning
-        // --------------------------------
-
         if (currentPage <= 4) {
 
             pages.push(2);
@@ -43,11 +36,6 @@ export default function Pagination({
             pages.push(totalPages);
 
         }
-
-        // --------------------------------
-        // Current page near end
-        // --------------------------------
-
         else if (currentPage >= totalPages - 3) {
 
             pages.push("...");
@@ -59,11 +47,6 @@ export default function Pagination({
             pages.push(totalPages);
 
         }
-
-        // --------------------------------
-        // Current page in middle
-        // --------------------------------
-
         else {
 
             pages.push("...");

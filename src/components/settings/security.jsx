@@ -2,7 +2,11 @@ import { useState } from "react";
 import SettingsHeading from "./settingHeading";
 import { changePassword } from "../../services/userService";
 
+import { useTranslation } from "react-i18next";
+
 export default function Security() {
+
+    const { t, i18n } = useTranslation();
 
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
@@ -58,8 +62,8 @@ export default function Security() {
         <div className="w-full">
 
             <SettingsHeading
-                heading="Security"
-                content="Manage your password and account security."
+                heading={t("SecurityInformation.title")}
+                content={t("SecurityInformation.content")}
             />
 
             {/* Password Form */}
@@ -71,7 +75,7 @@ export default function Security() {
                     <div>
 
                         <label className="block text-sm font-semibold mb-2">
-                            Current Password
+                            {t("SecurityInformation.CurrentPassword")}
                         </label>
 
                         <div className="relative">
@@ -113,7 +117,7 @@ export default function Security() {
                     <div>
 
                         <label className="block text-sm font-semibold mb-2">
-                            New Password
+                            {t("SecurityInformation.NewPassword")}
                         </label>
 
                         <div className="relative">
@@ -155,7 +159,7 @@ export default function Security() {
                     <div className="sm:col-span-2">
 
                         <label className="block text-sm font-semibold mb-2">
-                            Confirm New Password
+                            {t("SecurityInformation.ConfirmNewPassword")}
                         </label>
 
                         <div className="relative">
@@ -213,8 +217,8 @@ export default function Security() {
                     className="mt-5 w-full sm:w-auto bg-blue-600 text-white px-5 py-3 rounded-lg font-semibold text-sm hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed dark:bg-black dark:text-white dark:border dark:border-white/30"
                 >
                     {loading
-                        ? "Updating..."
-                        : "Update Password"
+                        ? `${t("SecurityInformation.Saving")}`
+                        : `${t("SecurityInformation.SaveButton")}`
                     }
                 </button>
 

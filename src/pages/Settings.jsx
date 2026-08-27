@@ -9,8 +9,11 @@ import NotificationSettings from "../components/settings/notification";
 import PreferenceSettings from "../components/settings/preferences";
 import LastParams from "../components/lastParams";
 
+import { useTranslation } from "react-i18next";
+
 
 export default function Settings() {
+    const { t, i18n } = useTranslation();
 
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("profile");
@@ -18,37 +21,37 @@ export default function Settings() {
     const menuItems = [
         {
             id: "profile",
-            label: "Profile",
+            label: t("settingSidebar.profile"),
             icon: "👤"
         },
         {
             id: "business",
-            label: "Business Information",
+            label: t("settingSidebar.businessInformation"),
             icon: "🏢"
         },
         {
             id: "subscription",
-            label: "Subscription",
+            label: t("settingSidebar.subscription"),
             icon: "💳"
         },
         {
             id: "billing",
-            label: "Billing & Payments",
+            label: t("settingSidebar.billingAndPayments"),
             icon: "🧾"
         },
         {
             id: "security",
-            label: "Security",
+            label: t("settingSidebar.security"),
             icon: "🔒"
         },
         {
             id: "notifications",
-            label: "Notifications",
+            label: t("settingSidebar.notifications"),
             icon: "🔔"
         },
         {
             id: "preferences",
-            label: "Preferences",
+            label: t("settingSidebar.preferences"),
             icon: "⚙️"
         }
     ];

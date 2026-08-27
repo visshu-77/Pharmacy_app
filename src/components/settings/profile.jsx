@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { updateProfile, getProfile } from "../../services/userService";
 import SettingsHeading from "./settingHeading";
 
+import { useTranslation } from "react-i18next";
+
 export default function ProfileSettings() {
+    const { t, i18n } = useTranslation();
 
     const [loading, setLoading] = useState(false);
 
@@ -91,8 +94,8 @@ export default function ProfileSettings() {
 
             {/* Heading */}
             <SettingsHeading
-                heading="Profile Information"
-                content="Manage your personal account information."
+                heading={t("profile.title")}
+                content={t("profile.content")}
             />
 
 
@@ -146,7 +149,7 @@ export default function ProfileSettings() {
                     <div>
 
                         <label className="block text-sm font-semibold mb-2">
-                            Full Name
+                            {t("profile.fullName")}
                         </label>
 
                         <input
@@ -165,7 +168,7 @@ export default function ProfileSettings() {
                     <div>
 
                         <label className="block text-sm font-semibold mb-2">
-                            Email
+                            {t("profile.email")}
                         </label>
 
                         <input
@@ -184,7 +187,7 @@ export default function ProfileSettings() {
                     <div>
 
                         <label className="block text-sm font-semibold mb-2">
-                            Mobile Number
+                           {t("profile.mobileNumber")}
                         </label>
 
                         <input
@@ -209,7 +212,7 @@ export default function ProfileSettings() {
                 >
                     {loading
                         ? "Saving..."
-                        : "Save Changes"
+                        : `${t("profile.saveButton")}`
                     }
                 </button>
 

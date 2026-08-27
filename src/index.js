@@ -4,6 +4,8 @@ import './index.css';
 import './styles/global.css'
 import App from './App';
 
+import "./i18n/i18n";
+
 import { CartProvider } from './context/CartContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
 import { ThemeProvider } from './context/ThemeContext';

@@ -7,7 +7,13 @@ import {
 
 import { useTheme } from "../../context/ThemeContext";
 
+import { changeLanguage } from "../../utils/language";
+
+import { useTranslation } from "react-i18next";
+
 export default function Preferences() {
+
+    const { t, i18n } = useTranslation();
 
     const { theme, toggleTheme } = useTheme();
 
@@ -15,7 +21,7 @@ export default function Preferences() {
         language: "English",
         currency: "INR",
         timezone: "Asia/Kolkata",
-        dateFormat: "DD/MM/YYYY",
+        dateFormat: "DD/MM/YYYY",               
         defaultPage: "dashboard",
         theme: "light"
     });
@@ -51,7 +57,8 @@ export default function Preferences() {
         }
     };
 
-    const handleChange = (e) => {
+    const handleChange = async (e) => {
+
         const { name, value } = e.target;
 
         setPreferences((prev) => ({
@@ -59,14 +66,49 @@ export default function Preferences() {
             [name]: value
         }));
 
+
+        // =========================
+        // LANGUAGE
+        // =========================
+
+        if (name === "language") {
+
+            try {
+
+                await changeLanguage(value);
+
+            } catch (error) {
+
+                console.log(
+                    "Language change error:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        // =========================
+        // THEME
+        // =========================
+
         if (name === "theme") {
-            if (value === "dark" && theme !== "dark") {
+
+            if (
+                value === "dark" &&
+                theme !== "dark"
+            ) {
                 toggleTheme();
             }
 
-            if (value === "light" && theme !== "light") {
+            if (
+                value === "light" &&
+                theme !== "light"
+            ) {
                 toggleTheme();
             }
+
         }
     };
 
@@ -96,8 +138,8 @@ export default function Preferences() {
         <div className="w-full">
 
             <SettingsHeading
-                heading="Preferences"
-                content="Customize your regional and display preferences."
+                heading={t("PreferencesInformation.title")}
+                content={t("PreferencesInformation.content")}
             />
 
 
@@ -122,7 +164,7 @@ export default function Preferences() {
                             {/* Language */}
                             <div>
                                 <label className="block text-sm font-medium mb-2">
-                                    Language
+                                    {t("PreferencesInformation.Language")}
                                 </label>
 
                                 <select
@@ -132,11 +174,11 @@ export default function Preferences() {
                                     className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                                 >
                                     <option value="English">
-                                        English
+                                        {t("PreferencesInformation.English")}
                                     </option>
 
                                     <option value="Hindi">
-                                        Hindi
+                                        {t("PreferencesInformation.Hindi")}
                                     </option>
                                 </select>
                             </div>
@@ -145,7 +187,7 @@ export default function Preferences() {
                             {/* Currency */}
                             <div>
                                 <label className="block text-sm font-medium mb-2">
-                                    Currency
+                                    {t("PreferencesInformation.Currency")}
                                 </label>
 
                                 <select
@@ -155,16 +197,13 @@ export default function Preferences() {
                                     className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                                 >
                                     <option value="INR">
-                                        INR (₹)
+                                        {t("PreferencesInformation.INR")} (₹)
                                     </option>
 
                                     <option value="USD">
-                                        USD ($)
+                                        {t("PreferencesInformation.USD")} ($)
                                     </option>
 
-                                    <option value="EUR">
-                                        EUR (€)
-                                    </option>
                                 </select>
                             </div>
 
@@ -172,7 +211,7 @@ export default function Preferences() {
                             {/* Timezone */}
                             <div>
                                 <label className="block text-sm font-medium mb-2">
-                                    Time Zone
+                                    {t("PreferencesInformation.TimeZone")}
                                 </label>
 
                                 <select
@@ -182,19 +221,19 @@ export default function Preferences() {
                                     className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                                 >
                                     <option value="Asia/Kolkata">
-                                        India (Asia/Kolkata)
+                                        {t("PreferencesInformation.India(Asia/Kolkata)")}
                                     </option>
 
                                     <option value="Asia/Dubai">
-                                        Dubai (Asia/Dubai)
+                                        {t("PreferencesInformation.Dubai(Asia/Dubai)")}
                                     </option>
 
                                     <option value="America/New_York">
-                                        New York (America/New_York)
+                                        {t("PreferencesInformation.NewYork(America/New_york)")}
                                     </option>
 
                                     <option value="Europe/London">
-                                        London (Europe/London)
+                                        {t("PreferencesInformation.London(Europe/London)")}
                                     </option>
                                 </select>
                             </div>
@@ -203,7 +242,7 @@ export default function Preferences() {
                             {/* Date Format */}
                             <div>
                                 <label className="block text-sm font-medium mb-2">
-                                    Date Format
+                                    {t("PreferencesInformation.DateFormat")}
                                 </label>
 
                                 <select
@@ -230,7 +269,7 @@ export default function Preferences() {
                             {/* Default Page */}
                             <div>
                                 <label className="block text-sm font-medium mb-2">
-                                    Default Page
+                                    {t("PreferencesInformation.DefaultPage")}
                                 </label>
 
                                 <select
@@ -240,15 +279,15 @@ export default function Preferences() {
                                     className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                                 >
                                     <option value="dashboard">
-                                        Dashboard
+                                        {t("PreferencesInformation.Dashboard")}
                                     </option>
 
                                     <option value="products">
-                                        Products
+                                        {t("PreferencesInformation.Products")}
                                     </option>
 
                                     <option value="orders">
-                                        Orders
+                                        {t("PreferencesInformation.orders")}
                                     </option>
                                 </select>
                             </div>
@@ -257,7 +296,7 @@ export default function Preferences() {
                             {/* Theme */}
                             <div>
                                 <label className="block text-sm font-medium mb-2">
-                                    Theme
+                                    {t("PreferencesInformation.Theme")}
                                 </label>
 
                                 <select
@@ -267,11 +306,11 @@ export default function Preferences() {
                                     className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                                 >
                                     <option value="light">
-                                        Light
+                                        {t("PreferencesInformation.Light")}
                                     </option>
 
                                     <option value="dark">
-                                        Dark
+                                        {t("PreferencesInformation.Dark")}
                                     </option>
                                 </select>
                             </div>

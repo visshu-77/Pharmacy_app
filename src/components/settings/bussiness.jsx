@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { updateProfile, getProfile } from "../../services/userService";
 import SettingsHeading from "./settingHeading";
 
+import { useTranslation } from "react-i18next";
+
 export default function BussinessSettings() {
+    const { t, i18n } = useTranslation();
 
     const [loading, setLoading] = useState(false);
 
@@ -88,8 +91,8 @@ export default function BussinessSettings() {
         <div className="w-full">
 
             <SettingsHeading
-                heading="Business Information"
-                content="Manage your shop and business details."
+                heading={t("bussinessInformation.title")}
+                content={t("bussinessInformation.content")}
             />
 
             <div className="border border-gray-200 rounded-xl p-4 sm:p-6 mt-5 sm:mt-6">
@@ -100,7 +103,7 @@ export default function BussinessSettings() {
                     {/* Shop Name */}
                     <div className="w-full">
                         <label className="block text-sm font-semibold mb-2">
-                            Shop Name
+                            {t("bussinessInformation.ShopName")}
                         </label>
 
                         <input
@@ -116,7 +119,7 @@ export default function BussinessSettings() {
                     {/* GST */}
                     <div className="w-full">
                         <label className="block text-sm font-semibold mb-2">
-                            GST Number
+                            {t("bussinessInformation.GSTNumber")}
                         </label>
 
                         <input
@@ -132,7 +135,7 @@ export default function BussinessSettings() {
                     {/* License */}
                     <div className="w-full">
                         <label className="block text-sm font-semibold mb-2">
-                            License Number
+                            {t("bussinessInformation.LicenseNumber")}
                         </label>
 
                         <input
@@ -148,7 +151,7 @@ export default function BussinessSettings() {
                     {/* City */}
                     <div className="w-full">
                         <label className="block text-sm font-semibold mb-2">
-                            City
+                            {t("bussinessInformation.City")}
                         </label>
 
                         <input
@@ -164,7 +167,7 @@ export default function BussinessSettings() {
                     {/* State */}
                     <div className="w-full">
                         <label className="block text-sm font-semibold mb-2">
-                            State
+                            {t("bussinessInformation.State")}
                         </label>
 
                         <input
@@ -183,7 +186,7 @@ export default function BussinessSettings() {
                 <div className="mt-4 sm:mt-5">
 
                     <label className="block text-sm font-semibold mb-2">
-                        Shop Address
+                        {t("bussinessInformation.ShopAddress")}
                     </label>
 
                     <textarea
@@ -207,8 +210,8 @@ export default function BussinessSettings() {
                         className="w-full sm:w-auto bg-blue-600 text-sm text-white px-5 py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed dark:bg-black dark:text-white dark:border dark:border-white/30"
                     >
                         {loading
-                            ? "Saving..."
-                            : "Save Business Changes"
+                            ? `${t("bussinessInformation.saving")}`
+                            : `${t("bussinessInformation.SaveButton")}`
                         }
                     </button>
 

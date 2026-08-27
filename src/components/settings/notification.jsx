@@ -5,7 +5,11 @@ import {
     updateNotification
 } from "../../services/userService";
 
+import { useTranslation } from "react-i18next";
+
 export default function Notification() {
+
+     const { t, i18n } = useTranslation();
 
     const [notifications, setNotifications] = useState({
         emailNotifications: true,
@@ -84,39 +88,39 @@ export default function Notification() {
     const notificationItems = [
         {
             key: "emailNotifications",
-            title: "Email Notifications",
+            title: t("NotificationInformation.EmailNotifications"),
             description:
-                "Receive all notifications via email."
+                t("NotificationInformation.EmailNotificationsContent")
         },
         {
             key: "orderNotifications",
-            title: "Order Notifications",
+            title: t("NotificationInformation.OrderNotifications"),
             description:
-                "Get notified when new orders are placed or updated."
+                t("NotificationInformation.OrderNotificationsContent"),
         },
         {
             key: "lowStockAlerts",
-            title: "Low Stock Alerts",
+            title: t("NotificationInformation.LowStockAlerts"),
             description:
-                "We'll alert you when products drop below stock threshold."
+               t("NotificationInformation.LowStockAlertsContent"),
         },
         {
             key: "subscriptionExpiryAlerts",
-            title: "Subscription Expiry Alerts",
+            title: t("NotificationInformation.SubscriptionExpiryAlerts"),
             description:
-                "Reminders 30, 15, and 7 days before your plan expires."
+                t("NotificationInformation.SubscriptionExpiryAlertsContent"),
         },
         {
             key: "paymentNotifications",
-            title: "Payment Notifications",
+            title:t("NotificationInformation.PaymentNotifications"),
             description:
-                "Confirmations and failures for all payment events."
+                t("NotificationInformation.PaymentNotificationsContent"),
         },
         {
             key: "promotionalUpdates",
-            title: "Promotional Updates",
+            title: t("NotificationInformation.PromotionalUpdates"),
             description:
-                "News, feature announcements, and special offers."
+                t("NotificationInformation.PromotionalUpdatesContent"),
         }
     ];
 
@@ -125,8 +129,8 @@ export default function Notification() {
 
             {/* Heading */}
             <SettingsHeading
-                heading="Notification"
-                content="Choose which notifications you want to receive."
+                heading={t("NotificationInformation.title")}
+                content={t("NotificationInformation.content")}
             />
 
 

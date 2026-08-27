@@ -1,0 +1,164 @@
+{
+    "common": {
+        "dashboard": "Dashboard",
+        "product": "Product",
+        "category": "Category",
+        "suppliers": "Suppliers",
+        "reports": "Reports",
+        "billing": "Billing",
+        "subscription": "Subscription",
+        "settings": "Settings",
+        "logout": "Logout",
+        "save": "Save",
+        "cancel": "Cancel",
+        "edit": "Edit",
+        "delete": "Delete",
+        "view": "View",
+        "search": "Search"
+    },
+
+    "sidebar": {
+        "dashboard": "Dashboard",
+        "product": "Product",
+        "category": "Category",
+        "suppliers": "Suppliers",
+        "reports": "Reports",
+        "billing": "Billing",
+        "subscription": "Subscription",
+        "settings": "Settings"
+    },
+
+    "settings": {
+        "title": "Settings",
+        "language": "Language",
+        "english": "English",
+        "hindi": "Hindi",
+        "preferences": "Preferences",
+        "saveChanges": "Save Changes"
+    },
+
+    "settingSidebar": {
+        "profile": "Profile",
+        "businessInformation": "Bussiness Information",
+        "subscription": "Subscription",
+        "billingAndPayments": "Billing & Payment",
+        "security": "Security",
+        "notifications": "Notification",
+        "preferences": "Preferences"
+    },
+
+    "dashboard": {
+        "title": "Dashboard",
+        "totalCustomers": "Total Customers",
+        "activeSubscriptions": "Active Subscriptions",
+        "expiredSubscriptions": "Expired Subscriptions",
+        "revenue": "Revenue"
+    },
+
+    "mainName" : {
+        "title":"MediTask",
+        "content":"Inida No.1 Billing App"
+    },
+
+    "profile": {
+        "title": "Profile Information",
+        "content": "Manage your personal account information.",
+        "fullName": "Full Name",
+        "email": "Email",
+        "mobileNumber": "Mobile Number",
+        "saveButton": "Save Changes",
+        "saving": "Saving..."
+    },
+
+    "bussinessInformation": {
+        "title": "Business Information",
+        "content": "Manage your shop and business details.",
+        "ShopName": "Shop Name",
+        "GSTNumber": "GST Number",
+        "LicenseNumber":"License Number",
+        "City":"City",
+        "State": "State",
+        "ShopAddress": "Shop Address",
+        "SaveButton": "Save Bussiness Changes",
+        "saving": "Saving..."
+    },
+
+    "SubscriptionInformation": {
+        "title": "Subscription",
+        "content": "Your current plan and billing details.",
+        "CurrentPlan": "Current Plan",
+        "BillingCycle": "Billing Cycle",
+        "Price":"Price",
+        "PaymentStatus":"Payment Status",
+        "StartDate": "📅 Start Date",
+        "ExpiryDate": "📅 Expiry Date",
+        "DaysRemaining": "◉ Days Remaining",
+        "Usage": "↗ Usage",
+        "SubscriptionPeriod": "Subscription period",
+        "elapsed": "elapsed"
+    },
+
+    "BillingInformation": {
+        "title": "Billing & Payments",
+        "content": "Manage payment methods and view billing history.",
+        "CurrentPlan": "Current Plan",
+        "CurrentPrice":"Current Price",
+        "BillingCycle": "Billing Cycle",
+        "StartDate": "📅 Start Date",
+        "ExpiryDate": "📅 Expiry Date",
+        "PaymentHistory": "Payment History",
+        "Plan": "Plan",
+        "Duration": "Duration",
+        "Amount": "Amount",
+        "Status": "Status",
+        "Date":"Date"
+    },
+    "SecurityInformation": {
+        "title": "Security",
+        "content": "Manage your password and account security.",
+        "CurrentPassword": "Current Password",
+        "NewPassword":"New Password",
+        "ConfirmNewPassword": "Confirm New Password",
+        "SaveButton": "Update Password",
+        "Saving": "Saving.."
+    },
+    "NotificationInformation": {
+        "title": "Notification",
+        "content": "Choose which notifications you want to receive.",
+        "EmailNotifications": "Email Notifications",
+        "EmailNotificationsContent":"Receive all notifications via email.",
+        "OrderNotifications": "Order Notifications",
+        "OrderNotificationsContent": "Get notified when new orders are placed or updated.",
+        "LowStockAlerts":"Low Stock Alerts",
+        "LowStockAlertsContent":"We'll alert you when products drop below stock threshold.",
+        "SubscriptionExpiryAlerts":"Subscription Expiry Alerts",
+        "SubscriptionExpiryAlertsContent": "Reminders 30, 15, and 7 days before your plan expires.",
+        "PaymentNotifications":"Payment Notifications",
+        "PaymentNotificationsContent": "Confirmations and failures for all payment events.",
+        "PromotionalUpdates": "Promotional Updates",
+        "PromotionalUpdatesContent": "News, feature announcements, and special offers."
+    },
+    "PreferencesInformation": {
+        "title": "Preferences",
+        "content": "Customize your regional and display preferences.",
+        "Language": "Language",
+        "English":"English",
+        "Hindi": "Hindi",
+        "Currency":"Currency",
+        "INR": "INR",
+        "USD":"USD",
+        "TimeZone": "Time Zone",
+        "India(Asia/Kolkata)":"India(Asia/Kolkata)",
+        "Dubai(Asia/Dubai)": "Dubai(Asia/Dubai)",
+        "NewYork(America/New_york)":"New York(America/New_york)",
+        "London(Europe/London)": "London(Europe/London)",
+        "DateFormat":"Date Format",
+        "DefaultPage": "Default Page",
+        "Dashboard":"Dashboard",
+        "Products":"Products",
+        "orders": "orders",
+        "Theme":"Theme",
+        "Light":"Light",
+        "Dark": "Dark"
+    }
+}
