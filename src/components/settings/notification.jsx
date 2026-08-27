@@ -121,7 +121,7 @@ export default function Notification() {
     ];
 
     return (
-        <div className="bg-white w-full">
+        <div className="bg-white w-full dark:bg-darkColor ">
 
             {/* Heading */}
             <SettingsHeading
@@ -155,7 +155,7 @@ export default function Notification() {
                                 {/* Notification Information */}
                                 <div className="min-w-0 flex-1 pr-1">
 
-                                    <p className="text-sm font-semibold text-gray-900">
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
                                         {item.title}
                                     </p>
 

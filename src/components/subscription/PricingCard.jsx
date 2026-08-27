@@ -15,7 +15,7 @@ export default function PricingCard({
         <div
             className={`
                 relative bg-white rounded-xl p-6 border
-                transition duration-300
+                transition duration-300 dark:bg-darkColor dark:text-white
                 ${
                     isPremium
                         ? "border-blue-600 shadow-lg"
@@ -39,7 +39,7 @@ export default function PricingCard({
             {/* Plan */}
             <div>
 
-                <p className="text-xs font-semibold uppercase text-gray-400">
+                <p className="text-xs font-semibold uppercase text-gray-400 dark:text-white">
                     {plan.name}
                 </p>
 
@@ -53,7 +53,7 @@ export default function PricingCard({
             {/* Price */}
             <div className="mt-8">
 
-                <div className="text-3xl font-bold text-gray-900">
+                <div className="text-3xl font-bold text-gray-900 dark:bg-darkColor dark:text-white">
                     ₹{price.toLocaleString("en-IN")}
                 </div>
 
@@ -92,7 +92,7 @@ export default function PricingCard({
 
                         </div>
 
-                        <span className="text-xs text-gray-600">
+                        <span className="text-xs text-gray-600 dark:bg-darkColor dark:text-white">
                             {feature}
                         </span>
 
@@ -107,10 +107,10 @@ export default function PricingCard({
             <button
                 onClick={() => onSelect(plan)}
                 className={`
-                    w-full mt-8 py-2.5 rounded-lg text-sm font-semibold transition
+                    w-full mt-8 py-2.5 rounded-lg text-sm font-semibold transition dark:bg-darkColor dark:text-white
                     ${
                         isPremium
-                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            ? "bg-blue-600 text-white hover:bg-blue-700 dark:border dark:border-white"
                             : "border border-blue-600 text-blue-600 hover:bg-blue-50"
                     }
                 `}

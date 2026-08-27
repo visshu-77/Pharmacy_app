@@ -51,7 +51,7 @@ export default function Billing() {
                 {/* Current Subscription */}
                 {billing.currentSubscription ? (
 
-                    <div className="border rounded-xl p-4 sm:p-5 bg-primary text-white">
+                    <div className="border rounded-xl p-4 sm:p-5 bg-primary text-white dark:bg-black dark:text-white dark:border dark:border-white/30">
 
                         {/* Plan + Price */}
                         <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
@@ -133,7 +133,7 @@ export default function Billing() {
                 {/* Payment History */}
                 <div className="mt-6">
 
-                    <h3 className="text-sm font-semibold text-gray-900 mb-4">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-4 dark:bg-darkColor dark:text-white">
                         Payment History
                     </h3>
 
@@ -142,7 +142,7 @@ export default function Billing() {
                     <div className="hidden sm:block border rounded-xl overflow-hidden">
 
                         {/* Header */}
-                        <div className="grid grid-cols-5 gap-4 bg-gray-50 px-5 py-3 text-xs font-semibold text-gray-500">
+                        <div className="grid grid-cols-5 gap-4 bg-gray-50 px-5 py-3 text-xs font-semibold text-gray-500 dark:bg-black dark:text-white">
 
                             <div>Plan</div>
                             <div>Duration</div>

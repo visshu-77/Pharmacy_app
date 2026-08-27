@@ -86,7 +86,7 @@ export default function Security() {
                                 value={formData.currentPassword}
                                 onChange={handleChange}
                                 placeholder="********"
-                                className="w-full border text-sm rounded-lg px-4 py-3 pr-12 outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full border text-sm rounded-lg px-4 py-3 pr-12 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                             />
 
                             <button
@@ -128,7 +128,7 @@ export default function Security() {
                                 value={formData.newPassword}
                                 onChange={handleChange}
                                 placeholder="********"
-                                className="w-full border text-sm rounded-lg px-4 py-3 pr-12 outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full border text-sm rounded-lg px-4 py-3 pr-12 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                             />
 
                             <button
@@ -170,7 +170,7 @@ export default function Security() {
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
                                 placeholder="********"
-                                className="w-full border text-sm rounded-lg px-4 py-3 pr-12 outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full border text-sm rounded-lg px-4 py-3 pr-12 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                             />
 
                             <button
@@ -210,7 +210,7 @@ export default function Security() {
                     type="button"
                     onClick={handleUpdatePassword}
                     disabled={loading}
-                    className="mt-5 w-full sm:w-auto bg-blue-600 text-white px-5 py-3 rounded-lg font-semibold text-sm hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="mt-5 w-full sm:w-auto bg-blue-600 text-white px-5 py-3 rounded-lg font-semibold text-sm hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed dark:bg-black dark:text-white dark:border dark:border-white/30"
                 >
                     {loading
                         ? "Updating..."

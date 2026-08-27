@@ -20,7 +20,7 @@ export default function SupplierTable({
             {/* Header */}
             <thead className="bg-gray-50">
 
-               <tr>
+               <tr className="dark:bg-darkColor">
 
                   {/* Select All */}
                   <th>
@@ -34,27 +34,27 @@ export default function SupplierTable({
                      />
                   </th>
 
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 dark:text-white">
                      Supplier
                   </th>
 
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 dark:text-white">
                      Phone
                   </th>
 
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 dark:text-white">
                      Email
                   </th>
 
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 dark:text-white">
                      Location
                   </th>
 
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 dark:text-white">
                      GST
                   </th>
 
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 dark:text-white">
                      Actions
                   </th>
 
@@ -69,7 +69,7 @@ export default function SupplierTable({
 
                   <tr
                      key={supplier._id}
-                     className="border-t border-gray-100 hover:bg-gray-50"
+                     className="border-t border-gray-100 hover:bg-gray-50 dark:hover:bg-black cursor-pointer"
                   >
 
                      {/* Checkbox */}
@@ -92,27 +92,27 @@ export default function SupplierTable({
                      </td>
 
                      {/* Supplier */}
-                     <td className="px-5 py-4 text-sm font-medium text-gray-900">
+                     <td className="px-5 py-4 text-sm font-medium text-gray-900 dark:text-white">
                         {supplier.supplierName}
                      </td>
 
                      {/* Phone */}
-                     <td className="px-5 py-4 text-sm text-gray-700">
+                     <td className="px-5 py-4 text-sm text-gray-700 dark:text-white">
                         {supplier.phone || "-"}
                      </td>
 
                      {/* Email */}
-                     <td className="px-5 py-4 text-sm text-gray-700">
+                     <td className="px-5 py-4 text-sm text-gray-700 dark:text-white">
                         {supplier.email || "-"}
                      </td>
 
                      {/* Location */}
-                     <td className="px-5 py-4 text-sm text-gray-700">
+                     <td className="px-5 py-4 text-sm text-gray-700 dark:text-white">
                         {supplier.city || "-"}
                      </td>
 
                      {/* GST */}
-                     <td className="px-5 py-4 text-sm text-gray-700">
+                     <td className="px-5 py-4 text-sm text-gray-700 dark:text-white">
                         {supplier.gstNumber || "-"}
                      </td>
 

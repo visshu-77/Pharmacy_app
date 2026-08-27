@@ -129,7 +129,7 @@ export default function Preferences() {
                                     name="language"
                                     value={preferences.language}
                                     onChange={handleChange}
-                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                                 >
                                     <option value="English">
                                         English
@@ -152,7 +152,7 @@ export default function Preferences() {
                                     name="currency"
                                     value={preferences.currency}
                                     onChange={handleChange}
-                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                                 >
                                     <option value="INR">
                                         INR (₹)
@@ -179,7 +179,7 @@ export default function Preferences() {
                                     name="timezone"
                                     value={preferences.timezone}
                                     onChange={handleChange}
-                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                                 >
                                     <option value="Asia/Kolkata">
                                         India (Asia/Kolkata)
@@ -210,7 +210,7 @@ export default function Preferences() {
                                     name="dateFormat"
                                     value={preferences.dateFormat}
                                     onChange={handleChange}
-                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                                 >
                                     <option value="DD/MM/YYYY">
                                         DD/MM/YYYY
@@ -237,7 +237,7 @@ export default function Preferences() {
                                     name="defaultPage"
                                     value={preferences.defaultPage}
                                     onChange={handleChange}
-                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                                 >
                                     <option value="dashboard">
                                         Dashboard
@@ -264,7 +264,7 @@ export default function Preferences() {
                                     name="theme"
                                     value={preferences.theme}
                                     onChange={handleChange}
-                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border text-sm rounded-lg px-3 py-3 outline-none bg-white focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                                 >
                                     <option value="light">
                                         Light
@@ -294,7 +294,7 @@ export default function Preferences() {
                             type="button"
                             onClick={handleSave}
                             disabled={saving}
-                            className="mt-5 sm:mt-6 w-full sm:w-auto bg-blue-600 text-white text-sm px-5 py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="mt-5 sm:mt-6 w-full sm:w-auto bg-blue-600 text-white text-sm px-5 py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed dark:bg-black dark:text-white dark:border dark:border-white/30"
                         >
                             {saving
                                 ? "Saving..."

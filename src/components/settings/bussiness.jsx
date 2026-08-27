@@ -107,7 +107,7 @@ export default function BussinessSettings() {
                             name="Shopname"
                             value={formData.Shopname}
                             onChange={handleChange}
-                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                             placeholder="Shop Name"
                         />
                     </div>
@@ -123,7 +123,7 @@ export default function BussinessSettings() {
                             name="gstNumber"
                             value={formData.gstNumber}
                             onChange={handleChange}
-                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                             placeholder="GST Number"
                         />
                     </div>
@@ -139,7 +139,7 @@ export default function BussinessSettings() {
                             name="licenseNumber"
                             value={formData.licenseNumber}
                             onChange={handleChange}
-                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                             placeholder="License Number"
                         />
                     </div>
@@ -155,7 +155,7 @@ export default function BussinessSettings() {
                             name="city"
                             value={formData.city}
                             onChange={handleChange}
-                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                             placeholder="City"
                         />
                     </div>
@@ -171,7 +171,7 @@ export default function BussinessSettings() {
                             name="state"
                             value={formData.state}
                             onChange={handleChange}
-                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                             placeholder="State"
                         />
                     </div>
@@ -190,7 +190,7 @@ export default function BussinessSettings() {
                         name="shopAddress"
                         value={formData.shopAddress}
                         onChange={handleChange}
-                        className="w-full border rounded-lg px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                        className="w-full border rounded-lg px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none dark:bg-darkColor dark:text-white"
                         placeholder="Shop Address"
                         rows={4}
                     />
@@ -204,7 +204,7 @@ export default function BussinessSettings() {
                     <button
                         onClick={handleSaveProfile}
                         disabled={loading}
-                        className="w-full sm:w-auto bg-blue-600 text-sm text-white px-5 py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full sm:w-auto bg-blue-600 text-sm text-white px-5 py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed dark:bg-black dark:text-white dark:border dark:border-white/30"
                     >
                         {loading
                             ? "Saving..."

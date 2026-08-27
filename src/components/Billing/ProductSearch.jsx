@@ -81,14 +81,14 @@ export default function ProductSearch() {
     };
 
     return (
-        <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow">
+        <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow dark:bg-darkColor dark:text-white dark:border dark:border-white">
             <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
                 Add Product
             </h2>
             <div className="relative mt-4">
                 <Search
                     size={20}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white"
                 />
                 <input
                     type="text"
@@ -98,7 +98,7 @@ export default function ProductSearch() {
                         setShowResults(true);
                     }}
                     placeholder="Search product..."
-                    className="w-full border rounded-lg p-3 pl-10 pr-10 outline-none text-xs bg-[#F8F9FC]"
+                    className="w-full border rounded-lg p-3 pl-10 pr-10 outline-none text-xs bg-[#F8F9FC] dark:bg-darkColor dark:text-white"
                 />
                 {search && (
                     <button
@@ -124,7 +124,7 @@ export default function ProductSearch() {
                         {products.map((product) => (
                             <div
                                 key={product._id}
-                                className="flex items-center justify-between p-4 border-b hover:bg-[#F2F4F8] transition cursor-pointer"
+                                className="flex items-center justify-between p-4 border-b hover:bg-[#F2F4F8] dark:hover:bg-darkColor transition cursor-pointer"
                             >
                                 <div className="flex flex-col gap-1">
                                     <p className="font-semibold text-lg capitalize">
@@ -147,7 +147,7 @@ export default function ProductSearch() {
                                 </div>
 
                                 <div className="flex flex-col gap-2 items-center">
-                                    <p className="text-sm text-black font-bold">
+                                    <p className="text-sm text-black font-bold dark:text-white">
                                         ₹{" "}
                                         {Number(product.sellingPrice).toLocaleString(
                                             "en-IN"

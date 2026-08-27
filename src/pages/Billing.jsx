@@ -103,23 +103,23 @@ export default function Billing() {
                     onNewBill={() => setCreatedOrder(null)}
                 />
             ) : (
-                <div className="p-6 bg-[#F4F6F9] mt-4">
+                <div className="p-6 bg-[#F4F6F9] mt-4 dark:bg-darkColor dark:text-white">
                     <h1 className="text-2xl font-bold">
                         Create New Bill
                     </h1>
-                    <p className="text-black/50 text-xs">
+                    <p className="text-black/50 text-xs dark:bg-darkColor dark:text-white">
                         Add products and create a new customer invoice
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-6">
                         <div className="w-full sm:w-[75%]">
-                            <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow">
+                            <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow dark:bg-darkColor dark:text-white dark:border dark:border-white">
                                 <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
                                     Customer Details
                                 </h2>
                                 <div className="grid grid-cols-2 gap-4 mt-4">
                                     <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold text-black/30 uppercase">
+                                        <label className="text-xs font-bold text-black/30 uppercase dark:text-white">
                                             Customer Name
                                         </label>
                                         <input
@@ -129,11 +129,11 @@ export default function Billing() {
                                             onChange={(e) =>
                                                 setCustomerName(e.target.value)
                                             }
-                                            className="border p-3 rounded text-xs focus:outline-none focus:ring-0 bg-[#F8F9FC]"
+                                            className="border p-3 rounded text-xs focus:outline-none focus:ring-0 bg-[#F8F9FC] dark:bg-darkColor dark:text-white"
                                         />
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold text-black/30 uppercase">
+                                        <label className="text-xs font-bold text-black/30 uppercase dark:text-white">
                                             Mobile Number
                                         </label>
                                         <input
@@ -143,19 +143,19 @@ export default function Billing() {
                                             onChange={(e) =>
                                                 setCustomerPhone(e.target.value)
                                             }
-                                            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border p-3 rounded text-xs focus:outline-none focus:ring-0 bg-[#F8F9FC]"
+                                            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border p-3 rounded text-xs focus:outline-none focus:ring-0 bg-[#F8F9FC] dark:bg-darkColor dark:text-white"
                                         />
                                     </div>
                                 </div>
                             </div>
                             <ProductSearch />
-                            <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow">
+                            <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow dark:bg-darkColor dark:text-white dark:border dark:border-white">
                                 <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
                                     Blling Items
                                 </h2>
                                 {cart.length > 0 ? (
                                     <>
-                                        <div className="grid grid-cols-12 gap-4 py-3 border-b bg-gray-50 rounded-t-md text-xs font-semibold text-gray-600 uppercase">
+                                        <div className="grid grid-cols-12 gap-4 py-3 border-b bg-gray-50 rounded-t-md text-xs font-semibold text-gray-600 uppercase dark:bg-darkColor dark:text-white">
                                             <div className="col-span-5">Product</div>
                                             <div className="col-span-3 text-center">Quantity</div>
                                             <div className="col-span-2 text-right">Price</div>
@@ -170,7 +170,7 @@ export default function Billing() {
                                                     <p className="font-semibold capitalize text-sm">
                                                         {item.productName}
                                                     </p>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className="text-xs text-gray-500 dark:text-white">
                                                         ₹ {Number(item.sellingPrice).toLocaleString("en-IN")}
                                                         {" × "}
                                                         {item.quantity}
@@ -231,18 +231,18 @@ export default function Billing() {
                                 )}
                                 <div className="text-xs text-gray-500 mt-2 flex justify-between">
                                     <p>{cart.length} items</p>
-                                    <p className="font-bold text-primary text-sm"><span className="text-black">Subtotal : </span> ₹ {grandTotal.toLocaleString("en-IN")}</p>
+                                    <p className="font-bold text-primary text-sm dark:text-white"><span className="text-black dark:text-white">Subtotal : </span> ₹ {grandTotal.toLocaleString("en-IN")}</p>
                                 </div>
                             </div>
 
                         </div>
                         <div className="w-full sm:w-[25%]">
-                            <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow">
+                            <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow dark:bg-darkColor dark:text-white dark:border dark:border-white">
                                 <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
                                     Bill Summary
                                 </h2>
                                 <div className="flex justify-between mt-4">
-                                    <span className="text-xs text-gray-500">
+                                    <span className="text-xs text-gray-500 dark:text-white">
                                         Subtotal
                                     </span>
                                     <span className="font-bold text-xs">
@@ -250,7 +250,7 @@ export default function Billing() {
                                     </span>
                                 </div>
                                 <div className="flex flex-col justify-between mt-3 gap-2">
-                                    <span className="text-xs text-gray-500">
+                                    <span className="text-xs text-gray-500 dark:text-white">
                                         Discount
                                     </span>
                                     <input
@@ -262,11 +262,11 @@ export default function Billing() {
                                         }
                                         placeholder="Enter Discount"
                                         className="border rounded p-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-                                bg-[#F8F9FC] focus:outline-none focus:ring-1 text-green-500 font-bold text-xs"
+                                bg-[#F8F9FC] focus:outline-none focus:ring-1 text-green-500 font-bold text-xs dark:bg-darkColor dark:text-white"
                                     />
                                 </div>
                                 <div className="flex flex-col justify-between mt-3 gap-2">
-                                    <span className="text-xs text-gray-500">
+                                    <span className="text-xs text-gray-500 dark:text-white">
                                         Tax
                                     </span>
                                     <input
@@ -278,21 +278,21 @@ export default function Billing() {
                                         }
                                         placeholder="Enter Tax"
                                         className="border rounded p-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-                                bg-[#F8F9FC] focus:outline-none focus:ring-1 font-bold text-xs"
+                                bg-[#F8F9FC] focus:outline-none focus:ring-1 font-bold text-xs dark:bg-darkColor dark:text-white"
                                     />
                                 </div>
                                 <div className="flex justify-between mt-5 pt-4 border-t">
-                                    <span className="font-bold text-xs font-bold text-gray-500">
+                                    <span className="font-bold text-xs font-bold text-gray-500 dark:text-white">
                                         Grand Total
                                     </span>
-                                    <span className="font-bold text-lg text-primary">
+                                    <span className="font-bold text-lg text-primary dark:text-white">
                                         ₹ {grandTotal.toLocaleString("en-IN")}
                                     </span>
                                 </div>
                             </div>
 
                             {/* Payment Method */}
-                            <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow5">
+                            <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow5 dark:bg-darkColor dark:text-white dark:border dark:border-white">
                                 <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
                                     Payment Method
                                 </h2>
@@ -342,27 +342,11 @@ export default function Billing() {
                                         Card
                                     </button>
                                 </div>
-                                {/* <select
-                            value={paymentMethod}
-                            onChange={(e) =>
-                                setPaymentMethod(e.target.value)
-                            }
-                            className="border p-3 rounded w-full"
-                        >
-                            <option value="Cash">
-                                Cash
-                            </option>
-                            <option value="UPI">
-                                UPI
-                            </option>
-                            <option value="Card">
-                                Card
-                            </option>
-                        </select> */}
+                            
 
                                 {paymentMethod === "Cash" && (
                                     <div className="mt-5 border rounded-xl p-5 bg-blue-50 border-primary shadow-lg">
-                                        <h3 className="font-semibold text-lg">
+                                        <h3 className="font-semibold text-lg dark:text-black">
                                             Cash Payment
                                         </h3>
                                         <p className="text-sm text-gray-500 mt-1">
@@ -376,7 +360,7 @@ export default function Billing() {
 
                                 {paymentMethod === "UPI" && (
                                     <div className="mt-5 border rounded-xl p-5 bg-blue-50 border-primary shadow-lg">
-                                        <h3 className="font-semibold text-lg">
+                                        <h3 className="font-semibold text-lg dark:text-black">
                                             UPI Payment
                                         </h3>
                                         <p className="text-sm text-gray-500 mt-1">
@@ -387,7 +371,7 @@ export default function Billing() {
                                                 value={upiUrl}
                                                 size={220}
                                             />
-                                            <p className="mt-4 font-semibold">
+                                            <p className="mt-4 font-semibold dark:text-black">
                                                 ₹ {grandTotal.toLocaleString("en-IN", {
                                                     minimumFractionDigits: 2,
                                                     maximumFractionDigits: 2
@@ -401,7 +385,7 @@ export default function Billing() {
                                 )}
 
                                 {paymentMethod === "Card" && (
-                                    <div className="mt-5 border border-red-500 bg-red-100 rounded-xl p-5">
+                                    <div className="mt-5 border border-red-500 bg-red-100 rounded-xl p-5 dark:text-black">
                                         <h3 className="font-semibold text-lg">
                                             Card Payment
                                         </h3>
@@ -417,7 +401,7 @@ export default function Billing() {
                                 <button
                                     onClick={handleCreateOrder}
                                     disabled={loading || cart.length === 0}
-                                    className="bg-primary text-white px-6 py-3 rounded-lg disabled:opacity-50 mt-5 w-full hover:bg-blue-600 transition font-semibold"
+                                    className="bg-primary text-white px-6 py-3 rounded-lg disabled:opacity-50 mt-5 w-full hover:bg-blue-600 transition font-semibold dark:bg-black dark:text-white dark:border dark:border-white/30"
                                 >
                                     {loading ? "Creating Order..." : "Place Order"}
                                 </button>

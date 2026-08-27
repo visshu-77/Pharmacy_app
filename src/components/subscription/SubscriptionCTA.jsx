@@ -7,7 +7,7 @@ export default function SubscriptionCTA({
     return (
         <section className="max-w-5xl mx-auto mt-20">
 
-            <div className="relative overflow-hidden rounded-2xl bg-blue-600 px-6 py-14 md:px-10 text-center">
+            <div className="relative overflow-hidden rounded-2xl bg-blue-600 px-6 py-14 md:px-10 text-center dark:bg-darkColor dark:text-white dark:border dark:border-white">
 
                 {/* Decorative circles */}
 

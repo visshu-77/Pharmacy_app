@@ -117,7 +117,7 @@ export default function ProfileSettings() {
                 {/* User Info */}
                 <div className="flex flex-col justify-center items-start min-w-0">
 
-                    <p className="font-bold text-sm text-gray-900 truncate max-w-full">
+                    <p className="font-bold text-sm text-gray-900 truncate max-w-full dark:bg-darkColor dark:text-white">
                         {formData.ownerName || "User"}
                     </p>
 
@@ -155,7 +155,7 @@ export default function ProfileSettings() {
                             onChange={handleChange}
                             type="text"
                             placeholder="Owner Name"
-                            className="w-full border text-sm rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full border text-sm rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                         />
 
                     </div>
@@ -174,7 +174,7 @@ export default function ProfileSettings() {
                             onChange={handleChange}
                             type="email"
                             placeholder="Email"
-                            className="w-full text-sm border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full text-sm border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                         />
 
                     </div>
@@ -193,7 +193,7 @@ export default function ProfileSettings() {
                             onChange={handleChange}
                             type="text"
                             placeholder="Mobile Number"
-                            className="w-full text-sm border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full text-sm border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
                         />
 
                     </div>
@@ -205,7 +205,7 @@ export default function ProfileSettings() {
                 <button
                     onClick={handleSaveProfile}
                     disabled={loading}
-                    className="mt-5 sm:mt-6 w-full sm:w-auto bg-blue-600 text-sm text-white px-5 py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="mt-5 sm:mt-6 w-full sm:w-auto bg-blue-600 text-sm text-white px-5 py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed dark:bg-black dark:text-white dark:border dark:border-white/30"
                 >
                     {loading
                         ? "Saving..."

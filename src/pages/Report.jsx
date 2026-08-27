@@ -324,10 +324,10 @@ export default function Reports() {
          <div>
             <LastParams />
          </div>
-         <div className="min-h-screen bg-gray-50 p-6">
+         <div className="min-h-screen bg-gray-50 dark:bg-darkColor dark:text-white p-6">
             <div className="flex flex-col sm:flex-row items-center justify-between mb-6">
                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                      Reports & Analytics
                   </h1>
                   <p className="text-sm text-gray-500 mt-1">
@@ -338,7 +338,7 @@ export default function Reports() {
                   <select
                      value={selectedRange}
                      onChange={(e) => setSelectedRange(e.target.value)}
-                     className="border border-gray-200 bg-white rounded-lg px-4 py-2 text-sm outline-none"
+                     className="border border-gray-200 bg-white rounded-lg px-4 py-2 text-sm outline-none dark:bg-darkColor dark:text-white"
                   >
                      <option value="today">
                         Today
@@ -362,14 +362,14 @@ export default function Reports() {
                   <button
                      type="button"
                      onClick={handleExportReport}
-                     className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700"
+                     className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 dark:bg-black dark:text-white dark:border dark:border-white/30"
                   >
                      ↓ Export Report
                   </button>
                </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
-               <div className="bg-white border border-gray-200 rounded-xl p-5">
+               <div className="bg-white border border-gray-200 rounded-xl p-5 dark:bg-darkColor dark:text-white">
                   <p className="text-xs text-gray-500">
                      Total Sales
                   </p>
@@ -383,7 +383,7 @@ export default function Reports() {
                      vs previous period
                   </p>
                </div>
-               <div className="bg-white border border-gray-200 rounded-xl p-5">
+               <div className="bg-white border border-gray-200 rounded-xl p-5 dark:bg-darkColor dark:text-white">
                   <p className="text-xs text-gray-500">
                      Total Orders
                   </p>
@@ -397,7 +397,7 @@ export default function Reports() {
                      vs previous period
                   </p>
                </div>
-               <div className="bg-white border border-gray-200 rounded-xl p-5">
+               <div className="bg-white border border-gray-200 rounded-xl p-5 dark:bg-darkColor dark:text-white">
                   <p className="text-xs text-gray-500">
                      Avg Order Value
                   </p>
@@ -413,7 +413,7 @@ export default function Reports() {
                      vs previous period
                   </p>
                </div>
-               <div className="bg-white border border-gray-200 rounded-xl p-5">
+               <div className="bg-white border border-gray-200 rounded-xl p-5 dark:bg-darkColor dark:text-white">
                   <p className="text-xs text-gray-500">
                      Products Sold
                   </p>
@@ -430,7 +430,7 @@ export default function Reports() {
             </div>
 
             {/* filters */}
-            <div className="bg-white border border-gray-200 rounded-xl p-4 mb-5">
+            <div className="bg-white border border-gray-200 rounded-xl p-4 mb-5 dark:bg-darkColor dark:text-white">
                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="flex items-center sm:w-auto w-full gap-4">
                      <span className="text-sm font-semibold">
@@ -440,7 +440,7 @@ export default function Reports() {
                      <select
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
-                        className="border border-gray-200 rounded-lg sm:w-auto w-full px-3 py-2 text-sm"
+                        className="border border-gray-200 rounded-lg sm:w-auto w-full px-3 py-2 text-sm dark:bg-darkColor dark:text-white"
                      >
                         <option value="all">
                            All Categories
@@ -468,7 +468,7 @@ export default function Reports() {
                         <button
                            type="button"
                            onClick={handleReportFilters}
-                           className="bg-blue-600 text-white px-4 py-2 sm:w-auto w-full rounded-lg text-sm"
+                           className="bg-blue-600 text-white px-4 py-2 sm:w-auto w-full rounded-lg text-sm dark:bg-black dark:text-white dark:border dark:border-white/30"
                         >
                            Apply Filters
                         </button>
@@ -477,9 +477,9 @@ export default function Reports() {
                </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5 dark:bg-darkColor dark:text-white">
                <div className="mb-5">
-                  <h2 className="text-lg font-bold text-gray-900">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                      Sales Overview
                   </h2>
                   <p className="text-sm text-gray-500 mt-1">
@@ -515,11 +515,11 @@ export default function Reports() {
             </div>
 
             {/* Top Selling product */}
-            <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5 dark:bg-darkColor dark:text-white">
                <div className="mb-5 flex items-start sm:items-center sm:gap-0 gap-4 justify-between">
 
                   <div>
-                     <h2 className="sm:text-lg text-sm font-bold text-gray-900">
+                     <h2 className="sm:text-lg text-sm font-bold text-gray-900 dark:text-white">
                         Top Selling Products
                      </h2>
 
@@ -560,7 +560,7 @@ export default function Reports() {
 
                </div>
                {topProducts.length === 0 ? (
-                  <div className="py-10 text-center text-gray-500">
+                  <div className="py-10 text-center text-gray-500 dark:text-white">
                      No product sales available.
                   </div>
                ) : (
@@ -568,13 +568,13 @@ export default function Reports() {
                      <table className="w-full">
                         <thead>
                            <tr className="border-b border-gray-200 text-left">
-                              <th className="py-3 px-3 text-xs font-semibold text-gray-500">
+                              <th className="py-3 px-3 text-xs font-semibold text-gray-500 dark:text-white">
                                  Product
                               </th>
-                              <th className="py-3 px-3 text-xs font-semibold text-gray-500">
+                              <th className="py-3 px-3 text-xs font-semibold text-gray-500 dark:text-white">
                                  Quantity Sold
                               </th>
-                              <th className="py-3 px-3 text-xs font-semibold text-gray-500">
+                              <th className="py-3 px-3 text-xs font-semibold text-gray-500 dark:text-white">
                                  Total Sales
                               </th>
                            </tr>
@@ -591,11 +591,10 @@ export default function Reports() {
                                           {index + 1}
                                        </div>
                                        <div>
-                                          <p className="text-sm font-semibold text-gray-900">
+                                          <p className="text-sm font-semibold text-gray-900 dark:text-white">
                                              {product.productName}
                                           </p>
                                           <p className="text-xs text-gray-400">
-                                             Product ID: {product._id}
                                           </p>
                                        </div>
                                     </div>
@@ -619,9 +618,9 @@ export default function Reports() {
             </div>
 
             {/* Category Performance */}
-            <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 mt-5 dark:bg-darkColor dark:text-white">
                <div className="mb-5">
-                  <h2 className="text-sm font-semibold text-gray-900">
+                  <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
                      Category Performance
                   </h2>
                   <p className="text-xs text-gray-500 mt-1">
@@ -637,7 +636,7 @@ export default function Reports() {
                      {categoryError}
                   </div>
                ) : categoryPerformance.length === 0 ? (
-                  <div className="py-8 text-center text-sm text-gray-500">
+                  <div className="py-8 text-center text-sm text-gray-500 dark:text-white">
                      No category data found.
                   </div>
                ) : (
@@ -645,13 +644,13 @@ export default function Reports() {
                      <table className="w-full">
                         <thead>
                            <tr className="border-b border-gray-100">
-                              <th className="text-left text-xs font-semibold text-gray-500 py-3">
+                              <th className="text-left text-xs font-semibold text-gray-500 py-3 dark:text-white">
                                  Category
                               </th>
-                              <th className="text-left text-xs font-semibold text-gray-500 py-3">
+                              <th className="text-left text-xs font-semibold text-gray-500 py-3 dark:text-white">
                                  Products Sold
                               </th>
-                              <th className="text-left text-xs font-semibold text-gray-500 py-3">
+                              <th className="text-left text-xs font-semibold text-gray-500 py-3 dark:text-white">
                                  Total Sales
                               </th>
                            </tr>
@@ -662,13 +661,13 @@ export default function Reports() {
                                  key={category._id}
                                  className="border-b border-gray-100 last:border-b-0"
                               >
-                                 <td className="py-4 text-sm font-medium text-gray-900">
+                                 <td className="py-4 text-sm font-medium text-gray-900 dark:text-white">
                                     {category.categoryName}
                                  </td>
-                                 <td className="py-4 text-sm text-gray-600">
+                                 <td className="py-4 text-sm text-gray-600 dark:text-white">
                                     {category.productsSold.toLocaleString("en-IN")}
                                  </td>
-                                 <td className="py-4 text-sm font-semibold text-gray-900">
+                                 <td className="py-4 text-sm font-semibold text-gray-900 dark:text-white">
                                     ₹{category.totalSales.toLocaleString("en-IN")}
                                  </td>
                               </tr>
@@ -680,12 +679,12 @@ export default function Reports() {
             </div>
 
             {/* Recent Transaction */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mt-6">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mt-6 dark:bg-darkColor dark:text-white">
                <div className="px-5 py-4 border-b border-gray-200">
                   <div className="flex items-center gap-4 sm:gap-0 justify-between">
 
                      <div>
-                        <h2 className="text-sm sm:text-lg font-semibold text-gray-900">
+                        <h2 className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white">
                            Recent Transactions
                         </h2>
 
@@ -726,7 +725,7 @@ export default function Reports() {
                <div className="p-5 border-b border-gray-200">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 mb-1 dark:text-white">
                            Customer Name
                         </label>
                         <input
@@ -739,11 +738,11 @@ export default function Reports() {
                                  e.target.value
                               )
                            }
-                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 dark:bg-darkColor dark:text-white"
                         />
                      </div>
                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 mb-1 dark:text-white">
                            Product / Plan
                         </label>
                         <input
@@ -756,11 +755,11 @@ export default function Reports() {
                                  e.target.value
                               )
                            }
-                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 dark:bg-darkColor dark:text-white" 
                         />
                      </div>
                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 mb-1 dark:text-white">
                            Amount
                         </label>
                         <input
@@ -773,11 +772,11 @@ export default function Reports() {
                                  e.target.value
                               )
                            }
-                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 dark:bg-darkColor dark:text-white"
                         />
                      </div>
                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 mb-1 dark:text-white">
                            Status
                         </label>
                         <select
@@ -788,7 +787,7 @@ export default function Reports() {
                                  e.target.value
                               )
                            }
-                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 dark:bg-darkColor dark:text-white"
                         >
 
                            <option value="all">
@@ -812,7 +811,7 @@ export default function Reports() {
 
                      <div>
 
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 mb-1 dark:text-white">
                            Date
                         </label>
 
@@ -825,11 +824,11 @@ export default function Reports() {
                                  e.target.value
                               )
                            }
-                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 dark:bg-darkColor dark:text-white"
                         />
                      </div>
                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 mb-1 dark:text-white">
                            Payment Type
                         </label>
                         <select
@@ -840,7 +839,7 @@ export default function Reports() {
                                  e.target.value
                               )
                            }
-                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 dark:bg-darkColor dark:text-white"
                         >
                            <option value="all">
                               All Types
@@ -866,7 +865,7 @@ export default function Reports() {
                      <button
                         type="button"
                         onClick={handleResetTransactionFilters}
-                        className="border border-gray-200 hover:bg-gray-50 px-5 py-2 rounded-lg text-sm font-medium text-gray-700"
+                        className="border border-gray-200 hover:bg-gray-50 px-5 py-2 rounded-lg text-sm font-medium text-gray-700 dark:bg-darkColor dark:text-white"
                      >
                         Reset Filters
                      </button>
@@ -874,7 +873,7 @@ export default function Reports() {
                      <button
                         type="button"
                         onClick={handleApplyTransactionFilters}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium dark:bg-black dark:text-white dark:border dark:border-white/30"
                      >
                         Apply Filters
                      </button>
@@ -897,27 +896,27 @@ export default function Reports() {
                ) : (
                   <div className="overflow-x-auto">
                      <table className="w-full min-w-[900px]">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-gray-50 dark:bg-darkColor dark:text-white">
                            <tr>
-                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap dark:text-white">
                                  Transaction ID
                               </th>
-                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap dark:text-white">
                                  Customer
                               </th>
-                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap dark:text-white">
                                  Product / Plan
                               </th>
-                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap dark:text-white">
                                  Amount
                               </th>
-                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap dark:text-white">
                                  Status
                               </th>
-                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap dark:text-white">
                                  Date
                               </th>
-                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap dark:text-white">
                                  Type
                               </th>
                            </tr>
@@ -928,22 +927,22 @@ export default function Reports() {
                                  key={`${transaction.transactionType}-${transaction.transactionId}`}
                                  className="border-t border-gray-100 hover:bg-gray-50"
                               >
-                                 <td className="px-5 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                                 <td className="px-5 py-4 text-sm font-medium text-gray-900 whitespace-nowrap dark:bg-darkColor dark:text-white">
                                     {transaction.transactionId || "-"}
                                  </td>
-                                 <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap">
+                                 <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap dark:bg-darkColor dark:text-white">
                                     {transaction.customerName || "-"}
                                  </td>
-                                 <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap">
+                                 <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap dark:bg-darkColor dark:text-white">
                                     {transaction.transactionName || "-"}
                                  </td>
-                                 <td className="px-5 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap">
+                                 <td className="px-5 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap dark:bg-darkColor dark:text-white">
                                     ₹
                                     {Number(
                                        transaction.amount || 0
                                     ).toLocaleString("en-IN")}
                                  </td>
-                                 <td className="px-5 py-4 whitespace-nowrap">
+                                 <td className="px-5 py-4 whitespace-nowrap dark:bg-darkColor dark:text-white">
                                     <span
                                        className={`
                               px-2.5
@@ -962,7 +961,7 @@ export default function Reports() {
                                        {transaction.status || "-"}
                                     </span>
                                  </td>
-                                 <td className="px-5 py-4 text-sm text-gray-500 whitespace-nowrap">
+                                 <td className="px-5 py-4 text-sm text-gray-500 whitespace-nowrap dark:bg-darkColor dark:text-white">
                                     {transaction.date
                                        ? new Date(
                                           transaction.date
@@ -970,7 +969,7 @@ export default function Reports() {
                                        : "-"
                                     }
                                  </td>
-                                 <td className="px-5 py-4 whitespace-nowrap">
+                                 <td className="px-5 py-4 whitespace-nowrap dark:bg-darkColor dark:text-white">
                                     <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                                        {transaction.type || "-"}
                                     </span>
@@ -982,20 +981,20 @@ export default function Reports() {
                      {totalTransactions > 0 && (
                         <div className="flex items-center justify-between px-5 py-4 border-t border-gray-200">
 
-                           <p className="text-sm text-gray-500">
+                           <p className="text-sm text-gray-500 dark:bg-darkColor dark:text-white">
                               Showing{" "}
-                              <span className="font-medium text-gray-700">
+                              <span className="font-medium text-gray-700 dark:bg-darkColor dark:text-white">
                                  {(currentPage - 1) * transactionsPerPage + 1}
                               </span>
                               {" "}to{" "}
-                              <span className="font-medium text-gray-700">
+                              <span className="font-medium text-gray-700 dark:bg-darkColor dark:text-white">
                                  {Math.min(
                                     currentPage * transactionsPerPage,
                                     totalTransactions
                                  )}
                               </span>
                               {" "}of{" "}
-                              <span className="font-medium text-gray-700">
+                              <span className="font-medium text-gray-700 dark:bg-darkColor dark:text-white">
                                  {totalTransactions}
                               </span>
                               {" "}transactions

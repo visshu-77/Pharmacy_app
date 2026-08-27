@@ -82,14 +82,14 @@ export default function Subscription() {
             <div>
                 <LastParams />
             </div>
-            <div className="min-h-screen bg-[#F7F9FC] mt-4">
+            <div className="min-h-screen bg-[#F7F9FC] mt-4 dark:bg-darkColor dark:text-white">
 
                 <main className="max-w-6xl mx-auto px-6 py-16">
                     <section className="text-center">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold uppercase tracking-wide">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold uppercase tracking-wide dark:bg-darkColor dark:text-white dark:border dark:border-white/30">
                             • Simple & Transparent Pricing
                         </span>
-                        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mt-5">
+                        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mt-5 dark:text-white">
                             Choose the right plan
                             <br />
                             for your business
@@ -102,7 +102,7 @@ export default function Subscription() {
 
                     <div id="pricing" className="flex justify-center mt-8">
 
-                        <div className="bg-white border rounded-xl p-1 flex items-center shadow-sm">
+                        <div className="bg-white border rounded-xl p-1 flex items-center shadow-sm dark:bg-darkColor dark:text-white">
 
                             <button
                                 onClick={() => setDuration("monthly")}

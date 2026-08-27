@@ -124,7 +124,7 @@ export default function SubscriptionSettings() {
             />
 
             {/* ================= CURRENT PLAN ================= */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white dark:from-black dark:to-black dark:text-white dark:border dark:border-white/30">
 
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
 
@@ -271,7 +271,7 @@ export default function SubscriptionSettings() {
                     <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
 
                         <div
-                            className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                            className="h-full bg-blue-600 rounded-full transition-all duration-500 dark:bg-darkColor dark:text-white dark:border dark:border-white/30"
                             style={{
                                 width: `${usagePercentage}%`
                             }}

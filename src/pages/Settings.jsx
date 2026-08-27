@@ -75,13 +75,13 @@ export default function Settings() {
             <div>
                 <LastParams />
             </div>
-            <div className="min-h-screen bg-[#F7F9FC] px-3 py-4 sm:px-6 sm:py-6 mt-4">
+            <div className="min-h-screen bg-[#F7F9FC] px-3 py-4 sm:px-6 sm:py-6 mt-4 dark:bg-darkColor dark:text-white">
 
                 {/* Header */}
 
                 <div className="mb-6">
 
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:bg-darkColor dark:text-white">
                         Settings
                     </h1>
 
@@ -92,7 +92,7 @@ export default function Settings() {
                 </div>
 
                 {/* Settings Layout */}
-                <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden dark:bg-darkColor dark:text-white dark:border dark:border-white">
 
                     {/* DESKTOP */}
                     <div className="hidden md:flex min-h-[600px]">
@@ -112,8 +112,8 @@ export default function Settings() {
                             text-left
                             transition
                             ${activeTab === item.id
-                                                ? "bg-blue-50 text-blue-600 font-semibold"
-                                                : "text-gray-600 hover:bg-gray-50"
+                                                ? "bg-blue-50 text-blue-600 dark:text-black font-semibold"
+                                                : "text-gray-600 hover:bg-gray-50 dark:text-white dark:hover:text-black"
                                             }
                         `}
                                     >
@@ -173,7 +173,7 @@ export default function Settings() {
                             transition
                             ${activeTab === item.id
                                                 ? "bg-blue-50 text-blue-600 font-semibold"
-                                                : "text-gray-600 hover:bg-gray-50"
+                                                : "text-gray-600 hover:bg-gray-50 dark:text-white dark:hover:text-black"
                                             }
                         `}
                                     >

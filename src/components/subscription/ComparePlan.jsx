@@ -97,7 +97,7 @@ export default function ComparePlans() {
             {/* Heading */}
             <div className="text-center mb-8">
 
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:bg-darkColor dark:text-white">
                     Compare Plans
                 </h2>
 
@@ -109,7 +109,7 @@ export default function ComparePlans() {
 
 
             {/* Table */}
-            <div className="overflow-x-auto bg-white border border-gray-200 rounded-xl">
+            <div className="overflow-x-auto bg-white border border-gray-200 rounded-xl dark:bg-darkColor dark:text-white">
 
                 <table className="w-full min-w-[700px]">
 
@@ -117,19 +117,19 @@ export default function ComparePlans() {
 
                         <tr className="border-b bg-gray-50">
 
-                            <th className="text-left p-4 text-xs uppercase text-gray-400 font-semibold">
+                            <th className="text-left p-4 text-xs uppercase text-gray-400 font-semibold dark:bg-darkColor dark:text-white">
                                 Feature
                             </th>
 
-                            <th className="p-4 text-center text-sm font-semibold text-gray-600">
+                            <th className="p-4 text-center text-sm font-semibold text-gray-600 dark:bg-darkColor dark:text-white">
                                 Normal
                             </th>
 
-                            <th className="p-4 text-center text-sm font-semibold text-blue-600 bg-blue-50/50">
+                            <th className="p-4 text-center text-sm font-semibold text-blue-600 bg-blue-50/50 dark:bg-darkColor dark:text-white">
                                 Premium
                             </th>
 
-                            <th className="p-4 text-center text-sm font-semibold text-gray-600">
+                            <th className="p-4 text-center text-sm font-semibold text-gray-600 dark:bg-darkColor dark:text-white">
                                 Business
                             </th>
 
@@ -147,23 +147,23 @@ export default function ComparePlans() {
                                 className="border-b last:border-b-0 hover:bg-gray-50 transition"
                             >
 
-                                <td className="p-4 text-sm text-gray-600">
+                                <td className="p-4 text-sm text-gray-600 dark:bg-darkColor dark:text-white">
                                     {feature.name}
                                 </td>
 
-                                <td className="p-4 text-center">
+                                <td className="p-4 text-center dark:bg-darkColor dark:text-white">
                                     <FeatureStatus
                                         enabled={feature.normal}
                                     />
                                 </td>
 
-                                <td className="p-4 text-center bg-blue-50/30">
+                                <td className="p-4 text-center bg-blue-50/30 dark:bg-darkColor dark:text-white">
                                     <FeatureStatus
                                         enabled={feature.premium}
                                     />
                                 </td>
 
-                                <td className="p-4 text-center">
+                                <td className="p-4 text-center dark:bg-darkColor dark:text-white">
                                     <FeatureStatus
                                         enabled={feature.business}
                                     />

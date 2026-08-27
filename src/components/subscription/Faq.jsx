@@ -46,7 +46,7 @@ export default function FAQ() {
 
             <div className="text-center mb-8">
 
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:bg-darkColor dark:text-white">
                     Frequently Asked Questions
                 </h2>
 
@@ -73,6 +73,7 @@ export default function FAQ() {
                                 bg-white border rounded-xl
                                 overflow-hidden
                                 transition-all duration-200
+                                dark:bg-darkColor dark:text-white
                                 ${
                                     isOpen
                                         ? "border-blue-200 shadow-sm"
@@ -88,7 +89,7 @@ export default function FAQ() {
                                 className="w-full flex items-center justify-between p-4 text-left"
                             >
 
-                                <span className="text-sm font-semibold text-gray-800">
+                                <span className="text-sm font-semibold text-gray-800 dark:bg-darkColor dark:text-white">
                                     {faq.question}
                                 </span>
 
@@ -99,7 +100,7 @@ export default function FAQ() {
                                         transition
                                         ${
                                             isOpen
-                                                ? "bg-blue-600 text-white"
+                                                ? "bg-blue-600 text-white dark:bg-black dark:text-white"
                                                 : "bg-gray-100 text-gray-500"
                                         }
                                     `}

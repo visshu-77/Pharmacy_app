@@ -22,23 +22,23 @@ export default function SupplierPagination({
       <div className="flex items-center justify-between px-5 py-4 border-t border-gray-200">
 
          {/* Showing information */}
-         <div className="text-sm text-gray-500">
+         <div className="text-sm text-gray-500 dark:text-white">
 
             Showing{" "}
 
-            <span className="font-medium text-gray-700">
+            <span className="font-medium text-gray-700 dark:text-white">
                {indexOfFirstItem + 1}
             </span>
 
             {" - "}
 
-            <span className="font-medium text-gray-700">
+            <span className="font-medium text-gray-700 dark:text-white">
                {indexOfLastItem}
             </span>
 
             {" of "}
 
-            <span className="font-medium text-gray-700">
+            <span className="font-medium text-gray-700 dark:text-white">
                {totalItems}
             </span>
 
@@ -62,6 +62,7 @@ export default function SupplierPagination({
                   px-3 py-2 text-sm
                   border border-gray-300
                   rounded-lg
+                  dark:bg-black
                   hover:bg-gray-50
                   disabled:opacity-40
                   disabled:cursor-not-allowed
@@ -81,7 +82,7 @@ export default function SupplierPagination({
                      w-9 h-9 text-sm rounded-lg border
                      ${
                         currentPage === 1
-                           ? "bg-blue-600 text-white border-blue-600"
+                           ? "bg-blue-600 dark:bg-black dark:border dark:border-white/30 text-white border-blue-600"
                            : "border-gray-300 text-gray-700 hover:bg-gray-50"
                      }
                   `}
@@ -127,7 +128,7 @@ export default function SupplierPagination({
                            w-9 h-9 text-sm rounded-lg border
                            ${
                               currentPage === page
-                                 ? "bg-blue-600 text-white border-blue-600"
+                                 ? "bg-blue-600 dark:bg-black dark:border dark:border-white/30 text-white border-blue-600"
                                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
                            }
                         `}
@@ -155,7 +156,7 @@ export default function SupplierPagination({
                         w-9 h-9 text-sm rounded-lg border
                         ${
                            currentPage === totalPages
-                              ? "bg-blue-600 text-white border-blue-600"
+                              ? "bg-blue-600 dark:bg-black dark:border dark:border-white/30 text-white border-blue-600"
                               : "border-gray-300 text-gray-700 hover:bg-gray-50"
                         }
                      `}
@@ -182,6 +183,7 @@ export default function SupplierPagination({
                   px-3 py-2 text-sm
                   border border-gray-300
                   rounded-lg
+                  dark:bg-black
                   hover:bg-gray-50
                   disabled:opacity-40
                   disabled:cursor-not-allowed

@@ -12,11 +12,11 @@ export default function SupplierModal({
 
    return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-         <div className="bg-white w-full max-w-2xl rounded-xl shadow-xl">
+         <div className="bg-white dark:bg-black dark:text-white w-full max-w-2xl rounded-xl shadow-xl">
 
             <div className="flex items-center justify-between px-6 py-4 border-b">
                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                      {editingSupplier ? "Edit Supplier" : "Add Supplier"}
                   </h2>
 
@@ -64,7 +64,7 @@ export default function SupplierModal({
                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                   <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                     <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
                         Supplier Name <span className="text-red-500">*</span>
                      </label>
 
@@ -75,12 +75,12 @@ export default function SupplierModal({
                         onChange={onChange}
                         placeholder="Supplier Name"
                         required
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 dark:bg-darkColor dark:text-white"
                      />
                   </div>
 
                   <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                     <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
                         Phone <span className="text-red-500">*</span>
                      </label>
 
@@ -91,12 +91,12 @@ export default function SupplierModal({
                         onChange={onChange}
                         placeholder="Phone number"
                         required
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 dark:bg-darkColor dark:text-white"
                      />
                   </div>
 
                   <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                     <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
                         Email 
                      </label>
 
@@ -106,12 +106,12 @@ export default function SupplierModal({
                         value={formData.email}
                         onChange={onChange}
                         placeholder="email"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 dark:bg-darkColor dark:text-white"
                      />
                   </div>
 
                   <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                     <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
                         GST Number
                      </label>
 
@@ -121,12 +121,12 @@ export default function SupplierModal({
                         value={formData.gstNumber}
                         onChange={onChange}
                         placeholder="GST Number"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 dark:bg-darkColor dark:text-white"
                      />
                   </div>
 
                   <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                     <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
                         City <span className="text-red-500">*</span>
                      </label>
 
@@ -137,12 +137,12 @@ export default function SupplierModal({
                         onChange={onChange}
                         placeholder="City"
                         required
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 dark:bg-darkColor dark:text-white"
                      />
                   </div>
 
                   <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                     <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
                         State <span className="text-red-500">*</span>
                      </label>
 
@@ -153,12 +153,12 @@ export default function SupplierModal({
                         onChange={onChange}
                         placeholder="State"
                         required 
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 dark:bg-darkColor dark:text-white"
                      />
                   </div>
 
                   <div className="md:col-span-2">
-                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                     <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
                         Address <span className="text-red-500">*</span>
                      </label>
 
@@ -169,13 +169,13 @@ export default function SupplierModal({
                         rows="3"
                         placeholder="Address"
                         required
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 resize-none"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 resize-none dark:bg-darkColor dark:text-white"
                      />
                   </div>
 
                </div>
 
-               <div className="flex justify-end gap-3 mt-6 pt-5 border-t">
+               <div className="flex justify-end gap-3 mt-6 pt-5 border-t dark:border-none">
                   <button
                      type="button"
                      onClick={onClose}
@@ -187,7 +187,7 @@ export default function SupplierModal({
                   <button
                      type="submit"
                      disabled={loading}
-                     className="px-5 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                     className="px-5 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed dark:bg-black dark:text-white dark:border dark:border-white/30"
                   >
                      {loading
                         ? "Saving..."
