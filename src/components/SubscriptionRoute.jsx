@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useSubscription } from "../context/SubscriptionContext";
+import { Spinner } from "./ui/State";
 
 export default function SubscriptionRoute({ children }) {
 
@@ -17,11 +18,7 @@ export default function SubscriptionRoute({ children }) {
     }
 
     if (subscriptionLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <p>Checking subscription...</p>
-            </div>
-        );
+        return <Spinner label="Checking your plan…" className="min-h-[60vh]" />;
     }
 
     if (!subscription) {

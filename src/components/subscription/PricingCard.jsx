@@ -1,130 +1,75 @@
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 
-export default function PricingCard({
-    plan,
-    duration,
-    onSelect
-}) {
+import Button from "../ui/Button";
+
+const PERIOD = {
+    monthly: "/ month",
+    sixMonths: "/ 6 months",
+    yearly: "/ year"
+};
+
+const MONTHS = { monthly: 1, sixMonths: 6, yearly: 12 };
+
+export default function PricingCard({ plan, duration, onSelect, current = false }) {
 
     const price = plan.prices[duration];
-
-    const isPremium = plan.id === "premium";
+    const featured = plan.id === "premium";
+    const perMonth = Math.round(price / MONTHS[duration]);
 
     return (
-
         <div
-            className={`
-                relative bg-white rounded-xl p-6 border
-                transition duration-300 dark:bg-darkColor dark:text-white
-                ${
-                    isPremium
-                        ? "border-blue-600 shadow-lg"
-                        : "border-gray-200 shadow-sm"
-                }
-            `}
+            className={[
+                "relative flex flex-col rounded-2xl border bg-surface p-6 transition-all duration-200",
+                featured
+                    ? "border-primary shadow-lg ring-1 ring-primary/30 md:-translate-y-2"
+                    : "border-line shadow-card hover:shadow-md"
+            ].join(" ")}
         >
-
-            {/* Most Popular */}
-            {isPremium && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-
-                    <span className="bg-blue-600 text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase">
-                        Most Popular
-                    </span>
-
-                </div>
+            {featured && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow">
+                    <Sparkles className="h-3 w-3" />
+                    Most popular
+                </span>
             )}
 
-
-            {/* Plan */}
             <div>
-
-                <p className="text-xs font-semibold uppercase text-gray-400 dark:text-white">
-                    {plan.name}
-                </p>
-
-                <p className="text-xs text-gray-500 mt-2">
-                    {plan.description}
-                </p>
-
+                <h3 className="text-lg font-bold text-heading">{plan.name}</h3>
+                <p className="text-sm text-muted mt-1">{plan.description}</p>
             </div>
 
-
-            {/* Price */}
-            <div className="mt-8">
-
-                <div className="text-3xl font-bold text-gray-900 dark:bg-darkColor dark:text-white">
-                    ₹{price.toLocaleString("en-IN")}
+            <div className="mt-6">
+                <div className="flex items-baseline gap-1.5">
+                    <span className="text-4xl font-extrabold tracking-tight text-heading tabular">
+                        ₹{price.toLocaleString("en-IN")}
+                    </span>
+                    <span className="text-sm text-muted">{PERIOD[duration]}</span>
                 </div>
-
-                <p className="text-xs text-gray-400 mt-1">
-                    {duration === "monthly"
-                        ? "/month"
-                        : duration === "sixMonths"
-                            ? "/6 months"
-                            : "/12 months"
-                    }
-                </p>
-
+                {duration !== "monthly" && (
+                    <p className="text-xs text-muted mt-1 tabular">≈ ₹{perMonth.toLocaleString("en-IN")} per month</p>
+                )}
             </div>
 
-
-            {/* Divider */}
-            <div className="border-t my-6" />
-
-
-            {/* Features */}
-            <div className="space-y-3">
-
-                {plan.features.map((feature, index) => (
-
-                    <div
-                        key={index}
-                        className="flex items-start gap-2"
-                    >
-
-                        <div className="w-4 h-4 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-
-                            <Check
-                                size={11}
-                                className="text-blue-600"
-                            />
-
-                        </div>
-
-                        <span className="text-xs text-gray-600 dark:bg-darkColor dark:text-white">
-                            {feature}
-                        </span>
-
-                    </div>
-
-                ))}
-
-            </div>
-
-
-            {/* Button */}
-            <button
+            <Button
+                fullWidth
+                size="lg"
+                variant={featured ? "primary" : "secondary"}
+                className="mt-6"
+                disabled={current}
                 onClick={() => onSelect(plan)}
-                className={`
-                    w-full mt-8 py-2.5 rounded-lg text-sm font-semibold transition dark:bg-darkColor dark:text-white
-                    ${
-                        isPremium
-                            ? "bg-blue-600 text-white hover:bg-blue-700 dark:border dark:border-white"
-                            : "border border-blue-600 text-blue-600 hover:bg-blue-50"
-                    }
-                `}
             >
+                {current ? "Current plan" : `Choose ${plan.name}`}
+            </Button>
 
-                {plan.id === "normal"
-                    ? "Get Started"
-                    : plan.id === "premium"
-                        ? "Choose Premium"
-                        : "Choose Business"
-                }
-
-            </button>
-
+            <ul className="mt-6 pt-6 border-t border-line space-y-3 flex-1">
+                {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2.5 text-sm text-body">
+                        <span className="grid place-items-center h-5 w-5 shrink-0 rounded-full bg-primary/10 text-primary">
+                            <Check className="h-3 w-3" />
+                        </span>
+                        {feature}
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 }

@@ -67,66 +67,72 @@ export default function Pagination({
     const pageNumbers = getPageNumbers();
 
 
-    return (
-        <div className="flex items-center gap-1">
+    const navButton =
+        "grid place-items-center h-8 w-8 rounded-lg border border-line text-muted " +
+        "hover:bg-surface-hover hover:text-heading transition-colors " +
+        "disabled:opacity-40 disabled:pointer-events-none";
 
-            {/* Previous Button */}
+    if (totalPages <= 1) {
+        return null;
+    }
+
+    return (
+        <nav className="flex items-center gap-1" aria-label="Pagination">
 
             <button
                 type="button"
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-2 py-1 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                aria-label="Previous page"
+                className={navButton}
             >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-4 h-4" />
             </button>
-
-
-            {/* Page Numbers */}
 
             {pageNumbers.map((page, index) => {
 
-                // Ellipsis
                 if (page === "...") {
                     return (
                         <span
                             key={`ellipsis-${index}`}
-                            className="px-2 py-1 text-gray-500"
+                            className="px-1.5 text-faint text-sm"
+                            aria-hidden="true"
                         >
-                            ...
+                            …
                         </span>
                     );
                 }
 
+                const active = currentPage === page;
 
                 return (
                     <button
                         type="button"
                         key={page}
                         onClick={() => onPageChange(page)}
-                        className={`min-w-[32px] px-2 py-1 rounded text-sm cursor-pointer ${
-                            currentPage === page
-                                ? "bg-primary dark:bg-black text-white"
-                                : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-                        }`}
+                        aria-current={active ? "page" : undefined}
+                        className={[
+                            "min-w-[32px] h-8 px-2 rounded-lg text-sm font-semibold tabular transition-colors",
+                            active
+                                ? "bg-primary text-white shadow-sm"
+                                : "text-muted hover:bg-surface-hover hover:text-heading"
+                        ].join(" ")}
                     >
                         {page}
                     </button>
                 );
             })}
 
-
-            {/* Next Button */}
-
             <button
                 type="button"
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-2 py-1 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                aria-label="Next page"
+                className={navButton}
             >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4" />
             </button>
 
-        </div>
+        </nav>
     );
 }

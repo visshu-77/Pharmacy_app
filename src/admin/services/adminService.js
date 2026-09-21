@@ -5,7 +5,8 @@ export const getAllCustomers = async ({
     limit = 10,
     search = "",
     status = "all",
-    plan = "all"
+    plan = "all",
+    businessType = "all"
 } = {}) => {
 
     const token = localStorage.getItem("token");
@@ -16,9 +17,10 @@ export const getAllCustomers = async ({
             params: {
                 page,
                 limit,
-                search,                     
+                search,
                 status,
-                plan
+                plan,
+                businessType
             },
 
             headers: {

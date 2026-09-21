@@ -1,416 +1,459 @@
-import { useState } from "react";
-import { useCart } from "../context/CartContext";
-import { Trash2, ShoppingCart, Banknote, Smartphone, CreditCard } from "lucide-react";
-import LastParams from "../components/lastParams";
-
-
-import { createOrder } from "../services/orderService";
-import ProductSearch from "../components/Billing/ProductSearch";
-
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
+import {
+    ReceiptText,
+    Trash2,
+    Minus,
+    Plus,
+    User,
+    Phone,
+    Banknote,
+    Smartphone,
+    CreditCard,
+    ShoppingCart,
+    Percent,
+    IndianRupee,
+    CheckCircle2,
+    AlertTriangle
+} from "lucide-react";
+
+import PageHeader from "../components/ui/PageHeader";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import { Input } from "../components/ui/Field";
+import { EmptyState } from "../components/ui/State";
+import { useToast } from "../components/ui/Toast";
+
+import ProductSearch from "../components/Billing/ProductSearch";
 import Invoice from "../components/Invoice/Invoice";
 
+import { createOrder } from "../services/orderService";
+import { useCart } from "../context/CartContext";
+import { useBusiness } from "../context/BusinessContext";
+
+const PAYMENT_METHODS = [
+    { id: "Cash", label: "Cash", icon: Banknote },
+    { id: "UPI", label: "UPI", icon: Smartphone },
+    { id: "Card", label: "Card", icon: CreditCard }
+];
+
+const round2 = (value) => Math.round(value * 100) / 100;
 
 export default function Billing() {
 
-    const { cart, removeFromCart, clearCart, increaseQuantity, decreaseQuantity, } = useCart();
+    const toast = useToast();
+    const { cart, removeFromCart, clearCart, increaseQuantity, decreaseQuantity, setQuantity } = useCart();
+    const { user, term, shopName, formatMoney, showField, fields } = useBusiness();
 
     const [customerName, setCustomerName] = useState("");
     const [customerPhone, setCustomerPhone] = useState("");
-    const [discount, setDiscount] = useState(0);
-    const [tax, setTax] = useState(0);
+
+    const [discountValue, setDiscountValue] = useState("");
+    const [discountMode, setDiscountMode] = useState("amount"); // "amount" | "percent"
+    const [applyGst, setApplyGst] = useState(false);
+
     const [paymentMethod, setPaymentMethod] = useState("Cash");
+    const [cashReceived, setCashReceived] = useState("");
+
     const [loading, setLoading] = useState(false);
     const [createdOrder, setCreatedOrder] = useState(null);
 
+    const upiId = user?.upiId;
 
-    const UPI_ID = "myupi123@upi";
-    const UPI_NAME = "MediStock";
+    const totals = useMemo(() => {
+        const subtotal = round2(
+            cart.reduce((sum, item) => sum + Number(item.sellingPrice || 0) * Number(item.quantity), 0)
+        );
 
-    const subtotal = cart.reduce(
-        (total, item) =>
-            total + Number(item.sellingPrice) * Number(item.quantity),
-        0
-    );
+        const raw = Number(discountValue) || 0;
+        const discount = round2(
+            Math.min(subtotal, discountMode === "percent" ? (subtotal * Math.min(raw, 100)) / 100 : raw)
+        );
 
-    const grandTotal =
-        subtotal -
-        Number(discount || 0) +
-        Number(tax || 0);
+        // GST added on top, per item, from each item's own rate — pro-rated
+        // after the bill-level discount.
+        const ratio = subtotal > 0 ? (subtotal - discount) / subtotal : 0;
+        const tax = applyGst
+            ? round2(
+                cart.reduce(
+                    (sum, item) =>
+                        sum + Number(item.sellingPrice || 0) * Number(item.quantity) * ratio * (Number(item.taxRate || 0) / 100),
+                    0
+                )
+            )
+            : 0;
 
-    const upiUrl =
-        `upi://pay?pa=${UPI_ID}` +
-        `&pn=${encodeURIComponent(UPI_NAME)}` +
-        `&am=${grandTotal.toFixed(2)}` +
-        `&cu=INR`;
+        const grandTotal = round2(subtotal - discount + tax);
+        const units = cart.reduce((sum, item) => sum + Number(item.quantity), 0);
+
+        return { subtotal, discount, tax, grandTotal, units };
+    }, [cart, discountValue, discountMode, applyGst]);
+
+    const change = paymentMethod === "Cash" && Number(cashReceived) > 0
+        ? round2(Number(cashReceived) - totals.grandTotal)
+        : null;
+
+    const hasTaxedItems = cart.some((item) => Number(item.taxRate) > 0);
+
+    const upiUrl = upiId
+        ? `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(shopName)}&am=${totals.grandTotal.toFixed(2)}&cu=INR`
+        : "";
 
     const handleCreateOrder = async () => {
+        if (!cart.length) {
+            toast.warning("Add at least one item to the bill");
+            return;
+        }
+
+        if (customerPhone && !/^\d{10}$/.test(customerPhone)) {
+            toast.warning("Mobile number should be 10 digits, or leave it blank");
+            return;
+        }
+
+        if (change !== null && change < 0) {
+            toast.warning(`Cash received is ${formatMoney(-change, { decimals: 2 })} short`);
+            return;
+        }
 
         try {
-            if (!cart || cart.length === 0) {
-                alert("Cart is empty");
-                return;
-            }
-            if (!customerName.trim()) {
-                alert("Please enter customer name");
-                return;
-            }
-            if (!customerPhone.trim()) {
-                alert("Please enter mobile number");
-                return;
-            }
             setLoading(true);
-            const orderData = {
+
+            const result = await createOrder({
                 customerName: customerName.trim(),
                 customerPhone: customerPhone.trim(),
-                items: cart.map((item) => ({
-                    productId: item._id,
-                    quantity: Number(item.quantity)
-                })),
-                discount: Number(discount) || 0,
-                tax: Number(tax) || 0,
+                items: cart.map((item) => ({ productId: item._id, quantity: Number(item.quantity) })),
+                discount: totals.discount,
+                tax: totals.tax,
                 paymentMethod
-            };
-            console.log("Sending order:", orderData);
-            const result = await createOrder(orderData);
-            console.log("Order created:", result);
-            // alert(
-            //     `Order created successfully!\nInvoice: ${result.order.invoiceNumber}`
-            // );
+            });
+
             setCreatedOrder(result.order);
             clearCart();
-
-
+            setCustomerName("");
+            setCustomerPhone("");
+            setDiscountValue("");
+            setCashReceived("");
+            toast.success(`Bill ${result.order.invoiceNumber} saved`, { title: "Sale complete" });
         } catch (error) {
-            console.log("Order error:", error);
-            const message =
-                error.response?.data?.message ||
-                "Failed to create order";
-            alert(message);
+            toast.error(error.response?.data?.message || "Could not save the bill");
         } finally {
             setLoading(false);
         }
     };
 
-    return (
-        <>
-            <div>
-                <LastParams />
+    if (createdOrder) {
+        return (
+            <div className="space-y-6">
+                <PageHeader icon={CheckCircle2} title="Sale complete" subtitle={`Invoice ${createdOrder.invoiceNumber}`} />
+                <Invoice order={createdOrder} onNewBill={() => setCreatedOrder(null)} />
             </div>
-            {createdOrder ? (
-                <Invoice
-                    order={createdOrder}
-                    onNewBill={() => setCreatedOrder(null)}
-                />
-            ) : (
-                <div className="p-6 bg-[#F4F6F9] mt-4 dark:bg-darkColor dark:text-white">
-                    <h1 className="text-2xl font-bold">
-                        Create New Bill
-                    </h1>
-                    <p className="text-black/50 text-xs dark:bg-darkColor dark:text-white">
-                        Add products and create a new customer invoice
-                    </p>
+        );
+    }
 
-                    <div className="flex flex-col sm:flex-row gap-6">
-                        <div className="w-full sm:w-[75%]">
-                            <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow dark:bg-darkColor dark:text-white dark:border dark:border-white">
-                                <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
-                                    Customer Details
-                                </h2>
-                                <div className="grid grid-cols-2 gap-4 mt-4">
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold text-black/30 uppercase dark:text-white">
-                                            Customer Name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            placeholder="Enter Customer Name"
-                                            value={customerName}
-                                            onChange={(e) =>
-                                                setCustomerName(e.target.value)
-                                            }
-                                            className="border p-3 rounded text-xs focus:outline-none focus:ring-0 bg-[#F8F9FC] dark:bg-darkColor dark:text-white"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold text-black/30 uppercase dark:text-white">
-                                            Mobile Number
-                                        </label>
-                                        <input
-                                            type="Number"
-                                            placeholder="Enter Mobile Number"
-                                            value={customerPhone}
-                                            onChange={(e) =>
-                                                setCustomerPhone(e.target.value)
-                                            }
-                                            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border p-3 rounded text-xs focus:outline-none focus:ring-0 bg-[#F8F9FC] dark:bg-darkColor dark:text-white"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            <ProductSearch />
-                            <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow dark:bg-darkColor dark:text-white dark:border dark:border-white">
-                                <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
-                                    Blling Items
-                                </h2>
-                                {cart.length > 0 ? (
-                                    <>
-                                        <div className="grid grid-cols-12 gap-4 py-3 border-b bg-gray-50 rounded-t-md text-xs font-semibold text-gray-600 uppercase dark:bg-darkColor dark:text-white">
-                                            <div className="col-span-5">Product</div>
-                                            <div className="col-span-3 text-center">Quantity</div>
-                                            <div className="col-span-2 text-right">Price</div>
-                                            <div className="col-span-2 text-center">Delete</div>
-                                        </div>
-                                        {cart.map((item) => (
-                                            <div
-                                                key={item._id}
-                                                className="grid grid-cols-12 gap-4 justify-between items-center border-b py-4"
-                                            >
-                                                <div className="col-span-5">
-                                                    <p className="font-semibold capitalize text-sm">
-                                                        {item.productName}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500 dark:text-white">
-                                                        ₹ {Number(item.sellingPrice).toLocaleString("en-IN")}
-                                                        {" × "}
-                                                        {item.quantity}
-                                                    </p>
-                                                </div>
-                                                <div className="col-span-3 flex justify-center">
-                                                    <div className="flex items-center border rounded-md overflow-hidden">
+    return (
+        <div className="space-y-6">
+            <PageHeader
+                icon={ReceiptText}
+                title="New bill"
+                subtitle="Scan or search to add items, then take payment"
+                actions={
+                    cart.length > 0 && (
+                        <Button variant="ghost" icon={Trash2} onClick={clearCart}>
+                            Clear bill
+                        </Button>
+                    )
+                }
+            />
 
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => decreaseQuantity(item._id)}
-                                                            className="w-8 h-8 flex items-center justify-center hover:bg-gray-100"
-                                                        >
-                                                            -
-                                                        </button>
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px] gap-6 items-start">
 
-                                                        <span className="w-10 text-center">
-                                                            {item.quantity}
-                                                        </span>
+                {/* ---------------- Left: items ---------------- */}
+                <div className="space-y-4 min-w-0">
+                    <ProductSearch />
 
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => increaseQuantity(item._id)}
-                                                            className="w-8 h-8 flex items-center justify-center hover:bg-gray-100"
-                                                        >
-                                                            +
-                                                        </button>
+                    <Card padded={false}>
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+                            <h2 className="font-semibold text-heading">
+                                Items <span className="text-muted font-normal">({cart.length})</span>
+                            </h2>
+                            <span className="text-xs text-muted tabular">{totals.units} units</span>
+                        </div>
 
-                                                    </div>
-                                                </div>
-                                                <div className="col-span-2 text-right font-semibold text-sm">
-                                                    <p>
-                                                        ₹ {(Number(item.sellingPrice) * Number(item.quantity))
-                                                            .toLocaleString("en-IN")}
-                                                    </p>
-                                                </div>
-                                                <div className="col-span-2 flex justify-center">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeFromCart(item._id)}
-                                                        className="text-red-500 border border-red-500 hover:bg-red-100 p-2 rounded hover:scale-105 hover:text-red-700 transition"
-                                                        title="Remove product"
-                                                    >
-                                                        <Trash2 size={15} />
-                                                    </button>
-                                                </div>
+                        {cart.length === 0 ? (
+                            <EmptyState
+                                icon={ShoppingCart}
+                                title="Bill is empty"
+                                message={`Scan a barcode or search above to add ${term.itemsLower}. Press / to jump to search.`}
+                            />
+                        ) : (
+                            <ul className="divide-y divide-line">
+                                {cart.map((item, index) => {
+                                    const lineTotal = Number(item.sellingPrice || 0) * Number(item.quantity);
+                                    const atMax = Number(item.quantity) >= Number(item.stock);
+                                    return (
+                                        <li key={item._id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 px-5 py-3.5">
+                                            <span className="hidden sm:grid place-items-center h-7 w-7 shrink-0 rounded-md bg-surface-hover text-xs font-semibold text-muted tabular">
+                                                {index + 1}
+                                            </span>
+
+                                            <div className="min-w-0 flex-1 basis-full sm:basis-auto">
+                                                <p className="font-semibold text-heading truncate">{item.productName}</p>
+                                                <p className="text-xs text-muted tabular">
+                                                    {formatMoney(item.sellingPrice, { decimals: 2 })} / {item.unit || "unit"}
+                                                    {applyGst && Number(item.taxRate) > 0 && ` · GST ${item.taxRate}%`}
+                                                    {atMax && <span className="text-warning font-medium"> · max stock</span>}
+                                                </p>
                                             </div>
-                                        ))}
-                                    </>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center py-20 gap-1">
-                                        <ShoppingCart size={30} className="text-gray-300" />
-                                        <p className="text-black-100 font-bold text-sm">
-                                            Your Bill cart is Empty
-                                        </p>
-                                        <p className="text-gray-500 text-xs">Search and add products above to start creating this bill.</p>
-                                    </div>
-                                )}
-                                <div className="text-xs text-gray-500 mt-2 flex justify-between">
-                                    <p>{cart.length} items</p>
-                                    <p className="font-bold text-primary text-sm dark:text-white"><span className="text-black dark:text-white">Subtotal : </span> ₹ {grandTotal.toLocaleString("en-IN")}</p>
-                                </div>
-                            </div>
 
+                                            <div className="inline-flex items-center rounded-lg border border-line bg-surface">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => decreaseQuantity(item._id)}
+                                                    disabled={Number(item.quantity) <= 1}
+                                                    className="grid place-items-center h-9 w-9 text-muted hover:text-heading disabled:opacity-40"
+                                                    aria-label="Decrease quantity"
+                                                >
+                                                    <Minus className="h-3.5 w-3.5" />
+                                                </button>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="any"
+                                                    value={item.quantity}
+                                                    onChange={(e) => setQuantity(item._id, e.target.value)}
+                                                    className="w-14 h-9 bg-transparent text-center text-sm font-semibold text-heading tabular focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                                    aria-label={`Quantity of ${item.productName}`}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => increaseQuantity(item._id)}
+                                                    disabled={atMax}
+                                                    className="grid place-items-center h-9 w-9 text-muted hover:text-heading disabled:opacity-40"
+                                                    aria-label="Increase quantity"
+                                                >
+                                                    <Plus className="h-3.5 w-3.5" />
+                                                </button>
+                                            </div>
+
+                                            <span className="w-28 text-right font-bold text-heading tabular ml-auto sm:ml-0">
+                                                {formatMoney(lineTotal, { decimals: 2 })}
+                                            </span>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => removeFromCart(item._id)}
+                                                className="grid place-items-center h-9 w-9 shrink-0 rounded-lg text-faint hover:bg-danger/10 hover:text-danger transition-colors"
+                                                aria-label={`Remove ${item.productName}`}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </Card>
+
+                    <Card>
+                        <h2 className="font-semibold text-heading">Customer <span className="text-xs font-normal text-muted">— optional</span></h2>
+                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <Input
+                                label="Name"
+                                icon={User}
+                                placeholder="Walk-in customer"
+                                value={customerName}
+                                onChange={(e) => setCustomerName(e.target.value)}
+                            />
+                            <Input
+                                label="Mobile"
+                                icon={Phone}
+                                type="tel"
+                                inputMode="numeric"
+                                maxLength={10}
+                                placeholder="For WhatsApp invoice"
+                                value={customerPhone}
+                                onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, ""))}
+                            />
                         </div>
-                        <div className="w-full sm:w-[25%]">
-                            <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow dark:bg-darkColor dark:text-white dark:border dark:border-white">
-                                <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
-                                    Bill Summary
-                                </h2>
-                                <div className="flex justify-between mt-4">
-                                    <span className="text-xs text-gray-500 dark:text-white">
-                                        Subtotal
-                                    </span>
-                                    <span className="font-bold text-xs">
-                                        ₹ {subtotal.toLocaleString("en-IN")}
-                                    </span>
-                                </div>
-                                <div className="flex flex-col justify-between mt-3 gap-2">
-                                    <span className="text-xs text-gray-500 dark:text-white">
-                                        Discount
-                                    </span>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        value={discount}
-                                        onChange={(e) =>
-                                            setDiscount(e.target.value)
-                                        }
-                                        placeholder="Enter Discount"
-                                        className="border rounded p-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-                                bg-[#F8F9FC] focus:outline-none focus:ring-1 text-green-500 font-bold text-xs dark:bg-darkColor dark:text-white"
-                                    />
-                                </div>
-                                <div className="flex flex-col justify-between mt-3 gap-2">
-                                    <span className="text-xs text-gray-500 dark:text-white">
-                                        Tax
-                                    </span>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        value={tax}
-                                        onChange={(e) =>
-                                            setTax(e.target.value)
-                                        }
-                                        placeholder="Enter Tax"
-                                        className="border rounded p-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-                                bg-[#F8F9FC] focus:outline-none focus:ring-1 font-bold text-xs dark:bg-darkColor dark:text-white"
-                                    />
-                                </div>
-                                <div className="flex justify-between mt-5 pt-4 border-t">
-                                    <span className="font-bold text-xs font-bold text-gray-500 dark:text-white">
-                                        Grand Total
-                                    </span>
-                                    <span className="font-bold text-lg text-primary dark:text-white">
-                                        ₹ {grandTotal.toLocaleString("en-IN")}
-                                    </span>
-                                </div>
+                    </Card>
+                </div>
+
+                {/* ---------------- Right: summary + payment ---------------- */}
+                <div className="xl:sticky xl:top-4 space-y-4">
+                    <Card>
+                        <h2 className="font-semibold text-heading">Summary</h2>
+
+                        <dl className="mt-4 space-y-3 text-sm">
+                            <div className="flex justify-between">
+                                <dt className="text-muted">Subtotal</dt>
+                                <dd className="font-semibold text-heading tabular">{formatMoney(totals.subtotal, { decimals: 2 })}</dd>
                             </div>
 
-                            {/* Payment Method */}
-                            <div className="bg-white p-5 rounded-xl mt-5 border border-black/10 shadow5 dark:bg-darkColor dark:text-white dark:border dark:border-white">
-                                <h2 className="font-semibold text-xs border-l-4 pl-2 border-primary">
-                                    Payment Method
-                                </h2>
-                                <div className="grid grid-cols-3 gap-3 items-center justify-between mt-4">
-                                    <button
-                                        className="flex flex-col items-center gap-3 mb-3 text-xs text-gray-500 border border-gray-300 rounded p-2 sm:p-4 w-full hover:bg-gray-50 hover:border-blue-300 transition"
-                                        type="button"
-                                        onClick={() => setPaymentMethod("Cash")}
-                                        style={{
-                                            borderColor: paymentMethod === "Cash" ? "#3b82f6" : "#d1d5db",
-                                            borderWidth: "2px",
-                                            color: paymentMethod === "Cash" ? "#3b82f6" : "#6b7280",
-                                            fontWeight: "bold",
-                                        }}
-                                    >
-                                        {/* <Banknote color="green" size={15} /> */}
-                                        <span className="text-[21px]">💵</span>
-                                        Cash
-                                    </button>
-                                    <button className="flex flex-col items-center gap-3 mb-3 text-xs text-gray-500 border border-gray-300 rounded p-2 sm:p-4 w-full hover:bg-gray-50 hover:border-blue-300 transition"
-                                        type="button"
-                                        onClick={() => setPaymentMethod("UPI")}
-                                        style={{
-                                            borderColor: paymentMethod === "UPI" ? "#3b82f6" : "#d1d5db",
-                                            borderWidth: "2px",
-                                            color: paymentMethod === "UPI" ? "#3b82f6" : "#6b7280",
-                                            fontWeight: paymentMethod === "UPI" ? "bold" : "normal",
-                                        }}
-                                    >
-
-                                        {/* <Smartphone color="black" size={15} /> */}
-                                        <span className="text-[21px]">📱</span>
-                                        Phone Pay
-                                    </button>
-                                    <button className="flex flex-col items-center gap-3 mb-3 text-xs text-gray-500 border border-gray-300 rounded p-2 sm:p-4 w-full hover:bg-gray-50 hover:border-blue-300 transition"
-                                        type="button"
-                                        onClick={() => setPaymentMethod("Card")}
-                                        style={{
-                                            borderColor: paymentMethod === "Card" ? "#3b82f6" : "#d1d5db",
-                                            borderWidth: "2px",
-                                            color: paymentMethod === "Card" ? "#3b82f6" : "#6b7280",
-                                            fontWeight: paymentMethod === "Card" ? "bold" : "normal",
-                                        }}
-                                    >
-                                        {/* <CreditCard color="#3b82f6" size={15} /> */}
-                                        <span className="text-[21px]">💳</span>
-                                        Card
-                                    </button>
-                                </div>
-                            
-
-                                {paymentMethod === "Cash" && (
-                                    <div className="mt-5 border rounded-xl p-5 bg-blue-50 border-primary shadow-lg">
-                                        <h3 className="font-semibold text-lg dark:text-black">
-                                            Cash Payment
-                                        </h3>
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            Please collect the <span className="font-bold text-black">₹ {grandTotal.toLocaleString("en-IN", {
-                                                minimumFractionDigits: 2,
-                                                maximumFractionDigits: 2
-                                            })} </span>from the customer.
-                                        </p>
+                            <div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-muted">Discount</dt>
+                                    <div className="flex items-center gap-2">
+                                        <div className="inline-flex rounded-lg border border-line p-0.5 bg-surface-muted">
+                                            {[
+                                                { id: "amount", icon: IndianRupee, label: "Amount" },
+                                                { id: "percent", icon: Percent, label: "Percent" }
+                                            ].map(({ id, icon: Icon, label }) => (
+                                                <button
+                                                    key={id}
+                                                    type="button"
+                                                    onClick={() => setDiscountMode(id)}
+                                                    className={`grid place-items-center h-7 w-7 rounded-md transition-colors ${discountMode === id ? "bg-surface text-primary shadow-xs" : "text-faint hover:text-heading"}`}
+                                                    aria-label={`Discount as ${label}`}
+                                                    aria-pressed={discountMode === id}
+                                                >
+                                                    <Icon className="h-3.5 w-3.5" />
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={discountValue}
+                                            onChange={(e) => setDiscountValue(e.target.value)}
+                                            placeholder="0"
+                                            className="w-24 h-9 rounded-lg border border-line bg-surface px-2.5 text-right text-sm font-semibold text-heading tabular focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                            aria-label="Discount"
+                                        />
                                     </div>
+                                </div>
+                                {totals.discount > 0 && (
+                                    <p className="mt-1 text-right text-xs font-semibold text-success tabular">
+                                        − {formatMoney(totals.discount, { decimals: 2 })}
+                                    </p>
                                 )}
+                            </div>
 
-                                {paymentMethod === "UPI" && (
-                                    <div className="mt-5 border rounded-xl p-5 bg-blue-50 border-primary shadow-lg">
-                                        <h3 className="font-semibold text-lg dark:text-black">
-                                            UPI Payment
-                                        </h3>
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            Scan the QR code to pay
+                            {showField(fields.TAX) && (
+                                <div className="flex items-center justify-between">
+                                    <label className="flex items-center gap-2 text-muted cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={applyGst}
+                                            onChange={(e) => setApplyGst(e.target.checked)}
+                                            className="h-4 w-4"
+                                            disabled={!hasTaxedItems}
+                                        />
+                                        Add GST
+                                        {!hasTaxedItems && cart.length > 0 && <span className="text-[11px] text-faint">(no rates set)</span>}
+                                    </label>
+                                    <dd className="font-semibold text-heading tabular">
+                                        {totals.tax > 0 ? `+ ${formatMoney(totals.tax, { decimals: 2 })}` : "—"}
+                                    </dd>
+                                </div>
+                            )}
+
+                            <div className="flex items-baseline justify-between pt-4 border-t border-line">
+                                <dt className="font-semibold text-heading">Total</dt>
+                                <dd className="text-3xl font-extrabold tracking-tight text-heading tabular">
+                                    {formatMoney(totals.grandTotal, { decimals: 2 })}
+                                </dd>
+                            </div>
+                        </dl>
+                    </Card>
+
+                    <Card>
+                        <h2 className="font-semibold text-heading">Payment</h2>
+
+                        <div className="mt-4 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Payment method">
+                            {PAYMENT_METHODS.map(({ id, label, icon: Icon }) => {
+                                const selected = paymentMethod === id;
+                                return (
+                                    <button
+                                        key={id}
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={selected}
+                                        onClick={() => setPaymentMethod(id)}
+                                        className={[
+                                            "flex flex-col items-center gap-1.5 rounded-xl border-2 py-3 text-xs font-semibold transition-all",
+                                            selected
+                                                ? "border-primary bg-primary/5 text-primary"
+                                                : "border-line text-muted hover:border-line-strong hover:text-heading"
+                                        ].join(" ")}
+                                    >
+                                        <Icon className="h-5 w-5" />
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <div className="mt-4">
+                            {paymentMethod === "Cash" && (
+                                <div className="space-y-3">
+                                    <Input
+                                        label="Cash received"
+                                        type="number"
+                                        min="0"
+                                        icon={IndianRupee}
+                                        placeholder={totals.grandTotal ? totals.grandTotal.toFixed(2) : "0.00"}
+                                        value={cashReceived}
+                                        onChange={(e) => setCashReceived(e.target.value)}
+                                    />
+                                    {change !== null && (
+                                        <div className={`flex items-center justify-between rounded-xl px-4 py-3 ${change >= 0 ? "bg-success/10" : "bg-danger/10"}`}>
+                                            <span className={`text-sm font-medium ${change >= 0 ? "text-success" : "text-danger"}`}>
+                                                {change >= 0 ? "Return change" : "Short by"}
+                                            </span>
+                                            <span className={`text-lg font-bold tabular ${change >= 0 ? "text-success" : "text-danger"}`}>
+                                                {formatMoney(Math.abs(change), { decimals: 2 })}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {paymentMethod === "UPI" && (
+                                upiId ? (
+                                    <div className="flex flex-col items-center rounded-xl border border-line bg-white p-4">
+                                        <QRCodeSVG value={upiUrl} size={184} />
+                                        <p className="mt-3 text-lg font-bold text-slate-900 tabular">
+                                            {formatMoney(totals.grandTotal, { decimals: 2 })}
                                         </p>
-                                        <div className="flex flex-col items-center mt-5">
-                                            <QRCodeSVG
-                                                value={upiUrl}
-                                                size={220}
-                                            />
-                                            <p className="mt-4 font-semibold dark:text-black">
-                                                ₹ {grandTotal.toLocaleString("en-IN", {
-                                                    minimumFractionDigits: 2,
-                                                    maximumFractionDigits: 2
-                                                })}
-                                            </p>
-                                            <p className="text-sm text-gray-600 mt-2">
-                                                UPI ID: {UPI_ID}
+                                        <p className="text-xs text-slate-500">{upiId}</p>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/10 p-4">
+                                        <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
+                                        <div className="text-sm">
+                                            <p className="font-semibold text-heading">Add your UPI ID to show a QR</p>
+                                            <p className="text-muted mt-0.5">
+                                                Set it once in{" "}
+                                                <Link to="/settings" className="font-semibold text-primary hover:underline">Settings → Business</Link>.
+                                                You can still record this sale as UPI.
                                             </p>
                                         </div>
                                     </div>
-                                )}
+                                )
+                            )}
 
-                                {paymentMethod === "Card" && (
-                                    <div className="mt-5 border border-red-500 bg-red-100 rounded-xl p-5 dark:text-black">
-                                        <h3 className="font-semibold text-lg">
-                                            Card Payment
-                                        </h3>
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            Currently the card service is not available. Please use Cash or UPI for payment.
-                                        </p>
-                                    </div>
-                                )}
-
-                                {createdOrder && (
-                                    <Invoice order={createdOrder} />
-                                )}
-                                <button
-                                    onClick={handleCreateOrder}
-                                    disabled={loading || cart.length === 0}
-                                    className="bg-primary text-white px-6 py-3 rounded-lg disabled:opacity-50 mt-5 w-full hover:bg-blue-600 transition font-semibold dark:bg-black dark:text-white dark:border dark:border-white/30"
-                                >
-                                    {loading ? "Creating Order..." : "Place Order"}
-                                </button>
-                            </div>
-
+                            {paymentMethod === "Card" && (
+                                <p className="rounded-xl bg-surface-muted border border-line px-4 py-3 text-sm text-muted">
+                                    Take the payment on your card machine, then save the bill.
+                                </p>
+                            )}
                         </div>
-                    </div>
-                </div >
-            )}
-        </>
+
+                        <Button
+                            size="lg"
+                            fullWidth
+                            className="mt-5 h-14 text-base"
+                            icon={CheckCircle2}
+                            loading={loading}
+                            disabled={!cart.length}
+                            onClick={handleCreateOrder}
+                        >
+                            {cart.length ? `Save bill · ${formatMoney(totals.grandTotal, { decimals: 2 })}` : "Save bill"}
+                        </Button>
+                    </Card>
+                </div>
+            </div>
+        </div>
     );
 }

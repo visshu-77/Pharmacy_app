@@ -1,176 +1,120 @@
-import { X, Plus, Minus, Trash2 } from "lucide-react";
-import { useCart } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
+import { Plus, Minus, Trash2, ShoppingCart, ArrowRight } from "lucide-react";
+
+import { Drawer } from "../ui/Modal";
+import Button from "../ui/Button";
+import { EmptyState } from "../ui/State";
+
+import { useCart } from "../../context/CartContext";
+import { useBusiness } from "../../context/BusinessContext";
 
 export default function CartDrawer({ open, onClose }) {
 
-    const {
-        cart,
-        increaseQuantity,
-        decreaseQuantity,
-        removeFromCart
-    } = useCart();
-
     const navigate = useNavigate();
+    const { cart, increaseQuantity, decreaseQuantity, removeFromCart } = useCart();
+    const { formatMoney, term } = useBusiness();
 
     const subtotal = cart.reduce(
-        (total, item) =>
-            total + item.sellingPrice * item.quantity,
+        (total, item) => total + Number(item.sellingPrice || 0) * item.quantity,
         0
     );
 
-    if (!open) {
-        return null;
-    }
+    const itemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
     return (
-
-        <div className="fixed inset-0 z-50">
-
-            {/* Background */}
-            <div
-                className="absolute inset-0 bg-black/30"
-                onClick={onClose}
-            />
-
-            {/* Drawer */}
-            <div className="absolute right-0 top-0 h-full w-[420px] bg-white dark:bg-darkColor shadow-xl">
-
-                {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b">
-
-                    <h2 className="text-xl dark:text-white font-semibold">
-                        Cart
-                    </h2>
-
-                    <button onClick={onClose}>
-                        <X className="dark:stroke-white" />
-                    </button>
-
-                </div>
-
-
-                {/* Products */}
-                <div className="p-5 overflow-y-auto h-[calc(100%-180px)]">
-
-                    {cart.length === 0 ? (
-
-                        <p className="text-center dark:text-white text-gray-500">
-                            Cart is empty
-                        </p>
-
-                    ) : (
-
-                        cart.map((item) => (
-
-                            <div
-                                key={item._id}
-                                className="border-b py-4"
-                            >
-
-                                <div className="flex justify-between">
-
-                                    <div>
-
-                                        <h3 className="font-semibold dark:text-white">
-                                            {item.productName}
-                                        </h3>
-
-                                        <p className="text-sm text-gray-500">
-                                            ₹ {item.sellingPrice.toLocaleString("en-IN")}
-                                        </p>
-
-                                    </div>
-
-                                    <button
-                                        onClick={() =>
-                                            removeFromCart(item._id)
-                                        }
-                                    >
-                                        <Trash2
-                                            size={18}
-                                            className="text-red-500"
-                                        />
-                                    </button>
-
-                                </div>
-
-
-                                {/* Quantity */}
-                                <div className="flex items-center gap-3 mt-3">
-
-                                    <button
-                                        onClick={() =>
-                                            decreaseQuantity(item._id)
-                                        }
-                                        className="border p-1 rounded dark:text-white"
-                                    >
-                                        <Minus size={15} />
-                                    </button>
-
-                                    <span className="dark:text-white">
-                                        {item.quantity}
-                                    </span>
-
-                                    <button
-                                        onClick={() =>
-                                            increaseQuantity(item._id)
-                                        }
-                                        className="border p-1 rounded dark:text-white"
-                                    >
-                                        <Plus size={15} />
-                                    </button>
-
-                                </div>
-
-
-                                {/* Item Total */}
-                                <p className="text-right font-semibold mt-2 dark:text-white">
-
-                                    ₹ {(item.sellingPrice * item.quantity)
-                                        .toLocaleString("en-IN")}
-
-                                </p>
-
-                            </div>
-
-                        ))
-
-                    )}
-
-                </div>
-
-
-                {/* Bottom */}
-                <div className="absolute bottom-0 left-0 right-0 dark:bg-darkColor bg-white border-t p-5">
-
-                    <div className="flex justify-between mb-4">
-
-                        <span className="font-semibold dark:text-white">
-                            Subtotal
-                        </span>
-
-                        <span className="font-bold dark:text-white">
-                            ₹ {subtotal.toLocaleString("en-IN")}
-                        </span>
-
+        <Drawer
+            open={open}
+            onClose={onClose}
+            icon={ShoppingCart}
+            title="Current bill"
+            subtitle={`${itemCount} unit${itemCount === 1 ? "" : "s"} · ${cart.length} ${cart.length === 1 ? term.itemLower : term.itemsLower}`}
+            footer={
+                <div>
+                    <div className="flex items-baseline justify-between mb-4">
+                        <span className="text-sm font-medium text-muted">Subtotal</span>
+                        <span className="text-xl font-bold text-heading tabular">{formatMoney(subtotal, { decimals: 2 })}</span>
                     </div>
 
-                    <button
+                    <Button
+                        fullWidth
+                        size="lg"
+                        iconRight={ArrowRight}
                         disabled={cart.length === 0}
                         onClick={() => {
                             onClose();
                             navigate("/billing");
                         }}
-                        className="w-full bg-primary text-white py-3 rounded dark:bg-black"
                     >
-                        Buy Now
-                    </button>
-
+                        Continue to billing
+                    </Button>
                 </div>
+            }
+        >
+            {cart.length === 0 ? (
+                <EmptyState
+                    icon={ShoppingCart}
+                    title="Bill is empty"
+                    message={`Add ${term.itemsLower} from your inventory to start a bill.`}
+                />
+            ) : (
+                <ul className="divide-y divide-line -mx-5">
+                    {cart.map((item) => (
+                        <li key={item._id} className="px-5 py-4">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-heading truncate">{item.productName}</p>
+                                    <p className="text-xs text-muted mt-0.5 tabular">
+                                        {formatMoney(item.sellingPrice, { decimals: 2 })} / {item.unit || "unit"}
+                                    </p>
+                                </div>
 
-            </div>
+                                <button
+                                    type="button"
+                                    onClick={() => removeFromCart(item._id)}
+                                    className="grid place-items-center h-8 w-8 shrink-0 rounded-lg text-faint hover:bg-danger/10 hover:text-danger transition-colors"
+                                    aria-label={`Remove ${item.productName}`}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
+                            </div>
 
-        </div>
+                            <div className="mt-3 flex items-center justify-between">
+                                <div className="inline-flex items-center rounded-lg border border-line">
+                                    <button
+                                        type="button"
+                                        onClick={() => decreaseQuantity(item._id)}
+                                        disabled={item.quantity <= 1}
+                                        className="grid place-items-center h-8 w-8 text-muted hover:text-heading disabled:opacity-40"
+                                        aria-label="Decrease quantity"
+                                    >
+                                        <Minus className="h-3.5 w-3.5" />
+                                    </button>
+                                    <span className="w-10 text-center text-sm font-semibold tabular text-heading">{item.quantity}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => increaseQuantity(item._id)}
+                                        disabled={item.quantity >= item.stock}
+                                        className="grid place-items-center h-8 w-8 text-muted hover:text-heading disabled:opacity-40"
+                                        aria-label="Increase quantity"
+                                    >
+                                        <Plus className="h-3.5 w-3.5" />
+                                    </button>
+                                </div>
+
+                                <span className="text-sm font-bold text-heading tabular">
+                                    {formatMoney(Number(item.sellingPrice || 0) * item.quantity, { decimals: 2 })}
+                                </span>
+                            </div>
+
+                            {item.quantity >= item.stock && (
+                                <p className="mt-2 text-[11px] text-warning font-medium">
+                                    All {item.stock} in stock added
+                                </p>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </Drawer>
     );
 }

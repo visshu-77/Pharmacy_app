@@ -1,753 +1,297 @@
-import { useEffect, useState } from "react";
-import { Trash2, Eye, Pencil } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Tags, Plus, Search, Eye, Pencil, Trash2, Package, Sparkles } from "lucide-react";
 
-import LastParams from "../components/lastParams";
-import HeadingWithButton from "../components/Headings";
+import PageHeader from "../components/ui/PageHeader";
+import Button, { IconButton } from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import { ConfirmDialog } from "../components/ui/Modal";
+import { EmptyState, SkeletonCards } from "../components/ui/State";
+import { useToast } from "../components/ui/Toast";
 
-import SearchIcon from "../components/Icons/SearchIcon";
-import FilterIcon from "../components/Icons/filterIcon";
-
-
-import TotalProductIcon from "../components/Icons/product page icons/totalProductIcon";
-
-import AddcategoryModal from "../components/modals/AddcategoryModal";
+import CategoryFormModal from "../components/modals/CategoryFormModal";
+import ViewCategoryModal from "../components/modals/viewCategoryModal";
 
 import {
     getCategory,
+    addCategory,
     deleteCategory,
     deleteSingleCategories,
     deleteAllCategories
 } from "../services/categoryService";
-import EditCategoryModal from "../components/modals/EditcategoryModal";
-import ViewCategoryModal from "../components/modals/viewCategoryModal";
+import { useBusiness } from "../context/BusinessContext";
 
+// Soft, fixed palette so each category keeps a recognisable tile colour.
+const TILE_TONES = [
+    "bg-primary/10 text-primary",
+    "bg-success/10 text-success",
+    "bg-warning/10 text-warning",
+    "bg-info/10 text-info",
+    "bg-danger/10 text-danger",
+    "bg-accent/10 text-accent"
+];
 
-const filterOption = [
-    {
-        placeholder: "All Categories",
-        options: ["antibiotics", "DOLO"]
-    }
-]
+const toneFor = (name = "") => {
+    let hash = 0;
+    for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+    return TILE_TONES[hash % TILE_TONES.length];
+};
 
 export default function CategoryPage() {
 
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState(null);
-    const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+    const toast = useToast();
+    const { term, profile, formatNumber } = useBusiness();
 
-    const [showModal, setShowModal] = useState(false);
-    const [openViewModal, setOpenViewModal] = useState(false);
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
+    const [selected, setSelected] = useState([]);
 
-    const [category, setCategory] = useState([]);
-    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [formCategory, setFormCategory] = useState(null);
+    const [viewId, setViewId] = useState(null);
+    const [confirm, setConfirm] = useState(null);
+    const [busy, setBusy] = useState(false);
+    const [seeding, setSeeding] = useState(false);
+
+    const load = async () => {
+        try {
+            const result = await getCategory();
+            setCategories(result.result || []);
+        } catch (err) {
+            toast.error(err?.response?.data?.message || `Could not load ${term.categories.toLowerCase()}`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchCategory = async () => {
-            try {
-                const result = await getCategory();
-                setCategory(result.result);
-            } catch (err) {
-                console.log(err);
-            }
-        };
-        fetchCategory();
-
+        load();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const [searchText, setSearchText] = useState("");
-    const [filters, setFilters] = useState({
-        category: "",
-    });
-
-    const searchCategory = category.filter((item) => {
-        const search = searchText.toLowerCase();
-        const matchSearch = (item.categoryName || "").toLowerCase().includes(search);
-        const matchCategory = !filters.category || item.categoryName === filters.category;
-
-        return (
-            matchSearch &&
-            matchCategory
+    const filtered = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return categories.filter((c) =>
+            !q ||
+            c.categoryName?.toLowerCase().includes(q) ||
+            c.description?.toLowerCase().includes(q)
         );
-    });
+    }, [categories, search]);
 
-    const [currentPage, setCurrentPage] = useState(1);
-    const productsPerPage = 10;
+    const totalItems = categories.reduce((sum, c) => sum + Number(c.productCount || 0), 0);
+    const emptyCategories = categories.filter((c) => !c.productCount).length;
 
-    const indexOfLastCategory = currentPage * productsPerPage;
-    const indexOfFirstCategory = indexOfLastCategory - productsPerPage;
-
-    const currentProducts = searchCategory.slice(
-        indexOfFirstCategory,
-        indexOfLastCategory
+    const missingStarters = profile.defaultCategories.filter(
+        (name) => !categories.some((c) => c.categoryName?.toLowerCase() === name.toLowerCase())
     );
-    const totalPages = Math.ceil(searchCategory.length / productsPerPage);
 
-
-    // delete handler
-    const handleDeleteCategory = async (id) => {
+    const addStarters = async () => {
         try {
-            await deleteCategory(id);
-
-            setCategory((prev) =>
-                prev.filter((item) => item._id !== id)
-            )
-
-            alert("category delete successfully")
+            setSeeding(true);
+            await Promise.all(missingStarters.map((categoryName) => addCategory({ categoryName, description: "" })));
+            await load();
+            toast.success(`Added ${missingStarters.length} ${term.categories.toLowerCase()}`);
         } catch (err) {
-            console.log(err);
-            alert("something went wrong");
+            toast.error(err?.response?.data?.message || "Could not add starter categories");
+        } finally {
+            setSeeding(false);
         }
-    }
-
-    const handleView = async (id) => {
-        setSelectedCategoryId(id);
-        setOpenViewModal(true);
     };
 
-    const categoryOptions = [
-        ...new Set(
-            category
-                .map((item) => item.categoryName)
-                .filter(Boolean)
-        )
-    ];
+    const toggle = (id) =>
+        setSelected((current) => current.includes(id) ? current.filter((x) => x !== id) : [...current, id]);
 
-    const AnalyticsData = [
-        { id: 1, icon: TotalProductIcon, number: category.length, content: "Total Categories", color: "text-secondary", bg: "bg-[#F0FDFA]" }
-    ]
+    const runConfirm = async () => {
+        try {
+            setBusy(true);
 
-    const handleSelectCategory = (id) => {
-        setSelectedCategories((prev) => {
-            if (prev.includes(id)) {
-                return prev.filter(
-                    (categoryId) => categoryId !== id
-                );
+            if (confirm.type === "one") {
+                await deleteCategory(confirm.category._id);
+                setCategories((prev) => prev.filter((c) => c._id !== confirm.category._id));
+                toast.success(`${confirm.category.categoryName} deleted`);
+            } else if (confirm.type === "selected") {
+                await deleteSingleCategories(selected);
+                setCategories((prev) => prev.filter((c) => !selected.includes(c._id)));
+                toast.success(`${selected.length} deleted`);
+                setSelected([]);
+            } else {
+                await deleteAllCategories();
+                setCategories([]);
+                setSelected([]);
+                toast.success(`All ${term.categories.toLowerCase()} deleted`);
             }
 
-            return [...prev, id];
-        });
-    };
-
-    const handleSelectAll = () => {
-        const currentCategoryIds = currentProducts.map(
-            (item) => item._id
-        );
-
-        const allSelected = currentCategoryIds.every(
-            (id) => selectedCategories.includes(id)
-        );
-
-        if (allSelected) {
-            setSelectedCategories((prev) =>
-                prev.filter(
-                    (id) => !currentCategoryIds.includes(id)
-                )
-            );
-        } else {
-            setSelectedCategories((prev) => [
-                ...new Set([
-                    ...prev,
-                    ...currentCategoryIds
-                ])
-            ]);
-        }
-    };
-
-    const isAllCurrentCategoriesSelected =
-        currentProducts.length > 0 &&
-        currentProducts.every(
-            (item) => selectedCategories.includes(item._id)
-        );
-
-    const handleDeleteSelected = async () => {
-        if (selectedCategories.length === 0) {
-            alert("Please select at least one category");
-            return;
-        }
-
-        const confirmed = window.confirm(
-            `Are you sure you want to delete ${selectedCategories.length} selected category(s)?`
-        );
-
-        if (!confirmed) return;
-
-        try {
-            await deleteSingleCategories(selectedCategories);
-
-            setCategory((prev) =>
-                prev.filter(
-                    (item) =>
-                        !selectedCategories.includes(item._id)
-                )
-            );
-
-            setSelectedCategories([]);
-
-            setCurrentPage(1);
-
-            alert("Selected categories deleted successfully");
-        } catch (error) {
-            console.log(error);
-            alert("Failed to delete selected categories");
-        }
-    };
-
-    const handleDeleteAll = async () => {
-        if (category.length === 0) {
-            alert("No categories available to delete");
-            return;
-        }
-
-        const confirmed = window.confirm(
-            `Are you sure you want to delete ALL ${category.length} categories?`
-        );
-
-        if (!confirmed) return;
-
-        try {
-            await deleteAllCategories();
-
-            setCategory([]);
-            setSelectedCategories([]);
-            setCurrentPage(1);
-
-            alert("All categories deleted successfully");
-        } catch (error) {
-            console.log(error);
-            alert("Failed to delete all categories");
+            setConfirm(null);
+        } catch (err) {
+            toast.error(err?.response?.data?.message || "Delete failed");
+        } finally {
+            setBusy(false);
         }
     };
 
     return (
-        <div>
-            <LastParams />
-            <HeadingWithButton
-                mainheading="Product Categories"
-                contentLine={`${category.length} categories`}
-                thirdButton="Add Category"
-                onThirdButtonClick={() => setShowModal(true)}
+        <div className="space-y-6">
+            <PageHeader
+                icon={Tags}
+                title={term.categories}
+                subtitle={
+                    loading
+                        ? "Loading…"
+                        : `${formatNumber(categories.length)} ${term.categories.toLowerCase()} · ${formatNumber(totalItems)} ${term.itemsLower}${emptyCategories ? ` · ${emptyCategories} empty` : ""}`
+                }
+                actions={
+                    <Button icon={Plus} onClick={() => setFormCategory({})}>
+                        New {term.category.toLowerCase()}
+                    </Button>
+                }
             />
 
-            {showModal && (
-                <AddcategoryModal onClose={(newCategory) => {
-                    setShowModal(false)
-                    if (newCategory) {
-                        setCategory((prev) => [
-                            ...prev,
-                            newCategory
-                        ]);
-                    }
-                }} />
-            )}
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
+                    <input
+                        type="search"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder={`Search ${term.categories.toLowerCase()}…`}
+                        className="w-full h-11 pl-9 pr-3 rounded-lg border border-line bg-surface text-sm text-heading focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        aria-label={`Search ${term.categories.toLowerCase()}`}
+                    />
+                </div>
 
-            {showEditModal && (
-                <EditCategoryModal
-                    category={selectedCategory}
-                    onClose={() => setShowEditModal(false)}
-
-                    onUpdate={(updatedCategory) => {
-
-                        setCategory(prev =>
-                            prev.map(item =>
-                                item._id === updatedCategory._id
-                                    ? updatedCategory
-                                    : item
-                            )
-                        );
-
-                    }}
-                />
-            )}
-
-            {openViewModal && (
-                <ViewCategoryModal
-                    categoryId={selectedCategoryId}
-                    onClose={() => setOpenViewModal(false)}
-                />
-            )
-            }
-
-
-            {/* stock div */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 mt-5 gap-5">
-                {AnalyticsData.map((items) => {
-                    const Icons = items.icon;
-                    return (
-                        <div key={items.id} className="flex items-center gap-5 bg-white p-4 border border-[#E8ECF1] dark:bg-darkColor dark:text-white rounded-xl">
-                            <div>
-                                <Icons className={`h-9 w-9 ${items.color} ${items.bg} p-2 rounded`} />
-                            </div>
-                            <div>
-                                <h2 className="font-semibold text-xl">{items.number}</h2>
-                                <p className="text-xs font-medium text-text">{items.content}</p>
-                            </div>
-                        </div>
-                    )
-                })}
+                {selected.length > 0 && (
+                    <div className="flex items-center gap-2 animate-fade-in">
+                        <span className="text-sm text-muted">{selected.length} selected</span>
+                        <Button variant="danger-soft" icon={Trash2} onClick={() => setConfirm({ type: "selected" })}>
+                            Delete
+                        </Button>
+                        <Button variant="ghost" onClick={() => setSelected([])}>Clear</Button>
+                    </div>
+                )}
             </div>
 
-            {selectedCategories.length > 0 && (
-                <div className="flex items-center justify-between bg-white border border-[#E8ECF1] dark:bg-darkColor dark:text-white rounded-xl p-3 mt-4">
-
-                    <span className="text-sm text-text">
-                        {selectedCategories.length} categories
-                        {selectedCategories.length > 1 ? "ies" : "y"} selected
+            {!loading && missingStarters.length > 0 && categories.length < 3 && (
+                <Card className="flex flex-col sm:flex-row sm:items-center gap-4 bg-primary/5 border-primary/20">
+                    <span className="grid place-items-center h-10 w-10 shrink-0 rounded-xl bg-primary/10 text-primary">
+                        <Sparkles className="h-5 w-5" />
                     </span>
-
-                    <div className="flex gap-3">
-
-                        <button
-                            onClick={handleDeleteSelected}
-                            className="bg-red-500 text-white px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 dark:bg-black transition"
-                        >
-                            Delete Selected
-                        </button>
-
-                        <button
-                            onClick={handleDeleteAll}
-                            className="bg-red-500 text-white px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 dark:bg-black transition"
-                        >
-                            Delete All
-                        </button>
-
+                    <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-heading">Start with common {profile.shortLabel.toLowerCase()} {term.categories.toLowerCase()}</p>
+                        <p className="text-sm text-muted mt-0.5 truncate">{missingStarters.join(" · ")}</p>
                     </div>
-
-                </div>
+                    <Button variant="soft" loading={seeding} onClick={addStarters}>
+                        Add {missingStarters.length}
+                    </Button>
+                </Card>
             )}
 
-            {/* Search Filter */}
-            <div className="bg-white dark:bg-darkColor p-4 border border-[#E8ECF1] rounded-xl mt-5">
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="flex border border-[#E8ECF1] p-2.5 rounded-lg w-full sm:flex-1 gap-2 items-center">
-                        <SearchIcon className="h-4 w-4 shrink-0 dark:stroke-white" />
-                        <input
-                            type="text"
-                            placeholder="Search categories..."
-                            value={searchText}
-                            onChange={(e) => {
-                                setSearchText(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                            className="w-full min-w-0 focus:outline-none focus:ring-0 text-sm text-text dark:bg-darkColor dark:text-white"
-                        />
-                    </div>
-
-
-                    {/* Filter */}
-                    <div className="flex gap-3 items-center w-full sm:w-[280px]">
-                        <FilterIcon className="h-4 w-4 shrink-0 dark:stroke-white" />
-                        <select
-                            value={filters.category}
-                            onChange={(e) => {
-                                setFilters({
-                                    ...filters,
-                                    category: e.target.value,
-                                });
-
-                                setCurrentPage(1);
-                            }}
-                            className="w-full focus:outline-none focus:ring-0 border border-[#E8ECF1] rounded-lg py-2.5 px-3 text-sm text-text cursor-pointer bg-white dark:bg-darkColor dark:text-white"
-                        >
-                            <option value="">
-                                All Categories
-                            </option>
-
-                            {categoryOptions.map((categoryName) => (
-                                <option
-                                    key={categoryName}
-                                    value={categoryName}
-                                >
-                                    {categoryName}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-
-            {/* Categories */}
-            <div className="border border-[#E8ECF1] rounded-xl mt-5 overflow-hidden">
-
-                {/* ================================= */}
-                {/* DESKTOP TABLE */}
-                {/* ================================= */}
-
-                <div className="hidden md:block">
-
-                    <table className="w-full">
-
-                        <thead>
-                            <tr className="text-text uppercase text-xs bg-[#FAFBFC] dark:bg-darkColor dark:text-white">
-
-                                <th className="p-4 text-left">
-                                    <div className="flex items-center gap-3">
-
-                                        <input
-                                            type="checkbox"
-                                            checked={isAllCurrentCategoriesSelected}
-                                            onChange={handleSelectAll}
-                                            className="w-4 h-4 cursor-pointer"
-                                        />
-
-                                        <span>Category Name</span>
-
-                                    </div>
-                                </th>
-
-                                <th className="p-4 text-left">
-                                    Description
-                                </th>
-
-                                <th className="p-4 text-left">
-                                    Products
-                                </th>
-
-                                <th className="p-4 text-left">
-                                    Actions
-                                </th>
-
-                            </tr>
-                        </thead>
-
-
-                        <tbody className="bg-white">
-
-                            {currentProducts.length > 0 ? (
-
-                                currentProducts.map((data) => (
-
-                                    <tr
-                                        key={data._id}
-                                        className="border-t border-[#E8ECF1] hover:bg-[#FAFBFC] transition-colors dark:bg-darkColor dark:text-white"
-                                    >
-
-                                        {/* Category Name */}
-                                        <td className="p-4">
-
-                                            <div className="flex items-center gap-3">
-
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedCategories.includes(
-                                                        data._id
-                                                    )}
-                                                    onChange={() =>
-                                                        handleSelectCategory(
-                                                            data._id
-                                                        )
-                                                    }
-                                                    className="w-4 h-4 cursor-pointer"
-                                                />
-
-                                                <span className="text-sm font-semibold">
-                                                    {data.categoryName}
-                                                </span>
-
-                                            </div>
-
-                                        </td>
-
-
-                                        {/* Description */}
-                                        <td className="p-4">
-
-                                            <span className="inline-block bg-[#E8ECF1] text-xs px-2 py-1 rounded-sm font-semibold text-text max-w-[300px] truncate">
-                                                {data.description || "-"}
-                                            </span>
-
-                                        </td>
-
-
-                                        {/* Products */}
-                                        <td className="p-4 text-sm">
-                                            {data.productCount ?? 0}
-                                        </td>
-
-
-                                        {/* Actions */}
-                                        <td className="p-4">
-
-                                            <div className="flex gap-3">
-
-                                                {/* View */}
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        handleView(data._id)
-                                                    }
-                                                    className="text-blue-500"
-                                                >
-                                                    <Eye
-                                                        size={16}
-                                                        className="stroke-text hover:stroke-primary transition-transform duration-300 hover:scale-110"
-                                                    />
-                                                </button>
-
-
-                                                {/* Edit */}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setSelectedCategory(data);
-                                                        setShowEditModal(true);
-                                                    }}
-                                                    className="text-green-500"
-                                                >
-                                                    <Pencil
-                                                        size={16}
-                                                        className="stroke-text hover:stroke-green-500 transition-transform duration-300 hover:scale-110"
-                                                    />
-                                                </button>
-
-
-                                                {/* Delete */}
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        handleDeleteCategory(
-                                                            data._id
-                                                        )
-                                                    }
-                                                    className="text-red-500"
-                                                >
-                                                    <Trash2
-                                                        size={16}
-                                                        className="stroke-text hover:stroke-red-500 transition-transform duration-300 hover:scale-110"
-                                                    />
-                                                </button>
-
-                                            </div>
-
-                                        </td>
-
-                                    </tr>
-
-                                ))
-
-                            ) : (
-
-                                <tr>
-                                    <td
-                                        colSpan="4"
-                                        className="text-center py-9 text-text"
-                                    >
-                                        No Category Found
-                                    </td>
-                                </tr>
-
-                            )}
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-
-                {/* ================================= */}
-                {/* MOBILE CARDS */}
-                {/* ================================= */}
-
-                <div className="md:hidden bg-[#F8FAFC] dark:bg-darkColor p-3">
-
-                    {currentProducts.length > 0 ? (
-
-                        <div className="space-y-3">
-
-                            {currentProducts.map((data) => (
-
-                                <div
-                                    key={data._id}
-                                    className="bg-white border border-[#E8ECF1] dark:bg-darkColor dark:text-white rounded-xl p-4"
-                                >
-
-                                    {/* Card Header */}
-                                    <div className="flex items-start justify-between gap-3">
-
-                                        <div className="flex items-start gap-3 min-w-0">
-
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedCategories.includes(
-                                                    data._id
-                                                )}
-                                                onChange={() =>
-                                                    handleSelectCategory(
-                                                        data._id
-                                                    )
-                                                }
-                                                className="w-4 h-4 mt-1 shrink-0 cursor-pointer"
-                                            />
-
-                                            <div className="min-w-0">
-
-                                                <h3 className="text-sm font-semibold dark:text-white text-gray-900 break-words">
-                                                    {data.categoryName}
-                                                </h3>
-
-                                                <span className="inline-block mt-1 text-[10px] font-medium text-gray-500">
-                                                    Category
-                                                </span>
-
-                                            </div>
-
-                                        </div>
-
-
-                                        {/* Product Count */}
-                                        <div className="shrink-0 text-right">
-
-                                            <p className="text-[10px] text-gray-400">
-                                                Products
-                                            </p>
-
-                                            <p className="text-sm font-semibold text-secondary">
-                                                {data.productCount ?? 0}
-                                            </p>
-
-                                        </div>
-
-                                    </div>
-
-
-                                    {/* Description */}
-                                    <div className="mt-4 pt-3 border-t border-[#E8ECF1]">
-
-                                        <p className="text-[11px] text-gray-400 mb-1">
-                                            Description
-                                        </p>
-
-                                        <p className="text-sm text-text leading-5 break-words">
-                                            {data.description || "No description available"}
-                                        </p>
-
-                                    </div>
-
-
-                                    {/* Actions */}
-                                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#E8ECF1]">
-
-                                        <span className="text-xs text-gray-400">
-                                            Category ID: {data._id.slice(-6)}
-                                        </span>
-
-
-                                        <div className="flex items-center gap-2">
-
-                                            {/* View */}
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    handleView(data._id)
-                                                }
-                                                className="p-2 rounded-lg bg-blue-50 text-blue-500"
-                                            >
-                                                <Eye size={16} />
-                                            </button>
-
-
-                                            {/* Edit */}
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setSelectedCategory(data);
-                                                    setShowEditModal(true);
-                                                }}
-                                                className="p-2 rounded-lg bg-green-50 text-green-500"
-                                            >
-                                                <Pencil size={16} />
-                                            </button>
-
-
-                                            {/* Delete */}
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    handleDeleteCategory(
-                                                        data._id
-                                                    )
-                                                }
-                                                className="p-2 rounded-lg bg-red-50 text-red-500"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-
-                                        </div>
-
-                                    </div>
-
+            {loading ? (
+                <SkeletonCards count={8} className="lg:grid-cols-4" />
+            ) : filtered.length === 0 ? (
+                <Card padded={false}>
+                    <EmptyState
+                        icon={Tags}
+                        title={categories.length ? "No matches" : `No ${term.categories.toLowerCase()} yet`}
+                        message={categories.length ? "Try a different search." : `${term.categories} help you organise ${term.itemsLower} and see which groups sell best.`}
+                        action={!categories.length && <Button icon={Plus} onClick={() => setFormCategory({})}>New {term.category.toLowerCase()}</Button>}
+                    />
+                </Card>
+            ) : (
+                <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
+                    {filtered.map((category) => {
+                        const isSelected = selected.includes(category._id);
+                        const count = Number(category.productCount || 0);
+
+                        return (
+                            <Card
+                                key={category._id}
+                                hover
+                                className={`relative flex flex-col ${isSelected ? "ring-2 ring-primary border-primary" : ""}`}
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <span className={`grid place-items-center h-11 w-11 rounded-xl text-base font-bold ${toneFor(category.categoryName)}`}>
+                                        {category.categoryName?.[0]?.toUpperCase() || "?"}
+                                    </span>
+
+                                    <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={() => toggle(category._id)}
+                                        className="h-4 w-4 mt-1"
+                                        aria-label={`Select ${category.categoryName}`}
+                                    />
                                 </div>
 
-                            ))}
+                                <button
+                                    type="button"
+                                    onClick={() => setViewId(category._id)}
+                                    className="mt-4 text-left group"
+                                >
+                                    <h3 className="font-semibold text-heading truncate group-hover:text-primary transition-colors">
+                                        {category.categoryName}
+                                    </h3>
+                                    <p className="text-xs text-muted mt-1 line-clamp-2 min-h-[2rem]">
+                                        {category.description || "No description"}
+                                    </p>
+                                </button>
 
-                        </div>
+                                <div className="mt-4 pt-4 border-t border-line flex items-center justify-between">
+                                    <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${count ? "text-heading" : "text-faint"}`}>
+                                        <Package className="h-4 w-4 text-faint" />
+                                        {formatNumber(count)} {count === 1 ? term.itemLower : term.itemsLower}
+                                    </span>
 
-                    ) : (
-
-                        <div className="bg-white rounded-xl py-10 text-center text-text text-sm">
-                            No Category Found
-                        </div>
-
-                    )}
-
+                                    <div className="flex items-center -mr-1.5">
+                                        <IconButton icon={Eye} label="View" size="sm" onClick={() => setViewId(category._id)} />
+                                        <IconButton icon={Pencil} label="Edit" size="sm" onClick={() => setFormCategory(category)} />
+                                        <IconButton
+                                            icon={Trash2}
+                                            label="Delete"
+                                            size="sm"
+                                            className="hover:!bg-danger/10 hover:!text-danger"
+                                            onClick={() => setConfirm({ type: "one", category })}
+                                        />
+                                    </div>
+                                </div>
+                            </Card>
+                        );
+                    })}
                 </div>
+            )}
 
-
-                {/* ================================= */}
-                {/* PAGINATION */}
-                {/* ================================= */}
-
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-t bg-white dark:bg-darkColor dark:text-white">
-
-                    <p className="text-xs sm:text-sm text-text">
-
-                        {searchCategory.length > 0
-                            ? `Showing ${indexOfFirstCategory + 1}-${Math.min(
-                                indexOfLastCategory,
-                                searchCategory.length
-                            )} of ${searchCategory.length}`
-                            : "Showing 0-0 of 0"}
-
-                    </p>
-
-
-                    <div className="flex items-center justify-between sm:justify-end gap-2">
-
-                        <button
-                            disabled={currentPage === 1}
-                            onClick={() =>
-                                setCurrentPage((prev) => prev - 1)
-                            }
-                            className="px-3 py-1.5 text-xs sm:text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Previous
-                        </button>
-
-                        <span className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm whitespace-nowrap">
-                            {currentPage} / {totalPages || 1}
-                        </span>
-
-                        <button
-                            disabled={
-                                currentPage === totalPages ||
-                                totalPages === 0
-                            }
-                            onClick={() =>
-                                setCurrentPage((prev) => prev + 1)
-                            }
-                            className="px-3 py-1.5 text-xs sm:text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Next
-                        </button>
-
-                    </div>
-
+            {!loading && categories.length > 0 && (
+                <div className="flex justify-end">
+                    <Button variant="ghost" size="sm" icon={Trash2} onClick={() => setConfirm({ type: "all" })}>
+                        Delete all {term.categories.toLowerCase()}
+                    </Button>
                 </div>
+            )}
 
-            </div>
+            {formCategory && (
+                <CategoryFormModal
+                    category={formCategory._id ? formCategory : null}
+                    onClose={() => setFormCategory(null)}
+                    onSaved={() => load()}
+                />
+            )}
 
+            {viewId && <ViewCategoryModal categoryId={viewId} onClose={() => setViewId(null)} />}
 
+            <ConfirmDialog
+                open={Boolean(confirm)}
+                loading={busy}
+                onCancel={() => setConfirm(null)}
+                onConfirm={runConfirm}
+                confirmLabel="Delete"
+                title={
+                    confirm?.type === "one"
+                        ? `Delete ${confirm.category.categoryName}?`
+                        : confirm?.type === "selected"
+                            ? `Delete ${selected.length} ${term.categories.toLowerCase()}?`
+                            : `Delete all ${term.categories.toLowerCase()}?`
+                }
+                message={`${term.items} in ${confirm?.type === "one" ? "this" : "these"} ${term.category.toLowerCase()} will stay in your inventory but lose their grouping.`}
+            />
         </div>
-    )
+    );
 }

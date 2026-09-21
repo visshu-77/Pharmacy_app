@@ -1,292 +1,120 @@
-import SettingsHeading from "./settingHeading";
-import { useSubscription } from "../../context/SubscriptionContext";
-
 import { useTranslation } from "react-i18next";
+import { Crown, CalendarDays, CalendarClock, Hourglass, ArrowRight } from "lucide-react";
 
-const getBillingCycle = (duration) => {
-    
-    if (duration === "monthly") {
-        return "Monthly";
-    }
+import SettingsHeading, { SettingsSection } from "./settingHeading";
+import Button from "../ui/Button";
+import Badge from "../ui/Badge";
+import { Spinner, EmptyState } from "../ui/State";
 
-    if (duration === "sixMonths") {
-        return "6 Months";
-    }
+import { useSubscription } from "../../context/SubscriptionContext";
+import { useBusiness } from "../../context/BusinessContext";
 
-    if (duration === "yearly") {
-        return "Annual";
-    }
+export const cycleLabel = (duration) =>
+    ({ monthly: "Monthly", sixMonths: "6 months", yearly: "Yearly" }[duration] || duration);
 
-    return duration;
-};
+const formatDate = (date) =>
+    date ? new Date(date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 
-const formatDate = (date) => {
-    if (!date) {
-        return "-";
-    }
+const daysLeft = (endDate) =>
+    endDate ? Math.max(0, Math.ceil((new Date(endDate) - new Date()) / 86400000)) : 0;
 
-    return new Date(date).toLocaleDateString(
-        "en-IN",
-        {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-        }
-    );
-};
-
-const getRemainingDays = (endDate) => {
-    if (!endDate) {
-        return 0;
-    }
-
-    const now = new Date();
-    const end = new Date(endDate);
-
-    const difference = end - now;
-
-    const days = Math.ceil(
-        difference / (1000 * 60 * 60 * 24)
-    );
-
-    return Math.max(days, 0);
-};
-
-const getUsagePercentage = (startDate, endDate) => {
-    if (!startDate || !endDate) {
-        return 0;
-    }
-
+const elapsedPercent = (startDate, endDate) => {
+    if (!startDate || !endDate) return 0;
     const start = new Date(startDate).getTime();
-    const end = new Date(endDate).getTime();
-    const now = new Date().getTime();
-
-    const total = end - start;
-    const elapsed = now - start;
-
-    if (total <= 0) {
-        return 100;
-    }
-
-    const percentage = (elapsed / total) * 100;
-
-    return Math.min(
-        Math.max(Math.round(percentage), 0),
-        100
-    );
+    const total = new Date(endDate).getTime() - start;
+    if (total <= 0) return 100;
+    return Math.min(100, Math.max(0, Math.round(((Date.now() - start) / total) * 100)));
 };
 
 export default function SubscriptionSettings() {
-    const { t, i18n } = useTranslation();
 
-    const {
-        subscription,
-        subscriptionLoading
-    } = useSubscription();
+    const { t } = useTranslation();
+    const { subscription, subscriptionLoading } = useSubscription();
+    const { formatMoney } = useBusiness();
 
-    if (subscriptionLoading) {
-        return (
-            <div className="p-4 sm:p-6">
-                <p className="text-sm text-gray-500">
-                    Loading Subscription...
-                </p>
-            </div>
-        );
-    }
+    if (subscriptionLoading) return <Spinner />;
 
     if (!subscription) {
         return (
-            <div className="bg-white border rounded-xl p-5 sm:p-6">
-
-                <h2 className="text-lg font-bold">
-                    No Active Subscription
-                </h2>
-
-                <p className="text-sm text-gray-500 mt-1">
-                    You don't have an active subscription.
-                </p>
-
+            <div>
+                <SettingsHeading heading={t("SubscriptionInformation.title")} content={t("SubscriptionInformation.content")} />
+                <SettingsSection>
+                    <EmptyState
+                        icon={Crown}
+                        title="No active plan"
+                        message="Choose a plan to keep billing, inventory and reports running."
+                        action={<Button to="/subscription" iconRight={ArrowRight}>See plans</Button>}
+                    />
+                </SettingsSection>
             </div>
         );
     }
 
-    const usagePercentage = getUsagePercentage(
-        subscription.startDate,
-        subscription.endDate
-    );
-
-    const remainingDays = getRemainingDays(
-        subscription.endDate
-    );
+    const used = elapsedPercent(subscription.startDate, subscription.endDate);
+    const remaining = daysLeft(subscription.endDate);
 
     return (
-        <div className="w-full">
-
+        <div className="space-y-6">
             <SettingsHeading
                 heading={t("SubscriptionInformation.title")}
                 content={t("SubscriptionInformation.content")}
+                action={<Button to="/subscription" variant="secondary" size="sm">Change plan</Button>}
             />
 
-            {/* ================= CURRENT PLAN ================= */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white dark:from-black dark:to-black dark:text-white dark:border dark:border-white/30">
-
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-
-                    {/* Plan */}
-                    <div className="min-w-0">
-
-                        <p className="text-xs uppercase tracking-wide opacity-80">
-                            ⚡{t("SubscriptionInformation.CurrentPlan")}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-indigo-600 p-6 text-white shadow-md">
+                <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-xl" aria-hidden="true" />
+                <div className="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div>
+                        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/75">
+                            <Crown className="h-3.5 w-3.5" />
+                            {t("SubscriptionInformation.CurrentPlan")}
                         </p>
-
-                        <h3 className="text-lg sm:text-xl font-bold mt-1 capitalize break-words">
-                            {subscription.plan} Plan
-                        </h3>
-
+                        <h3 className="mt-1 text-2xl font-bold capitalize text-white">{subscription.plan} plan</h3>
+                        <p className="text-sm text-white/80 mt-1">
+                            {formatMoney(subscription.price)} · {cycleLabel(subscription.duration)}
+                        </p>
                     </div>
-
-                    {/* Status */}
-                    <span className="self-start px-3 py-1.5 rounded-lg bg-green-500/20 border border-green-400/30 text-green-300 text-xs font-semibold whitespace-nowrap">
+                    <span className="self-start rounded-full bg-white/20 px-3 py-1 text-xs font-semibold capitalize">
                         {subscription.subscriptionStatus}
                     </span>
-
                 </div>
 
+                <div className="relative mt-6">
+                    <div className="flex justify-between text-xs text-white/80 mb-2">
+                        <span>{t("SubscriptionInformation.SubscriptionPeriod")}</span>
+                        <span>{remaining} days left</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-white/25 overflow-hidden">
+                        <div className="h-full rounded-full bg-white" style={{ width: `${used}%` }} />
+                    </div>
+                </div>
             </div>
 
-
-            {/* ================= BASIC PLAN INFO ================= */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mt-5 sm:mt-6">
-
-                <div className="bg-gray-50 sm:bg-transparent rounded-lg p-3 sm:p-0">
-                    <p className="text-xs text-gray-500">
-                        {t("SubscriptionInformation.BillingCycle")}
-                    </p>
-
-                    <p className="font-semibold mt-1 text-sm sm:text-base">
-                        {getBillingCycle(subscription.duration)}
-                    </p>
-                </div>
-
-
-                <div className="bg-gray-50 sm:bg-transparent rounded-lg p-3 sm:p-0">
-                    <p className="text-xs text-gray-500">
-                        {t("SubscriptionInformation.Price")}
-                    </p>
-
-                    <p className="font-semibold mt-1 text-sm sm:text-base">
-                        ₹{Number(subscription.price).toLocaleString("en-IN")}
-                    </p>
-                </div>
-
-
-                <div className="bg-gray-50 sm:bg-transparent rounded-lg p-3 sm:p-0">
-                    <p className="text-xs text-gray-500">
-                        {t("SubscriptionInformation.PaymentStatus")}
-                    </p>
-
-                    <p className="font-semibold mt-1 text-sm sm:text-base capitalize">
-                        {subscription.paymentStatus}
-                    </p>
-                </div>
-
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                    { icon: CalendarDays, label: "Started", value: formatDate(subscription.startDate) },
+                    { icon: CalendarClock, label: "Renews / ends", value: formatDate(subscription.endDate) },
+                    { icon: Hourglass, label: "Days remaining", value: remaining },
+                    { icon: Crown, label: t("SubscriptionInformation.PaymentStatus"), value: <Badge tone="success" size="sm">{subscription.paymentStatus}</Badge> }
+                ].map(({ icon: Icon, label, value }) => (
+                    <div key={label} className="rounded-xl border border-line bg-surface p-4">
+                        <p className="flex items-center gap-1.5 text-xs text-muted">
+                            <Icon className="h-3.5 w-3.5" />
+                            {label}
+                        </p>
+                        <div className="mt-1.5 font-semibold text-heading capitalize">{value}</div>
+                    </div>
+                ))}
             </div>
 
-
-            {/* ================= SUBSCRIPTION DETAILS ================= */}
-            <div className="border border-gray-200 rounded-xl p-4 sm:p-5 mt-5">
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-5 sm:gap-6">
-
-                    {/* Start Date */}
-                    <div>
-
-                        <p className="text-xs text-gray-500">
-                            {t("SubscriptionInformation.StartDate")}
-                        </p>
-
-                        <p className="font-semibold text-sm mt-1">
-                            {formatDate(subscription.startDate)}
-                        </p>
-
-                    </div>
-
-
-                    {/* Expiry Date */}
-                    <div>
-
-                        <p className="text-xs text-gray-500">
-                            {t("SubscriptionInformation.ExpiryDate")}
-                        </p>
-
-                        <p className="font-semibold text-sm mt-1">
-                            {formatDate(subscription.endDate)}
-                        </p>
-
-                    </div>
-
-
-                    {/* Remaining Days */}
-                    <div>
-
-                        <p className="text-xs text-gray-500">
-                            {t("SubscriptionInformation.DaysRemaining")}
-                        </p>
-
-                        <p className="font-semibold text-sm mt-1">
-                            {remainingDays} days
-                        </p>
-
-                    </div>
-
-
-                    {/* Usage */}
-                    <div>
-
-                        <p className="text-xs text-gray-500">
-                            {t("SubscriptionInformation.Usage")}
-                        </p>
-
-                        <p className="font-semibold text-sm mt-1">
-                            {usagePercentage}%
-                        </p>
-
-                    </div>
-
+            {remaining <= 7 && (
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-warning/30 bg-warning/10 p-4">
+                    <p className="flex-1 text-sm text-heading">
+                        Your plan ends in <span className="font-semibold">{remaining} day{remaining === 1 ? "" : "s"}</span>. Renew to avoid interruptions at the counter.
+                    </p>
+                    <Button to="/subscription" size="sm">Renew now</Button>
                 </div>
-
-
-                {/* ================= PROGRESS ================= */}
-                <div className="mt-6">
-
-                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1 text-xs text-gray-500 mb-2">
-
-                        <span>
-                            {t("SubscriptionInformation.SubscriptionPeriod")}
-                        </span>
-
-                        <span>
-                            {usagePercentage}% {t("SubscriptionInformation.elapsed")}
-                        </span>
-
-                    </div>
-
-
-                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-
-                        <div
-                            className="h-full bg-blue-600 rounded-full transition-all duration-500 dark:bg-darkColor dark:text-white dark:border dark:border-white/30"
-                            style={{
-                                width: `${usagePercentage}%`
-                            }}
-                        />
-
-                    </div>
-
-                </div>
-
-            </div>
-
+            )}
         </div>
     );
 }

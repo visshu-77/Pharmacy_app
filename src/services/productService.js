@@ -2,7 +2,6 @@ import { api } from "./api";
 
 export const getProducts = async () => {
     const token = localStorage.getItem("token");
-    console.log("token is =====>",token)
 
     const response = await api.get(`/product/get`,{
         headers: {
@@ -14,7 +13,6 @@ export const getProducts = async () => {
 
 export const addProduct = async (productData) => {
     const token = localStorage.getItem("token");
-    console.log("token is =====>",token)
 
     const response = await api.post(
         `/product/add`,
@@ -37,7 +35,8 @@ export const deleteProduct = async(id) => {
                 Authorization: `Bearer ${token}`
             }
         }
-    )
+    );
+    return response.data;
 }
 
 export const updateProduct = async(id, productData) => {
@@ -51,7 +50,8 @@ export const updateProduct = async(id, productData) => {
                 Authorization: `Bearer ${token}`
             }
         }
-    )
+    );
+    return response.data;
 }
 
 export const exportProducts = async () => {

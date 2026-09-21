@@ -1,630 +1,415 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
-import axios from "axios";
-import LastParams from "../components/lastParams";
+import { Truck, Plus, Upload, Download, Search, Pencil, Trash2, Phone, Mail, MapPin } from "lucide-react";
 
-import {
-   getSuppliers,
-   createSupplier,
-   updateSupplier,
-   deleteSupplier,
-   deleteSelectedSuppliers
-} from "../services/supplierService"
+import PageHeader from "../components/ui/PageHeader";
+import Button, { IconButton } from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import { ConfirmDialog } from "../components/ui/Modal";
+import { EmptyState, SkeletonRows } from "../components/ui/State";
+import { useToast } from "../components/ui/Toast";
+import Pagination from "../components/pagination";
+
 import SupplierModal from "../components/suppliers/SupplierModal";
 import ImportSupplierModal from "../components/suppliers/ImportSupplierModal";
-import DeleteSupplierModal from "../components/suppliers/DeleteSupplierModal";
-import SupplierTable from "../components/suppliers/SupplierTable";
-import SupplierPagination from "../components/suppliers/SupplierPagination";
 
-const API = process.env.REACT_APP_API_URL;
+import { api } from "../services/api";
+import {
+    getSuppliers,
+    createSupplier,
+    updateSupplier,
+    deleteSupplier,
+    deleteSelectedSuppliers
+} from "../services/supplierService";
+import { useBusiness } from "../context/BusinessContext";
+
+const PAGE_SIZE = 10;
+
+const EMPTY_FORM = {
+    supplierName: "",
+    phone: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    gstNumber: ""
+};
+
+const initials = (name = "") =>
+    name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "?";
 
 export default function Suppliers() {
 
-   const [suppliers, setSuppliers] = useState([]);
-   const [selectedSuppliers, setSelectedSuppliers] = useState([]);
-   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-   const [deleteLoading, setDeleteLoading] = useState(false);
+    const toast = useToast();
+    const { term, formatNumber } = useBusiness();
 
-   const [currentPage, setCurrentPage] = useState(1);
-   const suppliersPerPage = 10;
+    const [suppliers, setSuppliers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const [selected, setSelected] = useState([]);
 
-   const [loading, setLoading] = useState(true);
+    const [showForm, setShowForm] = useState(false);
+    const [editing, setEditing] = useState(null);
+    const [formData, setFormData] = useState(EMPTY_FORM);
+    const [formError, setFormError] = useState("");
+    const [saving, setSaving] = useState(false);
 
-   const [error, setError] = useState('');
-   const [supplierFormError, setSupplierFormError] = useState('');
-   const [supplierSaving, setSupplierSaving] = useState(false);
+    const [confirm, setConfirm] = useState(null);
+    const [busy, setBusy] = useState(false);
 
-   const [showModal, setShowModal] = useState(false);
-   const [editingSupplier, setEditingSupplier] = useState(null);
-   const [supplierSearch, setSupplierSearch] = useState("");
-   const [importFile, setImportFile] = useState(null);
-   const [importData, setImportData] = useState([]);
-   const [showImportConfirm, setShowImportConfirm] = useState(false);
-   const [importProgress, setImportProgress] = useState(0);
-   const [importSuccess, setImportSuccess] = useState(false);
-   const [importLoading, setImportLoading] = useState(false);
+    const fileRef = useRef(null);
+    const [importData, setImportData] = useState([]);
+    const [showImport, setShowImport] = useState(false);
+    const [importLoading, setImportLoading] = useState(false);
+    const [importProgress, setImportProgress] = useState(0);
+    const [importSuccess, setImportSuccess] = useState(false);
 
+    const load = async () => {
+        try {
+            const data = await getSuppliers();
+            setSuppliers(data.suppliers || []);
+        } catch (err) {
+            toast.error(err?.response?.data?.message || `Could not load ${term.suppliers.toLowerCase()}`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-   const [formData, setFormData] = useState({
-      supplierName: "",
-      phone: "",
-      email: "",
-      address: "",
-      city: "",
-      state: "",
-      gstNumber: ""
-   });
+    useEffect(() => {
+        load();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-   const handleEditSupplier = (supplier) => {
+    const filtered = useMemo(() => {
+        const q = search.toLowerCase().trim();
+        if (!q) return suppliers;
+        return suppliers.filter((s) =>
+            [s.supplierName, s.phone, s.email, s.city, s.state, s.gstNumber]
+                .filter(Boolean)
+                .some((value) => String(value).toLowerCase().includes(q))
+        );
+    }, [suppliers, search]);
 
-      setEditingSupplier(supplier);
-      setSupplierFormError("");
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const currentPage = Math.min(page, totalPages);
+    const pageItems = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-      setFormData({
-         supplierName: supplier.supplierName || "",
-         phone: supplier.phone || "",
-         email: supplier.email || "",
-         address: supplier.address || "",
-         city: supplier.city || "",
-         state: supplier.state || "",
-         gstNumber: supplier.gstNumber || ""
-      });
+    const pageIds = pageItems.map((s) => s._id);
+    const allOnPage = pageIds.length > 0 && pageIds.every((id) => selected.includes(id));
 
-      setShowModal(true);
-   };
+    // ---------------- form ----------------
 
-   useEffect(() => {
-      fetchSuppliers();
-   }, []);
+    const openForm = (supplier = null) => {
+        setEditing(supplier);
+        setFormError("");
+        setFormData(
+            supplier
+                ? Object.fromEntries(Object.keys(EMPTY_FORM).map((key) => [key, supplier[key] || ""]))
+                : EMPTY_FORM
+        );
+        setShowForm(true);
+    };
 
-   const fetchSuppliers = async () => {
-      try {
-         setLoading(true);
-         const data = await getSuppliers();
-         setSuppliers(data.suppliers || []);
+    const submitForm = async (e) => {
+        e.preventDefault();
+        try {
+            setSaving(true);
+            setFormError("");
 
-      } catch (err) {
-         console.log(err);
-         setError(err?.response?.data?.message || "Something went wrong");
-      } finally {
-         setLoading(false);
-      }
-   }
-
-   const handleSupplierChange = (e) => {
-      const { name, value } = e.target;
-
-      setFormData((prev) => ({
-         ...prev,
-         [name]: value
-      }));
-   };
-
-   const handleCreateSupplier = async (e) => {
-      e.preventDefault();
-
-      try {
-         setSupplierFormError("");
-         setSupplierSaving(true);
-
-         if (editingSupplier) {
-            await updateSupplier(
-               editingSupplier._id,
-               formData
-            );
-         } else {
-            await createSupplier(formData);
-         }
-
-         await fetchSuppliers();
-
-         setShowModal(false);
-         setEditingSupplier(null);
-
-         setFormData({
-            supplierName: "",
-            phone: "",
-            email: "",
-            address: "",
-            city: "",
-            state: "",
-            gstNumber: ""
-         });
-
-      } catch (error) {
-         console.log("Supplier save error:", error);
-
-         setSupplierFormError(
-            error?.response?.data?.message ||
-            "Failed to save supplier"
-         );
-
-      } finally {
-         setSupplierSaving(false);
-      }
-   };
-
-   const handleDeleteSupplier = async (supplier) => {
-      const confirmed = window.confirm(
-         `Are you sure you want to delete "${supplier.supplierName}"?`
-      );
-      if (!confirmed) {
-         return;
-      }
-      try {
-         setError("");
-         await deleteSupplier(supplier._id);
-         await fetchSuppliers();
-      } catch (error) {
-         console.log("Delete supplier error:", error);
-         setError(
-            error?.response?.data?.message ||
-            "Failed to delete supplier"
-         );
-      }
-   };
-
-   const filteredSuppliers = suppliers.filter((supplier) => {
-      const search = supplierSearch.toLowerCase().trim();
-      if (!search) {
-         return true;
-      }
-      return (
-         supplier.supplierName?.toLowerCase().includes(search) ||
-         supplier.phone?.toString().includes(search) ||
-         supplier.email?.toLowerCase().includes(search) ||
-         supplier.city?.toLowerCase().includes(search) ||
-         supplier.state?.toLowerCase().includes(search) ||
-         supplier.gstNumber?.toLowerCase().includes(search)
-      );
-   });
-
-   const exportSuppliersCSV = () => {
-      if (!suppliers || suppliers.length === 0) {
-         alert("No suppliers available to export.");
-         return;
-      }
-      const headers = [
-         "Supplier Name",
-         "Phone",
-         "Email",
-         "Address",
-         "City",
-         "State",
-         "GST Number"
-      ];
-      const rows = suppliers.map((supplier) => [
-         supplier.supplierName || "",
-         supplier.phone || "",
-         supplier.email || "",
-         supplier.address || "",
-         supplier.city || "",
-         supplier.state || "",
-         supplier.gstNumber || ""
-      ]);
-      const csvContent = [
-         headers,
-         ...rows
-      ]
-         .map((row) =>
-            row
-               .map((value) => `"${String(value).replace(/"/g, '""')}"`)
-               .join(",")
-         )
-         .join("\n");
-
-      const blob = new Blob(
-         [csvContent],
-         {
-            type: "text/csv;charset=utf-8;"
-         }
-      );
-
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-
-      link.href = url;
-      link.download = `suppliers_${new Date()
-         .toISOString()
-         .slice(0, 10)}.csv`;
-
-      document.body.appendChild(link);
-
-      link.click();
-
-      document.body.removeChild(link);
-
-      URL.revokeObjectURL(url);
-   };
-
-   useEffect(() => {
-      console.log("Import file state:", importFile);
-   }, [importFile]);
-
-   const handleSupplierCSVSelect = (e) => {
-      const file = e.target.files[0];
-
-      if (!file) return;
-
-      if (!file.name.toLowerCase().endsWith(".csv")) {
-         alert("Please select a CSV file.");
-         e.target.value = "";
-         return;
-      }
-
-      setImportFile(file);
-
-      Papa.parse(file, {
-         header: true,
-         skipEmptyLines: true,
-
-         complete: (results) => {
-
-            console.log("CSV headers:", results.meta.fields);
-            console.log("CSV rows:", results.data);
-
-            const formattedSuppliers = results.data.map((row) => ({
-               supplierName: row["Supplier Name"]?.trim() || "",
-               phone: row["Phone"]?.trim() || "",
-               email: row["Email"]?.trim() || "",
-               address: row["Address"]?.trim() || "",
-               city: row["City"]?.trim() || "",
-               state: row["State"]?.trim() || "",
-               gstNumber: row["GST Number"]?.trim() || ""
-            }));
-
-            console.log(
-               "Formatted suppliers:",
-               formattedSuppliers
-            );
-
-            setImportData(formattedSuppliers);
-
-            // Open confirmation popup
-            setShowImportConfirm(true);
-         },
-
-         error: (error) => {
-            console.error("CSV parsing error:", error);
-            alert("Failed to read CSV file.");
-         }
-      });
-   };
-
-   // import function
-   const handleImportSuppliers = async () => {
-
-      if (!importData.length) {
-         alert("Please select a CSV file first.");
-         return;
-      }
-
-      try {
-
-         setImportLoading(true);
-         setImportProgress(0);
-         setImportSuccess(false);
-
-         // Start progress
-         setImportProgress(10);
-
-         const response = await axios.post(
-            `${API}/supplier/import`,
-            {
-               suppliers: importData
-            },
-            {
-               headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                  "Content-Type": "application/json"
-               }
+            if (editing) {
+                await updateSupplier(editing._id, formData);
+            } else {
+                await createSupplier(formData);
             }
-         );
 
-         // API successfully completed
-         setImportProgress(100);
+            await load();
+            setShowForm(false);
+            toast.success(`${formData.supplierName} ${editing ? "updated" : "added"}`);
+        } catch (err) {
+            setFormError(err?.response?.data?.message || `Could not save ${term.supplier.toLowerCase()}`);
+        } finally {
+            setSaving(false);
+        }
+    };
 
-         // Show success state
-         setImportSuccess(true);
+    // ---------------- delete ----------------
 
-         console.log(
-            "Import response:",
-            response.data
-         );
+    const runConfirm = async () => {
+        try {
+            setBusy(true);
+            if (confirm.type === "one") {
+                await deleteSupplier(confirm.supplier._id);
+                toast.success(`${confirm.supplier.supplierName} deleted`);
+            } else {
+                await deleteSelectedSuppliers(selected);
+                toast.success(`${selected.length} deleted`);
+                setSelected([]);
+            }
+            await load();
+            setConfirm(null);
+        } catch (err) {
+            toast.error(err?.response?.data?.message || "Delete failed");
+        } finally {
+            setBusy(false);
+        }
+    };
 
-         // Refresh suppliers
-         await fetchSuppliers();
+    // ---------------- CSV ----------------
 
-      } catch (error) {
+    const exportCSV = () => {
+        const headers = ["Supplier Name", "Phone", "Email", "Address", "City", "State", "GST Number"];
+        const rows = suppliers.map((s) => [s.supplierName, s.phone, s.email, s.address, s.city, s.state, s.gstNumber]);
+        const csv = [headers, ...rows]
+            .map((row) => row.map((value) => `"${String(value || "").replace(/"/g, '""')}"`).join(","))
+            .join("\n");
 
-         console.error(
-            "Import suppliers error:",
-            error
-         );
+        const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${term.suppliers.toLowerCase()}_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    };
 
-         setImportProgress(0);
+    const onCSVSelected = (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
 
-         alert(
-            error?.response?.data?.message ||
-            "Failed to import suppliers"
-         );
+        if (!file.name.toLowerCase().endsWith(".csv")) {
+            toast.warning("Please choose a .csv file");
+            return;
+        }
 
-      } finally {
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                setImportData(
+                    results.data.map((row) => ({
+                        supplierName: row["Supplier Name"]?.trim() || "",
+                        phone: row["Phone"]?.trim() || "",
+                        email: row["Email"]?.trim() || "",
+                        address: row["Address"]?.trim() || "",
+                        city: row["City"]?.trim() || "",
+                        state: row["State"]?.trim() || "",
+                        gstNumber: row["GST Number"]?.trim() || ""
+                    }))
+                );
+                setImportSuccess(false);
+                setImportProgress(0);
+                setShowImport(true);
+            },
+            error: () => toast.error("Could not read that CSV file")
+        });
+    };
 
-         setImportLoading(false);
+    const runImport = async () => {
+        try {
+            setImportLoading(true);
+            setImportProgress(30);
 
-      }
-   };
+            await api.post(
+                "/supplier/import",
+                { suppliers: importData.filter((row) => row.supplierName) },
+                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+            );
 
+            setImportProgress(100);
+            setImportSuccess(true);
+            await load();
+        } catch (err) {
+            setImportProgress(0);
+            toast.error(err?.response?.data?.message || "Import failed");
+        } finally {
+            setImportLoading(false);
+        }
+    };
 
-   const handleDeleteSelected = async () => {
-      try {
-         setDeleteLoading(true);
-         const response = await deleteSelectedSuppliers(
-            selectedSuppliers
-         );
-         console.log("Delete response:", response);
-         await fetchSuppliers();
-         setSelectedSuppliers([]);
-         setShowDeleteConfirm(false);
-      } catch (error) {
-         console.error(
-            "Delete selected suppliers error:",
-            error
-         );
-      } finally {
-         setDeleteLoading(false);
-      }
-   };
+    const closeImport = () => {
+        setShowImport(false);
+        setImportData([]);
+        setImportSuccess(false);
+    };
 
-   useEffect(() => {
-      setCurrentPage(1);
-   }, [supplierSearch]);
+    return (
+        <div className="space-y-6">
+            <PageHeader
+                icon={Truck}
+                title={term.suppliers}
+                subtitle={loading ? "Loading…" : `${formatNumber(suppliers.length)} ${term.suppliers.toLowerCase()} you buy stock from`}
+                actions={
+                    <>
+                        <Button variant="secondary" icon={Upload} onClick={() => fileRef.current?.click()}>Import CSV</Button>
+                        <Button variant="secondary" icon={Download} onClick={exportCSV} disabled={!suppliers.length}>Export</Button>
+                        <Button icon={Plus} onClick={() => openForm()}>Add {term.supplier.toLowerCase()}</Button>
+                    </>
+                }
+            />
 
-   const totalPages = Math.ceil(
-      filteredSuppliers.length / suppliersPerPage
-   );
+            <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={onCSVSelected} />
 
-   const indexOfLastSupplier =
-      currentPage * suppliersPerPage;
+            <Card padded={false}>
+                <div className="flex flex-col sm:flex-row gap-3 p-4">
+                    <div className="relative flex-1">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
+                        <input
+                            type="search"
+                            value={search}
+                            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                            placeholder="Search by name, phone, city or GST…"
+                            className="w-full h-11 pl-9 pr-3 rounded-lg border border-line bg-surface text-sm text-heading focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            aria-label={`Search ${term.suppliers.toLowerCase()}`}
+                        />
+                    </div>
 
-   const indexOfFirstSupplier =
-      indexOfLastSupplier - suppliersPerPage;
+                    {selected.length > 0 && (
+                        <div className="flex items-center gap-2 animate-fade-in">
+                            <span className="text-sm text-muted">{selected.length} selected</span>
+                            <Button variant="danger-soft" icon={Trash2} onClick={() => setConfirm({ type: "selected" })}>Delete</Button>
+                        </div>
+                    )}
+                </div>
 
-   const currentSuppliers = filteredSuppliers.slice(
-      indexOfFirstSupplier,
-      indexOfLastSupplier
-   );
+                <div className="border-t border-line">
+                    {loading ? (
+                        <SkeletonRows rows={5} columns={5} />
+                    ) : filtered.length === 0 ? (
+                        <EmptyState
+                            icon={Truck}
+                            title={suppliers.length ? "No matches" : `No ${term.suppliers.toLowerCase()} yet`}
+                            message={suppliers.length ? "Try a different search." : `Keep your ${term.suppliers.toLowerCase()}' contacts and GST details in one place.`}
+                            action={!suppliers.length && <Button icon={Plus} onClick={() => openForm()}>Add {term.supplier.toLowerCase()}</Button>}
+                        />
+                    ) : (
+                        <>
+                            <div className="hidden md:block overflow-x-auto thin-scrollbar">
+                                <table className="w-full min-w-[820px] text-sm">
+                                    <thead>
+                                        <tr className="bg-surface-muted text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
+                                            <th className="py-3 pl-4 pr-2 w-10">
+                                                <input
+                                                    type="checkbox"
+                                                    className="h-4 w-4"
+                                                    checked={allOnPage}
+                                                    onChange={() => setSelected((cur) => allOnPage ? cur.filter((id) => !pageIds.includes(id)) : [...new Set([...cur, ...pageIds])])}
+                                                    aria-label="Select all on page"
+                                                />
+                                            </th>
+                                            <th className="py-3 px-3">{term.supplier}</th>
+                                            <th className="py-3 px-3">Contact</th>
+                                            <th className="py-3 px-3">Location</th>
+                                            <th className="py-3 px-3">GST</th>
+                                            <th className="py-3 pl-3 pr-4 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-line">
+                                        {pageItems.map((s) => (
+                                            <tr key={s._id} className={selected.includes(s._id) ? "bg-primary/5" : "hover:bg-surface-hover"}>
+                                                <td className="py-3 pl-4 pr-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="h-4 w-4"
+                                                        checked={selected.includes(s._id)}
+                                                        onChange={() => setSelected((cur) => cur.includes(s._id) ? cur.filter((id) => id !== s._id) : [...cur, s._id])}
+                                                        aria-label={`Select ${s.supplierName}`}
+                                                    />
+                                                </td>
+                                                <td className="py-3 px-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="grid place-items-center h-9 w-9 shrink-0 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                                                            {initials(s.supplierName)}
+                                                        </span>
+                                                        <span className="font-semibold text-heading">{s.supplierName}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-3">
+                                                    <p className="text-heading tabular">{s.phone || "—"}</p>
+                                                    <p className="text-xs text-muted">{s.email || ""}</p>
+                                                </td>
+                                                <td className="py-3 px-3 text-body">{[s.city, s.state].filter(Boolean).join(", ") || "—"}</td>
+                                                <td className="py-3 px-3 font-mono text-xs text-body">{s.gstNumber || "—"}</td>
+                                                <td className="py-3 pl-3 pr-4">
+                                                    <div className="flex justify-end gap-1">
+                                                        <IconButton icon={Pencil} label="Edit" size="sm" onClick={() => openForm(s)} />
+                                                        <IconButton icon={Trash2} label="Delete" size="sm" className="hover:!bg-danger/10 hover:!text-danger" onClick={() => setConfirm({ type: "one", supplier: s })} />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
 
-   const handleCancelImport = () => {
-      setShowImportConfirm(false);
-      setImportFile(null);
-      setImportData([]);
+                            <ul className="md:hidden divide-y divide-line">
+                                {pageItems.map((s) => (
+                                    <li key={s._id} className="p-4 flex items-start gap-3">
+                                        <span className="grid place-items-center h-10 w-10 shrink-0 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                                            {initials(s.supplierName)}
+                                        </span>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-semibold text-heading truncate">{s.supplierName}</p>
+                                            <div className="mt-1 space-y-0.5 text-xs text-muted">
+                                                {s.phone && <p className="flex items-center gap-1.5"><Phone className="h-3 w-3" />{s.phone}</p>}
+                                                {s.email && <p className="flex items-center gap-1.5 truncate"><Mail className="h-3 w-3" />{s.email}</p>}
+                                                {(s.city || s.state) && <p className="flex items-center gap-1.5"><MapPin className="h-3 w-3" />{[s.city, s.state].filter(Boolean).join(", ")}</p>}
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            <IconButton icon={Pencil} label="Edit" size="sm" onClick={() => openForm(s)} />
+                                            <IconButton icon={Trash2} label="Delete" size="sm" onClick={() => setConfirm({ type: "one", supplier: s })} />
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </>
+                    )}
+                </div>
 
-      const input = document.getElementById(
-         "supplier-csv-input"
-      );
-
-      if (input) {
-         input.value = "";
-      }
-   };
-
-   const handleImportDone = () => {
-      setShowImportConfirm(false);
-      setImportSuccess(false);
-      setImportProgress(0);
-      setImportFile(null);
-      setImportData([]);
-
-      const input = document.getElementById(
-         "supplier-csv-input"
-      );
-
-      if (input) {
-         input.value = "";
-      }
-   };
-
-   const handleSelectSupplier = (supplierId, checked) => {
-      if (checked) {
-         setSelectedSuppliers((prev) => [
-            ...prev,
-            supplierId
-         ]);
-      } else {
-         setSelectedSuppliers((prev) =>
-            prev.filter((id) => id !== supplierId)
-         );
-      }
-   };
-
-   const handleSelectAll = (checked) => {
-      if (checked) {
-         setSelectedSuppliers(
-            currentSuppliers.map(
-               (supplier) => supplier._id
-            )
-         );
-      } else {
-         setSelectedSuppliers([]);
-      }
-   };
-
-   return (
-      <>
-         <div>
-            <LastParams />
-         </div>
-         <div className="bg-white mt-4 border border-gray-200 rounded-xl overflow-hidden dark:bg-darkColor dark:text-white">
-            <div className="flex flex-col sm:flex-row justify-between px-5 py-4 border-b border-gray-200">
-               <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                     Suppliers
-                  </h2>
-                  <p className="text-sm text-gray-500 mt-1">
-                     Manage your suppliers and their information.
-                  </p>
-               </div>
-               <div className="flex md:block mt-4 md:mt-0">
-                  <input
-                     type="file"
-                     accept=".csv"
-                     id="supplier-csv-input"
-                     className="hidden"
-                     onChange={handleSupplierCSVSelect}
-                  />
-
-                  <button
-                     type="button"
-                     onClick={() =>
-                        document
-                           .getElementById("supplier-csv-input")
-                           .click()
-                     }
-                     className="px-4 py-2 text-xs sm:text-sm mr-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition dark:bg-darkColor dark:text-white"
-                  >
-                     Import CSV
-                  </button>
-                  <button
-                     type="button"
-                     onClick={exportSuppliersCSV}
-                     className="mr-2 px-4 py-2 border text-xs sm:text-sm border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition dark:bg-darkColor dark:text-white"
-                  >
-                     Export CSV
-                  </button>
-                  <button
-                     onClick={() => {
-
-                        setEditingSupplier(null);
-                        setSupplierFormError("");
-                        setFormData({
-                           supplierName: "",
-                           phone: "",
-                           email: "",
-                           address: "",
-                           city: "",
-                           state: "",
-                           gstNumber: ""
-                        });
-
-                        setShowModal(true);
-                     }}
-                     className="px-4 py-2 bg-primary text-xs sm:text-sm text-white rounded-lg hover:bg-blue-700 shadow-lg dark:bg-darkColor dark:text-white dark:border"
-                  >
-                     + Add Supplier
-                  </button>
-               </div>
-
-            </div>
-
-            <div className="w-full my-5">
-               <div className="relative w-full p-2">
-
-                  <input
-                     type="text"
-                     value={supplierSearch}
-                     onChange={(e) => setSupplierSearch(e.target.value)}
-                     placeholder="Search supplier..."
-                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
-                  />
-
-                  <svg
-                     className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-                     fill="none"
-                     stroke="currentColor"
-                     viewBox="0 0 24 24"
-                  >
-                     <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 6.05 6.05a7.5 7.5 0 0 0 10.6 10.6Z"
-                     />
-                  </svg>
-
-               </div>
-            </div>
+                {!loading && filtered.length > 0 && (
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-line px-4 py-3">
+                        <p className="text-xs text-muted tabular">
+                            Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} of {formatNumber(filtered.length)}
+                        </p>
+                        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} />
+                    </div>
+                )}
+            </Card>
 
             <SupplierModal
-               show={showModal}
-               editingSupplier={editingSupplier}
-               formData={formData}
-               onChange={handleSupplierChange}
-               onSubmit={handleCreateSupplier}
-               onClose={() => setShowModal(false)}
-               error={supplierFormError}
-               loading={supplierSaving}
+                show={showForm}
+                editingSupplier={editing}
+                formData={formData}
+                onChange={(e) => setFormData((cur) => ({ ...cur, [e.target.name]: e.target.value }))}
+                onSubmit={submitForm}
+                onClose={() => setShowForm(false)}
+                error={formError}
+                loading={saving}
             />
 
             <ImportSupplierModal
-               show={showImportConfirm}
-               importData={importData}
-               importLoading={importLoading}
-               importProgress={importProgress}
-               importSuccess={importSuccess}
-               onConfirm={handleImportSuppliers}
-               onCancel={handleCancelImport}
-               onDone={handleImportDone}
+                show={showImport}
+                importData={importData}
+                importLoading={importLoading}
+                importProgress={importProgress}
+                importSuccess={importSuccess}
+                onConfirm={runImport}
+                onCancel={closeImport}
+                onDone={closeImport}
             />
 
-
-            {loading ? (
-               <div className="px-5 py-10 text-center text-gray-500">
-                  Loading suppliers...
-               </div>
-            ) : error ? (
-               <div className="px-5 py-10 text-center text-red-500">
-                  {error}
-               </div>
-            ) : suppliers.length === 0 ? (
-               <div className="px-5 py-10 text-center text-gray-500">
-                  No suppliers found.
-               </div>
-            ) : (
-               <div className="overflow-x-auto">
-                  <div className="flex justify-end m-2">
-                     {selectedSuppliers.length > 0 && (
-                        <button
-                           onClick={() => setShowDeleteConfirm(true)}
-                           className="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700"
-                        >
-                           Delete Selected ({selectedSuppliers.length})
-                        </button>
-                     )}
-                  </div>
-
-                  <SupplierTable
-                     suppliers={currentSuppliers}
-                     selectedSuppliers={selectedSuppliers}
-                     onSelectSupplier={handleSelectSupplier}
-                     onSelectAll={handleSelectAll}
-                     onEdit={handleEditSupplier}
-                     onDelete={handleDeleteSupplier}
-                  />
-
-                  <SupplierPagination
-                     currentPage={currentPage}
-                     totalPages={totalPages}
-                     totalItems={filteredSuppliers.length}
-                     itemsPerPage={suppliersPerPage}
-                     onPageChange={setCurrentPage}
-                  />
-
-
-               </div>
-            )}
-
-            <DeleteSupplierModal
-               show={showDeleteConfirm}
-               selectedCount={selectedSuppliers.length}
-               loading={deleteLoading}
-               onCancel={() => setShowDeleteConfirm(false)}
-               onConfirm={handleDeleteSelected}
+            <ConfirmDialog
+                open={Boolean(confirm)}
+                loading={busy}
+                onCancel={() => setConfirm(null)}
+                onConfirm={runConfirm}
+                confirmLabel="Delete"
+                title={confirm?.type === "one" ? `Delete ${confirm.supplier.supplierName}?` : `Delete ${selected.length} ${term.suppliers.toLowerCase()}?`}
+                message={`${term.items} that list this ${term.supplier.toLowerCase()} keep the name; only the contact record is removed.`}
             />
-
-         </div>
-      </>
-   )
+        </div>
+    );
 }

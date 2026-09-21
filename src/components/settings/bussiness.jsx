@@ -1,224 +1,290 @@
-import { useState, useEffect } from "react";
-import { updateProfile, getProfile } from "../../services/userService";
-import SettingsHeading from "./settingHeading";
-
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+    Store,
+    FileText,
+    ShieldCheck,
+    Building2,
+    Map as MapIcon,
+    Smartphone,
+    Save,
+    Check,
+    PackageMinus,
+    Percent,
+    Info
+} from "lucide-react";
+
+import SettingsHeading, { SettingsSection } from "./settingHeading";
+import Button from "../ui/Button";
+import { Input, Select, Textarea } from "../ui/Field";
+import { Spinner } from "../ui/State";
+import { ConfirmDialog } from "../ui/Modal";
+import { useToast } from "../ui/Toast";
+
+import { updateProfile, getProfile, getPreferences, updatePreferences } from "../../services/userService";
+import { BUSINESS_TYPES, getBusinessType } from "../../config/businessTypes";
+import { useBusiness } from "../../context/BusinessContext";
 
 export default function BussinessSettings() {
-    const { t, i18n } = useTranslation();
 
-    const [loading, setLoading] = useState(false);
+    const { t } = useTranslation();
+    const toast = useToast();
+    const { refresh } = useBusiness();
+
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [savingType, setSavingType] = useState(false);
+    const [savingDefaults, setSavingDefaults] = useState(false);
+
+    const [savedType, setSavedType] = useState("general");
+    const [pendingType, setPendingType] = useState(null);
 
     const [formData, setFormData] = useState({
         Shopname: "",
-        ownerName: "",
-        mobileNumber: "",
-        email: "",
         shopAddress: "",
         city: "",
         state: "",
         gstNumber: "",
-        licenseNumber: ""
+        licenseNumber: "",
+        upiId: ""
     });
 
+    const [defaults, setDefaults] = useState({ lowStockThreshold: "", defaultTaxRate: "0" });
+
     useEffect(() => {
-        fetchProfile();
+        Promise.all([getProfile(), getPreferences()])
+            .then(([{ user }, { preferences }]) => {
+                setSavedType(user.businessType || "general");
+                setFormData({
+                    Shopname: user.Shopname || "",
+                    shopAddress: user.shopAddress || "",
+                    city: user.city || "",
+                    state: user.state || "",
+                    gstNumber: user.gstNumber || "",
+                    licenseNumber: user.licenseNumber || "",
+                    upiId: user.upiId || ""
+                });
+                const profile = getBusinessType(user.businessType);
+                setDefaults({
+                    lowStockThreshold: String(preferences?.lowStockThreshold ?? profile.lowStockThreshold),
+                    defaultTaxRate: String(preferences?.defaultTaxRate ?? profile.defaultTaxRate)
+                });
+            })
+            .catch((err) => toast.error(err.response?.data?.message || "Could not load business details"))
+            .finally(() => setLoading(false));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const fetchProfile = async () => {
+    const profile = getBusinessType(savedType);
+
+    const onChange = (e) => setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+    const saveDetails = async (e) => {
+        e.preventDefault();
+
+        if (profile.licence?.required && !formData.licenseNumber.trim()) {
+            toast.warning(`${profile.licence.label} is required for a ${profile.shortLabel}`);
+            return;
+        }
+
         try {
-            setLoading(true);
+            setSaving(true);
+            await updateProfile({ ...formData, gstNumber: formData.gstNumber.trim().toUpperCase() });
+            await refresh();
+            toast.success("Business details saved");
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Could not save");
+        } finally {
+            setSaving(false);
+        }
+    };
 
-            const result = await getProfile();
-            const user = result.user;
+    const confirmTypeChange = async () => {
+        const next = getBusinessType(pendingType);
 
-            setFormData({
-                Shopname: user.Shopname || "",
-                ownerName: user.ownerName || "",
-                mobileNumber: user.mobileNumber || "",
-                email: user.email || "",
-                shopAddress: user.shopAddress || "",
-                city: user.city || "",
-                state: user.state || "",
-                gstNumber: user.gstNumber || "",
-                licenseNumber: user.licenseNumber || ""
+        if (next.licence?.required && !formData.licenseNumber.trim()) {
+            toast.warning(`Add your ${next.licence.label} below first, save, then switch to ${next.shortLabel}.`);
+            setPendingType(null);
+            return;
+        }
+
+        try {
+            setSavingType(true);
+            await updateProfile({ businessType: next.id, licenseNumber: formData.licenseNumber });
+            setSavedType(next.id);
+            await refresh();
+            toast.success(`StoreFlow is now set up for ${next.shortLabel}`);
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Could not change business type");
+        } finally {
+            setSavingType(false);
+            setPendingType(null);
+        }
+    };
+
+    const saveDefaults = async (e) => {
+        e.preventDefault();
+        try {
+            setSavingDefaults(true);
+            await updatePreferences({
+                lowStockThreshold: Number(defaults.lowStockThreshold) || 0,
+                defaultTaxRate: Number(defaults.defaultTaxRate) || 0
             });
-
+            await refresh();
+            toast.success("Inventory defaults saved");
         } catch (err) {
-            console.log(err);
-
-            alert(
-                err.response?.data?.message ||
-                "Failed to load profile"
-            );
-
+            toast.error(err.response?.data?.message || "Could not save defaults");
         } finally {
-            setLoading(false);
+            setSavingDefaults(false);
         }
     };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
+    if (loading) return <Spinner />;
 
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const handleSaveProfile = async () => {
-        try {
-            setLoading(true);
-
-            await updateProfile(formData);
-
-            alert("Profile Update Successfully");
-
-        } catch (err) {
-            console.log("update Profile error : ", err);
-
-            alert(
-                err.response?.data?.message ||
-                "Failed to update profile"
-            );
-
-        } finally {
-            setLoading(false);
-        }
-    };
+    const pending = pendingType ? getBusinessType(pendingType) : null;
 
     return (
-        <div className="w-full">
+        <div className="space-y-6">
+            <SettingsHeading heading={t("bussinessInformation.title")} content={t("bussinessInformation.content")} />
 
-            <SettingsHeading
-                heading={t("bussinessInformation.title")}
-                content={t("bussinessInformation.content")}
-            />
+            {/* ---------------- Business type ---------------- */}
+            <SettingsSection
+                title="Type of business"
+                description="Changes labels, which fields you see on each item, units and alerts. Your existing data is kept."
+            >
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5" role="radiogroup" aria-label="Business type">
+                    {BUSINESS_TYPES.map((type) => {
+                        const Icon = type.icon;
+                        const active = type.id === savedType;
+                        return (
+                            <button
+                                key={type.id}
+                                type="button"
+                                role="radio"
+                                aria-checked={active}
+                                disabled={savingType}
+                                onClick={() => !active && setPendingType(type.id)}
+                                className={[
+                                    "relative flex items-center gap-2.5 rounded-xl border p-3 text-left transition-all",
+                                    active
+                                        ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                                        : "border-line hover:border-line-strong hover:bg-surface-hover"
+                                ].join(" ")}
+                            >
+                                <span className="grid place-items-center h-8 w-8 shrink-0 rounded-lg text-white" style={{ backgroundColor: type.accent }}>
+                                    <Icon className="h-4 w-4" />
+                                </span>
+                                <span className="text-xs font-semibold text-heading leading-tight">{type.shortLabel}</span>
+                                {active && (
+                                    <span className="absolute -top-1.5 -right-1.5 grid place-items-center h-5 w-5 rounded-full bg-primary text-white shadow">
+                                        <Check className="h-3 w-3" />
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
 
-            <div className="border border-gray-200 rounded-xl p-4 sm:p-6 mt-5 sm:mt-6">
+                <div className="mt-4 flex items-start gap-2 rounded-xl bg-surface-muted border border-line px-4 py-3">
+                    <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <p className="text-xs text-muted leading-relaxed">
+                        <span className="font-semibold text-heading">{profile.label}:</span>{" "}
+                        items are called "{profile.itemLabelPlural.toLowerCase()}",
+                        {profile.tracksExpiry ? " expiry dates are tracked," : " no expiry tracking,"}
+                        {profile.tracksBatch ? " batch numbers on," : ""} sold by {profile.units.slice(0, 4).join(", ")}
+                        {profile.units.length > 4 ? " and more." : "."}
+                    </p>
+                </div>
+            </SettingsSection>
 
-                {/* FORM */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-
-                    {/* Shop Name */}
-                    <div className="w-full">
-                        <label className="block text-sm font-semibold mb-2">
-                            {t("bussinessInformation.ShopName")}
-                        </label>
-
-                        <input
-                            name="Shopname"
-                            value={formData.Shopname}
-                            onChange={handleChange}
-                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
-                            placeholder="Shop Name"
-                        />
-                    </div>
-
-
-                    {/* GST */}
-                    <div className="w-full">
-                        <label className="block text-sm font-semibold mb-2">
-                            {t("bussinessInformation.GSTNumber")}
-                        </label>
-
-                        <input
+            {/* ---------------- Shop details ---------------- */}
+            <form onSubmit={saveDetails}>
+                <SettingsSection
+                    title="Shop details"
+                    description="Printed on every invoice."
+                    footer={<Button type="submit" icon={Save} loading={saving}>{t("bussinessInformation.SaveButton")}</Button>}
+                >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Input className="sm:col-span-2" label={t("bussinessInformation.ShopName")} name="Shopname" icon={Store} value={formData.Shopname} onChange={onChange} required />
+                        <Textarea className="sm:col-span-2" label={t("bussinessInformation.ShopAddress")} name="shopAddress" rows={2} value={formData.shopAddress} onChange={onChange} />
+                        <Input label={t("bussinessInformation.City")} name="city" icon={Building2} value={formData.city} onChange={onChange} />
+                        <Input label={t("bussinessInformation.State")} name="state" icon={MapIcon} value={formData.state} onChange={onChange} />
+                        <Input
+                            label={t("bussinessInformation.GSTNumber")}
                             name="gstNumber"
+                            icon={FileText}
+                            maxLength={15}
+                            placeholder="Optional"
                             value={formData.gstNumber}
-                            onChange={handleChange}
-                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
-                            placeholder="GST Number"
+                            onChange={onChange}
+                            hint="Invoices say “Tax invoice” when a GSTIN is set"
                         />
-                    </div>
-
-
-                    {/* License */}
-                    <div className="w-full">
-                        <label className="block text-sm font-semibold mb-2">
-                            {t("bussinessInformation.LicenseNumber")}
-                        </label>
-
-                        <input
+                        <Input
+                            label={profile.licence?.label || "Trade licence no."}
                             name="licenseNumber"
+                            icon={ShieldCheck}
+                            placeholder={profile.licence?.placeholder || "Optional"}
                             value={formData.licenseNumber}
-                            onChange={handleChange}
-                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
-                            placeholder="License Number"
+                            onChange={onChange}
+                            required={Boolean(profile.licence?.required)}
+                        />
+                        <Input
+                            className="sm:col-span-2"
+                            label="UPI ID"
+                            name="upiId"
+                            icon={Smartphone}
+                            placeholder="yourshop@okbank"
+                            value={formData.upiId}
+                            onChange={onChange}
+                            hint="Customers scan a QR for this ID on the billing screen"
                         />
                     </div>
+                </SettingsSection>
+            </form>
 
-
-                    {/* City */}
-                    <div className="w-full">
-                        <label className="block text-sm font-semibold mb-2">
-                            {t("bussinessInformation.City")}
-                        </label>
-
-                        <input
-                            name="city"
-                            value={formData.city}
-                            onChange={handleChange}
-                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
-                            placeholder="City"
+            {/* ---------------- Inventory defaults ---------------- */}
+            <form onSubmit={saveDefaults}>
+                <SettingsSection
+                    title="Inventory defaults"
+                    description="Applied across the app. Individual items can override the low-stock level."
+                    footer={<Button type="submit" icon={Save} loading={savingDefaults}>Save defaults</Button>}
+                >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Input
+                            label="Low stock alert at"
+                            type="number"
+                            min="0"
+                            icon={PackageMinus}
+                            suffix="units"
+                            value={defaults.lowStockThreshold}
+                            onChange={(e) => setDefaults({ ...defaults, lowStockThreshold: e.target.value })}
+                            hint={`Recommended for ${profile.shortLabel.toLowerCase()}: ${profile.lowStockThreshold}`}
+                        />
+                        <Select
+                            label="Default GST rate for new items"
+                            icon={Percent}
+                            options={["0", "5", "12", "18", "28"].map((rate) => ({ value: rate, label: `${rate}%` }))}
+                            value={defaults.defaultTaxRate}
+                            onChange={(e) => setDefaults({ ...defaults, defaultTaxRate: e.target.value })}
                         />
                     </div>
+                </SettingsSection>
+            </form>
 
-
-                    {/* State */}
-                    <div className="w-full">
-                        <label className="block text-sm font-semibold mb-2">
-                            {t("bussinessInformation.State")}
-                        </label>
-
-                        <input
-                            name="state"
-                            value={formData.state}
-                            onChange={handleChange}
-                            className="border rounded-lg px-4 py-3 w-full text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
-                            placeholder="State"
-                        />
-                    </div>
-
-                </div>
-
-
-                {/* SHOP ADDRESS */}
-                <div className="mt-4 sm:mt-5">
-
-                    <label className="block text-sm font-semibold mb-2">
-                        {t("bussinessInformation.ShopAddress")}
-                    </label>
-
-                    <textarea
-                        name="shopAddress"
-                        value={formData.shopAddress}
-                        onChange={handleChange}
-                        className="w-full border rounded-lg px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none dark:bg-darkColor dark:text-white"
-                        placeholder="Shop Address"
-                        rows={4}
-                    />
-
-                </div>
-
-
-                {/* SAVE BUTTON */}
-                <div className="mt-5">
-
-                    <button
-                        onClick={handleSaveProfile}
-                        disabled={loading}
-                        className="w-full sm:w-auto bg-blue-600 text-sm text-white px-5 py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed dark:bg-black dark:text-white dark:border dark:border-white/30"
-                    >
-                        {loading
-                            ? `${t("bussinessInformation.saving")}`
-                            : `${t("bussinessInformation.SaveButton")}`
-                        }
-                    </button>
-
-                </div>
-
-            </div>
-
+            <ConfirmDialog
+                open={Boolean(pending)}
+                tone="primary"
+                loading={savingType}
+                onCancel={() => setPendingType(null)}
+                onConfirm={confirmTypeChange}
+                confirmLabel={`Switch to ${pending?.shortLabel}`}
+                title={`Switch to ${pending?.label}?`}
+                message={
+                    pending
+                        ? `Items will be called "${pending.itemLabelPlural.toLowerCase()}"${pending.tracksExpiry ? " and expiry dates will be tracked" : ", and expiry fields will be hidden (existing dates are kept)"}. Your products, bills and reports stay exactly as they are.`
+                        : ""
+                }
+            />
         </div>
     );
 }

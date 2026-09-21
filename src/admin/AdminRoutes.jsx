@@ -13,8 +13,6 @@ export default function AdminRoute({ children }) {
 
         const decoded = jwtDecode(token);
 
-        console.log("ADMIN ROUTE USER:", decoded);
-
         if (decoded.role !== "admin") {
 
             return (

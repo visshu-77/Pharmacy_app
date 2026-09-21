@@ -21,6 +21,8 @@ import SubscriptionRoute from "./components/SubscriptionRoute.jsx";
 
 import PageNotFound from "./pages/PageNotFound.jsx";
 
+import Demo from "./pages/demo.jsx";
+
 
 // ================= ADMIN =================
 
@@ -84,6 +86,7 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+
 
                     <Route
                         path="/billing"
@@ -159,6 +162,19 @@ function App() {
                         }
                     />
 
+                    <Route
+                        path="/demo"
+                        element={
+                            <ProtectedRoute>
+                                <UserRoute>
+                                    <SubscriptionRoute>
+                                        <Demo />
+                                    </SubscriptionRoute>
+                                </UserRoute>
+                            </ProtectedRoute>
+                        }
+                    />
+
                 </Route>
 
 
@@ -210,9 +226,9 @@ function App() {
                         element={<AdminCustomerDetails />}
                     />
 
-                    <Route 
-                    path="customers/:id/edit"
-                    element={<EditCustomer />}
+                    <Route
+                        path="customers/:id/edit"
+                        element={<EditCustomer />}
                     />
 
                 </Route>

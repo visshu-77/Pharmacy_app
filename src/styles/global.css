@@ -1,27 +1,123 @@
+/* ==========================================================================
+   StoreFlow design tokens
+   --------------------------------------------------------------------------
+   Colours are stored as raw RGB channels so Tailwind's opacity modifiers work
+   everywhere: `bg-primary/10`, `border-line/60`, `text-muted/80` …
+   Every token is defined on :root (light) and re-declared under .dark, so no
+   colour exists in only one theme.
+   ========================================================================== */
+
+/* Inter is loaded from public/index.html; the stack below falls back cleanly. */
+
 :root {
-    --background: #ffffff;
-    --foreground: #171717;
+    color-scheme: light;
 
-    --color-primary: #2563eb;
-    --color-secondary: #16a34a;
-    --color-secondSecondary: #ed7e0f;
-    --color-text: #657489;
-    --color-sideBackground: #f8fafc;
+    /* Brand -------------------------------------------------------------- */
+    --color-primary: 37 99 235; /* blue 600  */
+    --color-primary-soft: 219 234 254; /* blue 100  */
+    --color-primary-strong: 29 78 216; /* blue 700  */
 
-    --color-darkColor: rgb(34 34 34);
+    --color-secondary: 22 163 74; /* green 600 */
+    --color-secondary-soft: 220 252 231; /* green 100 */
 
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
+    --color-accent: 237 126 15; /* orange    */
 
-    
+    /* Status ------------------------------------------------------------- */
+    --color-success: 22 163 74;
+    --color-success-soft: 220 252 231;
+
+    --color-warning: 217 119 6;
+    --color-warning-soft: 254 243 199;
+
+    --color-danger: 220 38 38;
+    --color-danger-soft: 254 226 226;
+
+    --color-info: 8 145 178;
+    --color-info-soft: 207 250 254;
+
+    /* Surfaces ----------------------------------------------------------- */
+    --color-canvas: 244 246 250; /* page background       */
+    --color-surface: 255 255 255; /* cards, panels         */
+    --color-surface-muted: 248 250 252; /* table heads, wells    */
+    --color-surface-hover: 241 245 249;
+
+    /* Text --------------------------------------------------------------- */
+    --color-heading: 15 23 42; /* slate 900 */
+    --color-body: 51 65 85; /* slate 700 */
+    --color-muted: 100 116 139; /* slate 500 */
+    --color-faint: 148 163 184; /* slate 400 */
+
+    /* Lines -------------------------------------------------------------- */
+    --color-line: 226 232 240; /* slate 200 */
+    --color-line-strong: 203 213 225;
+
+    /* Charts — validated series colour per theme (dataviz palette check) - */
+    --color-chart-1: 37 99 235; /* #2563eb */
+    --color-chart-2: 13 148 136; /* #0d9488 */
+
+    /* Legacy aliases kept so older markup keeps rendering ---------------- */
+    --color-text: 100 116 139;
+    --color-sideBackground: 248 250 252;
+    --color-darkColor: 24 24 27;
+
+    /* Elevation ---------------------------------------------------------- */
+    --shadow-xs: 0 1px 2px rgb(15 23 42 / 0.05);
+    --shadow-sm: 0 1px 3px rgb(15 23 42 / 0.08), 0 1px 2px rgb(15 23 42 / 0.04);
+    --shadow-md: 0 4px 16px -2px rgb(15 23 42 / 0.1), 0 2px 6px -2px rgb(15 23 42 / 0.06);
+    --shadow-lg: 0 18px 40px -12px rgb(15 23 42 / 0.18);
+    --shadow-ring: 0 0 0 1px rgb(15 23 42 / 0.05);
 }
 
-/* @media (prefers-color-scheme: dark) {
-    :root {
-        --background: #0a0a0a;
-        --foreground: #ededed;
-    }
-} */
+.dark {
+    color-scheme: dark;
+
+    --color-primary: 96 165 250; /* blue 400 — readable on dark */
+    --color-primary-soft: 30 58 138;
+    --color-primary-strong: 147 197 253;
+
+    --color-secondary: 74 222 128;
+    --color-secondary-soft: 20 83 45;
+
+    --color-accent: 251 146 60;
+
+    --color-success: 74 222 128;
+    --color-success-soft: 20 83 45;
+
+    --color-warning: 251 191 36;
+    --color-warning-soft: 69 46 6;
+
+    --color-danger: 248 113 113;
+    --color-danger-soft: 76 20 20;
+
+    --color-info: 34 211 238;
+    --color-info-soft: 22 60 73;
+
+    --color-canvas: 9 9 11;
+    --color-surface: 24 24 27;
+    --color-surface-muted: 32 32 36;
+    --color-surface-hover: 39 39 44;
+
+    --color-heading: 244 244 245;
+    --color-body: 212 212 216;
+    --color-muted: 161 161 170;
+    --color-faint: 113 113 122;
+
+    --color-line: 45 45 51;
+    --color-line-strong: 63 63 70;
+
+    --color-chart-1: 59 130 246; /* #3b82f6 */
+    --color-chart-2: 20 184 166; /* #14b8a6 */
+
+    --color-text: 161 161 170;
+    --color-sideBackground: 24 24 27;
+    --color-darkColor: 24 24 27;
+
+    --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.5);
+    --shadow-md: 0 4px 16px -2px rgb(0 0 0 / 0.55);
+    --shadow-lg: 0 18px 40px -12px rgb(0 0 0 / 0.7);
+    --shadow-ring: 0 0 0 1px rgb(255 255 255 / 0.06);
+}
 
 * {
     margin: 0;
@@ -36,28 +132,148 @@ body,
 }
 
 body {
-    background: var(--color-background);
-    color: var(--color-foreground);
-    font-family: Arial, Helvetica, sans-serif;
+    background: rgb(var(--color-canvas));
+    color: rgb(var(--color-body));
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system,
+        "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv02", "cv03", "cv04", "tnum";
 }
 
-@keyframes gradient {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: rgb(var(--color-heading));
+    letter-spacing: -0.015em;
 }
+
+/* Numbers line up in tables and totals. */
+.tabular {
+    font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   Focus — one visible, consistent ring everywhere
+   -------------------------------------------------------------------------- */
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid rgb(var(--color-primary));
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   Scrollbars
+   -------------------------------------------------------------------------- */
 
 .hide-scrollbar {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
-    display: none; /* Chrome, Safari */
+    display: none;
+}
+
+.thin-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--color-line-strong)) transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--color-line-strong));
+    border-radius: 999px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   Form controls — native elements adopt the theme without extra classes
+   -------------------------------------------------------------------------- */
+
+input,
+select,
+textarea,
+button {
+    font: inherit;
+    color: inherit;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.dark input[type="date"]::-webkit-calendar-picker-indicator,
+.dark input[type="month"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.7;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: rgb(var(--color-primary));
+    cursor: pointer;
+}
+
+::placeholder {
+    color: rgb(var(--color-faint));
+}
+
+/* --------------------------------------------------------------------------
+   Animation
+   -------------------------------------------------------------------------- */
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes shimmer {
+    100% { transform: translateX(100%); }
+}
+
+/* Skeleton placeholder used while data loads. */
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgb(var(--color-surface-hover));
+}
+
+.skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgb(var(--color-surface) / 0.65),
+        transparent
+    );
+    animation: shimmer 1.6s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

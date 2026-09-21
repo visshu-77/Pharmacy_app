@@ -19,12 +19,12 @@
 
     "sidebar": {
         "dashboard": "Dashboard",
-        "product": "Product",
-        "category": "Category",
+        "product": "Products",
+        "category": "Categories",
         "suppliers": "Suppliers",
         "reports": "Reports",
-        "billing": "Billing",
-        "subscription": "Subscription",
+        "billing": "New Bill",
+        "subscription": "Plan",
         "settings": "Settings"
     },
 
@@ -39,11 +39,11 @@
 
     "settingSidebar": {
         "profile": "Profile",
-        "businessInformation": "Bussiness Information",
+        "businessInformation": "Business",
         "subscription": "Subscription",
-        "billingAndPayments": "Billing & Payment",
+        "billingAndPayments": "Plan payments",
         "security": "Security",
-        "notifications": "Notification",
+        "notifications": "Notifications",
         "preferences": "Preferences"
     },
 
@@ -56,8 +56,8 @@
     },
 
     "mainName" : {
-        "title":"MediTask",
-        "content":"Inida No.1 Billing App"
+        "title": "StoreFlow",
+        "content": "Run your store, end to end."
     },
 
     "profile": {
@@ -79,7 +79,7 @@
         "City":"City",
         "State": "State",
         "ShopAddress": "Shop Address",
-        "SaveButton": "Save Bussiness Changes",
+        "SaveButton": "Save business details",
         "saving": "Saving..."
     },
 
@@ -90,10 +90,10 @@
         "BillingCycle": "Billing Cycle",
         "Price":"Price",
         "PaymentStatus":"Payment Status",
-        "StartDate": "📅 Start Date",
-        "ExpiryDate": "📅 Expiry Date",
-        "DaysRemaining": "◉ Days Remaining",
-        "Usage": "↗ Usage",
+        "StartDate": "Start date",
+        "ExpiryDate": "Expiry date",
+        "DaysRemaining": "Days remaining",
+        "Usage": "Usage",
         "SubscriptionPeriod": "Subscription period",
         "elapsed": "elapsed"
     },
@@ -104,8 +104,8 @@
         "CurrentPlan": "Current Plan",
         "CurrentPrice":"Current Price",
         "BillingCycle": "Billing Cycle",
-        "StartDate": "📅 Start Date",
-        "ExpiryDate": "📅 Expiry Date",
+        "StartDate": "Start date",
+        "ExpiryDate": "Expiry date",
         "PaymentHistory": "Payment History",
         "Plan": "Plan",
         "Duration": "Duration",
@@ -123,7 +123,7 @@
         "Saving": "Saving.."
     },
     "NotificationInformation": {
-        "title": "Notification",
+        "title": "Notifications",
         "content": "Choose which notifications you want to receive.",
         "EmailNotifications": "Email Notifications",
         "EmailNotificationsContent":"Receive all notifications via email.",

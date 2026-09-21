@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react";
-import SettingsHeading from "./settingHeading";
-import {
-    getNotification,
-    updateNotification
-} from "../../services/userService";
-
 import { useTranslation } from "react-i18next";
+
+import SettingsHeading, { SettingsSection } from "./settingHeading";
+import { Toggle } from "../ui/Field";
+import { Spinner } from "../ui/State";
+import { useToast } from "../ui/Toast";
+
+import { getNotification, updateNotification } from "../../services/userService";
+import { useBusiness } from "../../context/BusinessContext";
 
 export default function Notification() {
 
-     const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
+    const toast = useToast();
+    const { profile, term } = useBusiness();
 
-    const [notifications, setNotifications] = useState({
+    const [settings, setSettings] = useState({
         emailNotifications: true,
         orderNotifications: true,
         lowStockAlerts: true,
@@ -19,227 +23,82 @@ export default function Notification() {
         paymentNotifications: true,
         promotionalUpdates: false
     });
-
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
-    const [error, setError] = useState("");
 
     useEffect(() => {
-        fetchNotification();
+        getNotification()
+            .then((data) => data.notificationSettings && setSettings(data.notificationSettings))
+            .catch((err) => toast.error(err?.response?.data?.message || "Could not load notification settings"))
+            .finally(() => setLoading(false));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const fetchNotification = async () => {
+    // Save each switch immediately; roll back if the server refuses.
+    const toggle = async (key, value) => {
+        const previous = settings;
+        const next = { ...settings, [key]: value };
+
+        setSettings(next);
+        setUpdating(true);
+
         try {
-            setLoading(true);
-
-            const data = await getNotification();
-
-            if (data.notificationSettings) {
-                setNotifications(data.notificationSettings);
-            }
-
+            await updateNotification(next);
         } catch (err) {
-            console.log(err);
-
-            setError(
-                err?.response?.data?.message ||
-                "Failed to load notification settings"
-            );
-
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleToggle = async (name) => {
-        try {
-            setError("");
-            setUpdating(true);
-
-            const updatedNotifications = {
-                ...notifications,
-                [name]: !notifications[name]
-            };
-
-            setNotifications(updatedNotifications);
-
-            await updateNotification(
-                updatedNotifications
-            );
-
-        } catch (error) {
-            console.log(
-                "Update notification error:",
-                error
-            );
-
-            setError(
-                error?.response?.data?.message ||
-                "Something went wrong"
-            );
-
-            fetchNotification();
-
+            setSettings(previous);
+            toast.error(err?.response?.data?.message || "Could not update");
         } finally {
             setUpdating(false);
         }
     };
 
-    const notificationItems = [
+    const groups = [
         {
-            key: "emailNotifications",
-            title: t("NotificationInformation.EmailNotifications"),
-            description:
-                t("NotificationInformation.EmailNotificationsContent")
+            title: "Shop activity",
+            items: [
+                { key: "orderNotifications", title: t("NotificationInformation.OrderNotifications"), description: t("NotificationInformation.OrderNotificationsContent") },
+                {
+                    key: "lowStockAlerts",
+                    title: profile.tracksExpiry ? "Low stock & expiry alerts" : t("NotificationInformation.LowStockAlerts"),
+                    description: profile.tracksExpiry
+                        ? `When ${term.itemsLower} run low or are close to expiry.`
+                        : t("NotificationInformation.LowStockAlertsContent")
+                },
+                { key: "paymentNotifications", title: t("NotificationInformation.PaymentNotifications"), description: t("NotificationInformation.PaymentNotificationsContent") }
+            ]
         },
         {
-            key: "orderNotifications",
-            title: t("NotificationInformation.OrderNotifications"),
-            description:
-                t("NotificationInformation.OrderNotificationsContent"),
-        },
-        {
-            key: "lowStockAlerts",
-            title: t("NotificationInformation.LowStockAlerts"),
-            description:
-               t("NotificationInformation.LowStockAlertsContent"),
-        },
-        {
-            key: "subscriptionExpiryAlerts",
-            title: t("NotificationInformation.SubscriptionExpiryAlerts"),
-            description:
-                t("NotificationInformation.SubscriptionExpiryAlertsContent"),
-        },
-        {
-            key: "paymentNotifications",
-            title:t("NotificationInformation.PaymentNotifications"),
-            description:
-                t("NotificationInformation.PaymentNotificationsContent"),
-        },
-        {
-            key: "promotionalUpdates",
-            title: t("NotificationInformation.PromotionalUpdates"),
-            description:
-                t("NotificationInformation.PromotionalUpdatesContent"),
+            title: "Account",
+            items: [
+                { key: "emailNotifications", title: t("NotificationInformation.EmailNotifications"), description: t("NotificationInformation.EmailNotificationsContent") },
+                { key: "subscriptionExpiryAlerts", title: t("NotificationInformation.SubscriptionExpiryAlerts"), description: t("NotificationInformation.SubscriptionExpiryAlertsContent") },
+                { key: "promotionalUpdates", title: t("NotificationInformation.PromotionalUpdates"), description: t("NotificationInformation.PromotionalUpdatesContent") }
+            ]
         }
     ];
 
+    if (loading) return <Spinner />;
+
     return (
-        <div className="bg-white w-full dark:bg-darkColor ">
+        <div className="space-y-6">
+            <SettingsHeading heading={t("NotificationInformation.title")} content={t("NotificationInformation.content")} />
 
-            {/* Heading */}
-            <SettingsHeading
-                heading={t("NotificationInformation.title")}
-                content={t("NotificationInformation.content")}
-            />
-
-
-            {/* Loading */}
-            {loading ? (
-
-                <div className="px-4 sm:px-6 py-10 text-center text-gray-500">
-                    Loading notification settings...
-                </div>
-
-            ) : (
-
-                <div className="px-4 sm:px-6">
-
-                    {notificationItems.map((item) => {
-
-                        const enabled =
-                            notifications[item.key];
-
-                        return (
-                            <div
+            {groups.map((group) => (
+                <SettingsSection key={group.title} title={group.title}>
+                    <div className="divide-y divide-line -my-3">
+                        {group.items.map((item) => (
+                            <Toggle
                                 key={item.key}
-                                className="flex items-center justify-between gap-4 py-4 sm:py-5 border-b border-gray-100 last:border-b-0"
-                            >
-
-                                {/* Notification Information */}
-                                <div className="min-w-0 flex-1 pr-1">
-
-                                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                        {item.title}
-                                    </p>
-
-                                    <p className="text-xs sm:text-sm text-gray-500 mt-1 leading-5">
-                                        {item.description}
-                                    </p>
-
-                                </div>
-
-
-                                {/* Toggle */}
-                                <button
-                                    type="button"
-                                    disabled={updating}
-                                    onClick={() =>
-                                        handleToggle(item.key)
-                                    }
-                                    aria-label={`Toggle ${item.title}`}
-                                    className={`
-                                        relative
-                                        flex-shrink-0
-                                        w-11 h-6
-                                        rounded-full
-                                        transition-colors
-                                        duration-200
-                                        focus:outline-none
-                                        focus:ring-2
-                                        focus:ring-blue-500
-                                        focus:ring-offset-2
-                                        disabled:opacity-50
-                                        ${
-                                            enabled
-                                                ? "bg-blue-600"
-                                                : "bg-gray-200"
-                                        }
-                                    `}
-                                >
-
-                                    <span
-                                        className={`
-                                            absolute
-                                            top-1
-                                            left-0
-                                            w-4 h-4
-                                            bg-white
-                                            rounded-full
-                                            shadow
-                                            transition-transform
-                                            duration-200
-                                            ${
-                                                enabled
-                                                    ? "translate-x-6"
-                                                    : "translate-x-1"
-                                            }
-                                        `}
-                                    />
-
-                                </button>
-
-                            </div>
-                        );
-                    })}
-
-                </div>
-            )}
-
-
-            {/* Error */}
-            {error && (
-                <div className="px-4 sm:px-6 pb-4">
-
-                    <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2.5">
-                        <p className="text-xs sm:text-sm text-red-600">
-                            {error}
-                        </p>
+                                label={item.title}
+                                description={item.description}
+                                checked={Boolean(settings[item.key])}
+                                disabled={updating}
+                                onChange={(value) => toggle(item.key, value)}
+                            />
+                        ))}
                     </div>
-
-                </div>
-            )}
-
+                </SettingsSection>
+            ))}
         </div>
     );
 }

@@ -1,195 +1,97 @@
+import { Upload, CheckCircle2 } from "lucide-react";
+
+import Modal from "../ui/Modal";
+import Button from "../ui/Button";
+import { useBusiness } from "../../context/BusinessContext";
+
+/** Preview-then-confirm dialog for importing suppliers from CSV. */
 export default function ImportSupplierModal({
-   show,
-   importData,
-   importLoading,
-   importProgress,
-   importSuccess,
-   onConfirm,
-   onCancel,
-   onDone
+    show,
+    importData,
+    importLoading,
+    importProgress,
+    importSuccess,
+    onConfirm,
+    onCancel,
+    onDone
 }) {
-   if (!show) return null;
+    const { term } = useBusiness();
 
-   return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+    if (!show) return null;
 
-         <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
+    const valid = importData.filter((row) => row.supplierName);
+    const preview = valid.slice(0, 6);
 
-            {importLoading ? (
-
-               /* =========================
-                  IMPORTING
-               ========================= */
-
-               <div className="text-center">
-
-                  <div className="mx-auto w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center">
-
-                     <svg
-                        className="w-7 h-7 text-blue-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                     >
-                        <path
-                           strokeLinecap="round"
-                           strokeLinejoin="round"
-                           strokeWidth="2"
-                           d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-                        />
-                     </svg>
-
-                  </div>
-
-                  <h3 className="text-lg font-semibold text-gray-900 mt-4">
-                     Importing Suppliers
-                  </h3>
-
-                  <div className="mt-6">
-
-                     <div className="flex justify-between text-sm mb-2">
-
-                        <span className="text-gray-600">
-                           Importing suppliers...
-                        </span>
-
-                        <span className="font-semibold text-gray-900">
-                           {importProgress}%
-                        </span>
-
-                     </div>
-
-                     <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
-
-                        <div
-                           className="h-full bg-blue-600 rounded-full transition-all duration-500"
-                           style={{
-                              width: `${importProgress}%`
-                           }}
-                        />
-
-                     </div>
-
-                     <p className="text-xs text-gray-500 text-center mt-3">
-                        Please wait while suppliers are being imported.
-                     </p>
-
-                  </div>
-
-               </div>
-
-            ) : importSuccess ? (
-
-               /* =========================
-                  SUCCESS
-               ========================= */
-
-               <div className="text-center">
-
-                  <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-
-                     <svg
-                        className="w-9 h-9 text-green-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                     >
-                        <path
-                           strokeLinecap="round"
-                           strokeLinejoin="round"
-                           strokeWidth="2"
-                           d="M5 13l4 4L19 7"
-                        />
-                     </svg>
-
-                  </div>
-
-                  <h3 className="text-lg font-semibold text-gray-900 mt-4">
-                     Import Successful
-                  </h3>
-
-                  <p className="text-sm text-gray-500 mt-1">
-                     {importData.length} suppliers imported successfully.
-                  </p>
-
-                  <button
-                     type="button"
-                     onClick={onDone}
-                     className="mt-5 w-full px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
-                  >
-                     Done
-                  </button>
-
-               </div>
-
+    return (
+        <Modal
+            onClose={importLoading ? undefined : importSuccess ? onDone : onCancel}
+            size="lg"
+            icon={Upload}
+            title={`Import ${term.suppliers.toLowerCase()}`}
+            subtitle={`${valid.length} of ${importData.length} rows ready to import`}
+            footer={
+                importSuccess ? (
+                    <Button onClick={onDone}>Done</Button>
+                ) : (
+                    <>
+                        <Button variant="secondary" onClick={onCancel} disabled={importLoading}>Cancel</Button>
+                        <Button onClick={onConfirm} loading={importLoading} disabled={!valid.length}>
+                            Import {valid.length}
+                        </Button>
+                    </>
+                )
+            }
+        >
+            {importSuccess ? (
+                <div className="flex flex-col items-center text-center py-6">
+                    <span className="grid place-items-center h-14 w-14 rounded-2xl bg-success/10 text-success">
+                        <CheckCircle2 className="h-7 w-7" />
+                    </span>
+                    <p className="mt-4 font-semibold text-heading">Import complete</p>
+                    <p className="text-sm text-muted mt-1">{valid.length} {term.suppliers.toLowerCase()} were added.</p>
+                </div>
             ) : (
+                <div className="space-y-4">
+                    {importLoading && (
+                        <div className="h-2 rounded-full bg-surface-hover overflow-hidden">
+                            <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.max(10, importProgress)}%` }} />
+                        </div>
+                    )}
 
-               /* =========================
-                  CONFIRMATION
-               ========================= */
+                    <div className="overflow-x-auto thin-scrollbar rounded-xl border border-line">
+                        <table className="w-full min-w-[520px] text-sm">
+                            <thead>
+                                <tr className="bg-surface-muted text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
+                                    <th className="py-2.5 px-3">Name</th>
+                                    <th className="py-2.5 px-3">Phone</th>
+                                    <th className="py-2.5 px-3">City</th>
+                                    <th className="py-2.5 px-3">GST</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-line">
+                                {preview.map((row, index) => (
+                                    <tr key={index}>
+                                        <td className="py-2.5 px-3 font-medium text-heading">{row.supplierName}</td>
+                                        <td className="py-2.5 px-3 text-body">{row.phone || "—"}</td>
+                                        <td className="py-2.5 px-3 text-body">{row.city || "—"}</td>
+                                        <td className="py-2.5 px-3 text-body">{row.gstNumber || "—"}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
 
-               <>
+                    {valid.length > preview.length && (
+                        <p className="text-xs text-muted">…and {valid.length - preview.length} more</p>
+                    )}
 
-                  <div className="mx-auto w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center">
-
-                     <svg
-                        className="w-7 h-7 text-blue-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                     >
-                        <path
-                           strokeLinecap="round"
-                           strokeLinejoin="round"
-                           strokeWidth="2"
-                           d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-                        />
-                     </svg>
-
-                  </div>
-
-                  <h3 className="text-lg font-semibold text-gray-900 text-center mt-4">
-                     Import Suppliers?
-                  </h3>
-
-                  <p className="text-sm text-gray-500 text-center mt-2">
-                     You are about to import{" "}
-                     <span className="font-semibold text-gray-900">
-                        {importData.length}
-                     </span>{" "}
-                     suppliers from the selected CSV file.
-                  </p>
-
-                  <p className="text-sm text-gray-500 text-center mt-1">
-                     Do you want to continue?
-                  </p>
-
-                  <div className="flex gap-3 mt-6">
-
-                     <button
-                        type="button"
-                        onClick={onCancel}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
-                     >
-                        Cancel
-                     </button>
-
-                     <button
-                        type="button"
-                        onClick={onConfirm}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
-                     >
-                        Confirm Import
-                     </button>
-
-                  </div>
-
-               </>
-
+                    {importData.length > valid.length && (
+                        <p className="text-xs text-warning">
+                            {importData.length - valid.length} row(s) without a "Supplier Name" will be skipped.
+                        </p>
+                    )}
+                </div>
             )}
-
-         </div>
-
-      </div>
-   );
+        </Modal>
+    );
 }

@@ -1,31 +1,27 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-const faqs = [
+const FAQS = [
+    {
+        question: "Does StoreFlow work for my kind of shop?",
+        answer:
+            "Yes. Pick your business type — grocery, hardware, pharmacy, electronics, mobile, stationery, clothing, footwear, bakery, cosmetics, auto parts or general — and StoreFlow adjusts its fields, units and alerts. You can switch type any time in Settings without losing data."
+    },
     {
         question: "Can I change my plan later?",
-        answer:
-            "Yes — you can upgrade or downgrade your plan at any time from your account settings. Changes will be applied according to your subscription."
+        answer: "Yes. Upgrade or downgrade whenever you like; the change applies from your next billing period."
     },
     {
-        question: "What happens when my subscription expires?",
-        answer:
-            "When your subscription expires, premium features will no longer be available until you renew your subscription."
+        question: "What happens when my plan expires?",
+        answer: "Your data is kept safe. Billing, inventory and reports pause until you renew, then everything is exactly where you left it."
     },
     {
-        question: "Can I switch from monthly to yearly billing?",
-        answer:
-            "Yes. You can switch your billing cycle from monthly to yearly whenever you want."
+        question: "Can I bring my existing stock list?",
+        answer: "Yes. Import products from a CSV file — name, category, stock, prices, barcode and more. Missing categories are created automatically."
     },
     {
         question: "Is my data safe?",
-        answer:
-            "Yes. Your business data is securely stored and protected using appropriate security measures."
-    },
-    {
-        question: "Can I cancel my subscription?",
-        answer:
-            "Yes. You can cancel your subscription from your account settings. Your current plan will remain available until the end of the billing period."
+        answer: "Each shop's data is private to that account and every request is authenticated."
     }
 ];
 
@@ -33,122 +29,39 @@ export default function FAQ() {
 
     const [openIndex, setOpenIndex] = useState(0);
 
-    const handleToggle = (index) => {
-        setOpenIndex(
-            openIndex === index ? null : index
-        );
-    };
-
     return (
         <section className="max-w-3xl mx-auto mt-20">
-
-            {/* Heading */}
-
             <div className="text-center mb-8">
-
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:bg-darkColor dark:text-white">
-                    Frequently Asked Questions
-                </h2>
-
-                <p className="text-sm text-gray-500 mt-2">
-                    Quick answers to common questions about our plans
-                </p>
-
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Frequently asked questions</h2>
             </div>
-
-
-            {/* FAQ List */}
 
             <div className="space-y-3">
-
-                {faqs.map((faq, index) => {
-
+                {FAQS.map((faq, index) => {
                     const isOpen = openIndex === index;
-
                     return (
-
                         <div
-                            key={index}
-                            className={`
-                                bg-white border rounded-xl
-                                overflow-hidden
-                                transition-all duration-200
-                                dark:bg-darkColor dark:text-white
-                                ${
-                                    isOpen
-                                        ? "border-blue-200 shadow-sm"
-                                        : "border-gray-200"
-                                }
-                            `}
+                            key={faq.question}
+                            className={`rounded-xl border bg-surface transition-colors ${isOpen ? "border-primary/30 shadow-sm" : "border-line"}`}
                         >
-
-                            {/* Question */}
-
                             <button
-                                onClick={() => handleToggle(index)}
-                                className="w-full flex items-center justify-between p-4 text-left"
+                                type="button"
+                                onClick={() => setOpenIndex(isOpen ? null : index)}
+                                aria-expanded={isOpen}
+                                className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left"
                             >
-
-                                <span className="text-sm font-semibold text-gray-800 dark:bg-darkColor dark:text-white">
-                                    {faq.question}
-                                </span>
-
-                                <span
-                                    className={`
-                                        flex items-center justify-center
-                                        w-6 h-6 rounded-full
-                                        transition
-                                        ${
-                                            isOpen
-                                                ? "bg-blue-600 text-white dark:bg-black dark:text-white"
-                                                : "bg-gray-100 text-gray-500"
-                                        }
-                                    `}
-                                >
-
-                                    <ChevronDown
-                                        size={14}
-                                        className={`
-                                            transition-transform duration-200
-                                            ${
-                                                isOpen
-                                                    ? "rotate-180"
-                                                    : ""
-                                            }
-                                        `}
-                                    />
-
-                                </span>
-
+                                <span className="text-sm font-semibold text-heading">{faq.question}</span>
+                                <ChevronDown className={`h-4 w-4 shrink-0 text-muted transition-transform ${isOpen ? "rotate-180 text-primary" : ""}`} />
                             </button>
 
-
-                            {/* Answer */}
-
                             {isOpen && (
-
-                                <div className="px-4 pb-4">
-
-                                    <div className="border-t pt-4">
-
-                                        <p className="text-sm text-gray-500 leading-6">
-                                            {faq.answer}
-                                        </p>
-
-                                    </div>
-
-                                </div>
-
+                                <p className="px-5 pb-5 -mt-1 text-sm text-muted leading-relaxed animate-fade-in">
+                                    {faq.answer}
+                                </p>
                             )}
-
                         </div>
-
                     );
-
                 })}
-
             </div>
-
         </section>
     );
 }

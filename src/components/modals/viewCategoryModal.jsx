@@ -1,272 +1,112 @@
-import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Tags, Package } from "lucide-react";
+
+import Modal from "../ui/Modal";
+import Badge from "../ui/Badge";
+import { Spinner, EmptyState, ErrorState } from "../ui/State";
 
 import { viewCategory } from "../../services/categoryService";
+import { useBusiness } from "../../context/BusinessContext";
 
 export default function ViewCategoryModal({ categoryId, onClose }) {
-    const [categoryData, setCategoryData] = useState(null);
+
+    const { term, profile, formatMoney, formatNumber, getStockStatus, getExpiryStatus } = useBusiness();
+
+    const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        const fetchCategory = async () => {
-            try {
-                setLoading(true);
+        if (!categoryId) return;
 
-                const data = await viewCategory(categoryId);
-                setCategoryData(data);
-            } catch (err) {
-                console.log(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (categoryId) {
-            fetchCategory();
-        }
+        viewCategory(categoryId)
+            .then(setData)
+            .catch((err) => setError(err?.response?.data?.message || "Could not load details"))
+            .finally(() => setLoading(false));
     }, [categoryId]);
 
+    const products = data?.products || [];
+    const totalStock = products.reduce((sum, p) => sum + Number(p.stock || 0), 0);
+    const stockValue = products.reduce((sum, p) => sum + Number(p.stock || 0) * Number(p.purchase || 0), 0);
+
     return (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm overflow-y-auto p-3 sm:p-5 md:p-8">
-
-            {/* Modal */}
-            <div className="w-full max-w-[1100px] min-h-fit bg-white border rounded-xl mx-auto my-2 sm:my-5 md:my-10">
-
-                {/* Header */}
-                <div className="w-full flex items-start justify-between gap-4 p-4 sm:p-6 border-b">
-
-                    <div className="min-w-0">
-                        <h3 className="text-lg sm:text-2xl font-semibold capitalize truncate">
-                            {categoryData?.category?.categoryName || "Category"}
-                        </h3>
-
-                        {categoryData?.category?.description && (
-                            <p className="text-xs sm:text-sm text-gray-500 mt-1 line-clamp-2">
-                                {categoryData.category.description}
-                            </p>
-                        )}
+        <Modal
+            onClose={onClose}
+            size="xl"
+            icon={Tags}
+            title={data?.category?.categoryName || term.category}
+            subtitle={data?.category?.description || undefined}
+        >
+            {loading ? (
+                <Spinner />
+            ) : error ? (
+                <ErrorState message={error} />
+            ) : (
+                <div className="space-y-5">
+                    <div className="grid grid-cols-3 gap-3">
+                        {[
+                            { label: term.items, value: formatNumber(products.length) },
+                            { label: "Units in stock", value: formatNumber(totalStock) },
+                            { label: "Stock value", value: formatMoney(stockValue) }
+                        ].map((kpi) => (
+                            <div key={kpi.label} className="rounded-xl border border-line bg-surface-muted px-4 py-3">
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-faint">{kpi.label}</p>
+                                <p className="mt-1 text-lg font-bold text-heading tabular">{kpi.value}</p>
+                            </div>
+                        ))}
                     </div>
 
-                    <button
-                        onClick={onClose}
-                        type="button"
-                        className="flex-shrink-0 text-gray-400 hover:text-primary transition p-1"
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
-
-                {/* Content */}
-                <div className="w-full p-4 sm:p-6">
-
-                    {loading ? (
-                        <div className="py-10 text-center text-sm text-gray-500">
-                            Loading category...
-                        </div>
-                    ) : !categoryData ? (
-                        <div className="py-10 text-center text-sm text-gray-500">
-                            Unable to load category.
-                        </div>
+                    {products.length === 0 ? (
+                        <EmptyState
+                            icon={Package}
+                            title={`No ${term.itemsLower} here yet`}
+                            message={`Assign ${term.itemsLower} to this ${term.category.toLowerCase()} from the ${term.items} page.`}
+                        />
                     ) : (
-                        <>
-                            {/* Category information */}
-                            <div className="mb-5">
-
-                                <p className="text-xs sm:text-sm text-gray-600">
-                                    <span className="font-bold text-gray-900">
-                                        Description:
-                                    </span>{" "}
-                                    {categoryData.category?.description || "No description"}
-                                </p>
-
-                                <div className="mt-4 inline-flex items-center bg-blue-50 rounded-lg px-3 py-2">
-                                    <p className="text-sm text-primary font-bold">
-                                        <span className="text-gray-900">
-                                            Total Products:
-                                        </span>{" "}
-                                        {categoryData.totalProducts || 0}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Mobile table wrapper */}
-                            <div className="border border-[#E8ECF1] rounded-xl overflow-hidden">
-
-                                {/* Horizontal scrolling on mobile */}
-                                <div className="overflow-x-auto">
-
-                                    <table className="w-full min-w-[1000px]">
-
-                                        <thead>
-                                            <tr className="text-gray-500 uppercase text-[10px] sm:text-xs bg-[#FAFBFC] border-b">
-
-                                                <th className="p-3 sm:p-4 text-left">
-                                                    Product
-                                                </th>
-
-                                                <th className="p-3 sm:p-4 text-left">
-                                                    Stock
-                                                </th>
-
-                                                <th className="p-3 sm:p-4 text-left">
-                                                    Purchase
-                                                </th>
-
-                                                <th className="p-3 sm:p-4 text-left">
-                                                    Selling
-                                                </th>
-
-                                                <th className="p-3 sm:p-4 text-left">
-                                                    Expiry
-                                                </th>
-
-                                                <th className="p-3 sm:p-4 text-left">
-                                                    Supplier
-                                                </th>
-
-                                                <th className="p-3 sm:p-4 text-left">
-                                                    Status
-                                                </th>
-
-                                            </tr>
-                                        </thead>
-
-                                        <tbody className="bg-white">
-
-                                            {categoryData?.products?.length > 0 ? (
-
-                                                categoryData.products.map((product) => (
-
-                                                    <tr
-                                                        key={product._id || product.id}
-                                                        className="border-b last:border-b-0 hover:bg-gray-50"
-                                                    >
-
-                                                        {/* Product */}
-                                                        <td className="p-3 sm:p-4 text-left text-sm font-semibold">
-                                                            {product.productName}
-                                                        </td>
-
-                                                        {/* Stock */}
-                                                        <td className="p-3 sm:p-4 text-left font-semibold">
-                                                            <span
-                                                                className={
-                                                                    product.stock === 0
-                                                                        ? "text-red-500"
-                                                                        : product.stock < 50
-                                                                            ? "text-orange-500"
-                                                                            : "text-black"
-                                                                }
-                                                            >
-                                                                {product.stock}
+                        <div className="overflow-x-auto thin-scrollbar rounded-xl border border-line">
+                            <table className="w-full min-w-[640px] text-sm">
+                                <thead>
+                                    <tr className="bg-surface-muted text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
+                                        <th className="py-3 px-4">{term.item}</th>
+                                        <th className="py-3 px-3 text-right">Stock</th>
+                                        <th className="py-3 px-3 text-right">Price</th>
+                                        {profile.tracksExpiry && <th className="py-3 px-3">Expiry</th>}
+                                        <th className="py-3 px-4">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-line">
+                                    {products.map((product) => {
+                                        const status = getStockStatus(product);
+                                        const expiry = getExpiryStatus(product);
+                                        return (
+                                            <tr key={product._id || product.id} className="hover:bg-surface-hover">
+                                                <td className="py-3 px-4">
+                                                    <p className="font-semibold text-heading">{product.productName}</p>
+                                                    <p className="text-xs text-muted">{product.supplierName || "—"}</p>
+                                                </td>
+                                                <td className="py-3 px-3 text-right tabular font-semibold text-heading">
+                                                    {formatNumber(product.stock)} <span className="text-xs text-faint font-normal">{product.unit}</span>
+                                                </td>
+                                                <td className="py-3 px-3 text-right tabular">{formatMoney(product.sellingPrice, { decimals: 2 })}</td>
+                                                {profile.tracksExpiry && (
+                                                    <td className="py-3 px-3">
+                                                        {product.ExpiryDate
+                                                            ? <span className={expiry?.tone === "danger" ? "text-danger font-semibold" : expiry?.tone === "warning" ? "text-warning font-semibold" : "text-body"}>
+                                                                {new Date(product.ExpiryDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "2-digit" })}
                                                             </span>
-                                                        </td>
-
-                                                        {/* Purchase */}
-                                                        <td className="p-3 sm:p-4 text-left text-sm text-gray-600">
-                                                            ₹{product.purchase}
-                                                        </td>
-
-                                                        {/* Selling */}
-                                                        <td className="p-3 sm:p-4 text-left text-sm text-secondary font-semibold">
-                                                            ₹{product.sellingPrice}
-                                                        </td>
-
-                                                        {/* Expiry */}
-                                                        <td className="p-3 sm:p-4 text-left">
-                                                            <span className="text-sm text-gray-600">
-                                                                {product.ExpiryDate}
-                                                            </span>
-                                                        </td>
-
-                                                        {/* Supplier */}
-                                                        <td className="p-3 sm:p-4 text-left text-sm text-gray-600 capitalize">
-                                                            {product.supplierName || "-"}
-                                                        </td>
-
-                                                        {/* Status */}
-                                                        <td className="p-3 sm:p-4 text-left">
-
-                                                            <span
-                                                                className={`
-                                                                    inline-flex
-                                                                    whitespace-nowrap
-                                                                    border
-                                                                    rounded-full
-                                                                    px-2.5
-                                                                    py-1
-                                                                    text-[10px]
-                                                                    sm:text-xs
-                                                                    font-semibold
-
-                                                                    ${
-                                                                        product.stock === 0
-                                                                            ? "text-red-500 bg-red-100 border-red-200"
-                                                                            : product.stock < 50
-                                                                                ? "text-orange-500 bg-orange-100 border-orange-200"
-                                                                                : "text-secondary bg-green-100 border-green-200"
-                                                                    }
-                                                                `}
-                                                            >
-                                                                •{" "}
-
-                                                                {product.stock === 0
-                                                                    ? "Out of Stock"
-                                                                    : product.stock < 50
-                                                                        ? "Low Stock"
-                                                                        : "In Stock"
-                                                                }
-                                                            </span>
-
-                                                        </td>
-
-                                                    </tr>
-
-                                                ))
-
-                                            ) : (
-
-                                                <tr>
-                                                    <td
-                                                        colSpan="7"
-                                                        className="text-center py-10 text-sm text-gray-500"
-                                                    >
-                                                        No Products Found
+                                                            : <span className="text-faint">—</span>}
                                                     </td>
-                                                </tr>
-
-                                            )}
-
-                                        </tbody>
-
-                                    </table>
-
-                                </div>
-
-                                {/* Footer */}
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 sm:p-4 border-t bg-gray-50">
-
-                                    <p className="text-xs sm:text-sm text-gray-500">
-                                        Showing{" "}
-                                        <span className="font-semibold text-gray-700">
-                                            {categoryData?.products?.length || 0}
-                                        </span>{" "}
-                                        products
-                                    </p>
-
-                                    {/* Mobile hint */}
-                                    <p className="text-[10px] sm:text-xs text-gray-400 sm:hidden">
-                                        ← Swipe horizontally to view more →
-                                    </p>
-
-                                </div>
-
-                            </div>
-                        </>
+                                                )}
+                                                <td className="py-3 px-4"><Badge tone={status.tone} dot size="sm">{status.label}</Badge></td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
-
                 </div>
-            </div>
-        </div>
+            )}
+        </Modal>
     );
 }

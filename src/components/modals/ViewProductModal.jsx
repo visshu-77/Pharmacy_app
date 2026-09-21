@@ -1,234 +1,129 @@
-import { X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { singleProduct } from "../../services/productService";
+import { Package } from "lucide-react";
 
-export default function ViewProductModal({
-    productId,
-    onClose
-}) {
-    const [productData, setProductData] = useState(null);
+import Modal from "../ui/Modal";
+import Badge from "../ui/Badge";
+import { Spinner, ErrorState } from "../ui/State";
+
+import { singleProduct } from "../../services/productService";
+import { useBusiness } from "../../context/BusinessContext";
+
+function Detail({ label, children }) {
+    return (
+        <div className="rounded-xl border border-line bg-surface-muted px-4 py-3">
+            <dt className="text-[11px] font-semibold uppercase tracking-wider text-faint">{label}</dt>
+            <dd className="mt-1 text-sm font-semibold text-heading break-words">{children || "—"}</dd>
+        </div>
+    );
+}
+
+export default function ViewProductModal({ productId, onClose }) {
+
+    const {
+        term,
+        profile,
+        showField,
+        fields,
+        formatMoney,
+        getStockStatus,
+        getExpiryStatus
+    } = useBusiness();
+
+    const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        const fetchProduct = async () => {
-            try {
-                setLoading(true);
+        if (!productId) return;
 
-                const data = await singleProduct(productId);
-                setProductData(data);
-            } catch (err) {
-                console.log(err);
-            } finally {
-                setLoading(false);
-            }
-        };
+        setLoading(true);
+        singleProduct(productId)
+            .then((data) => setProduct(data.product))
+            .catch((err) => setError(err?.response?.data?.message || `Could not load this ${term.itemLower}`))
+            .finally(() => setLoading(false));
+    }, [productId, term.itemLower]);
 
-        if (productId) {
-            fetchProduct();
-        }
-    }, [productId]);
+    const stock = product ? getStockStatus(product) : null;
+    const expiry = product ? getExpiryStatus(product) : null;
 
-    const product = productData?.product;
-
-    const stockStatus =
-        product?.stock === 0
-            ? "Out of Stock"
-            : product?.stock < 50
-                ? "Low Stock"
-                : "In Stock";
-
-    const stockColor =
-        product?.stock === 0
-            ? "text-red-500"
-            : product?.stock < 50
-                ? "text-orange-500"
-                : "text-green-600";
+    const margin =
+        product && product.purchase > 0
+            ? ((product.sellingPrice - product.purchase) / product.purchase) * 100
+            : null;
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm overflow-y-auto p-3 sm:p-5 md:p-8">
-
-            {/* Modal */}
-            <div className="w-full max-w-[900px] bg-white dark:bg-darkColor dark:border-none mx-auto my-2 sm:my-5 md:my-10 border rounded-xl shadow-xl">
-
-                {/* Header */}
-                <div className="flex items-start justify-between gap-4 p-4 sm:p-6 border-b">
-
-                    <div className="min-w-0">
-                        <p className="text-[10px] sm:text-xs text-gray-500 mb-1">
-                            Product Name
-                        </p>
-
-                        <h3 className="text-lg sm:text-2xl font-bold capitalize dark:text-white break-words">
-                            {product?.productName || "Product"}
-                        </h3>
+        <Modal
+            onClose={onClose}
+            size="lg"
+            icon={Package}
+            title={product?.productName || `${term.item} details`}
+            subtitle={product?.productCategory?.categoryName}
+        >
+            {loading ? (
+                <Spinner />
+            ) : error ? (
+                <ErrorState message={error} />
+            ) : product && (
+                <div className="space-y-6">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Badge tone={stock.tone} dot>{stock.label}</Badge>
+                        {expiry && <Badge tone={expiry.tone}>{expiry.label}</Badge>}
+                        {product.brand && <Badge tone="neutral">{product.brand}</Badge>}
+                        {product.variant && <Badge tone="neutral">{product.variant}</Badge>}
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="flex-shrink-0 text-gray-400 hover:text-primary transition p-1"
-                    >
-                        <X size={20} />
-                    </button>
-
-                </div>
-
-                {/* Content */}
-                <div className="w-full p-4 sm:p-6">
-
-                    {loading ? (
-                        <div className="py-10 text-center text-sm text-gray-500">
-                            Loading product...
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="rounded-xl bg-primary/5 border border-primary/15 px-4 py-3">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-primary/80">In stock</p>
+                            <p className="mt-1 text-xl font-bold text-heading tabular">
+                                {product.stock} <span className="text-sm font-medium text-muted">{product.unit}</span>
+                            </p>
                         </div>
-                    ) : !product ? (
-                        <div className="py-10 text-center text-sm text-gray-500">
-                            Product not found.
+                        <div className="rounded-xl bg-surface-muted border border-line px-4 py-3">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-faint">Selling</p>
+                            <p className="mt-1 text-xl font-bold text-heading tabular">{formatMoney(product.sellingPrice, { decimals: 2 })}</p>
                         </div>
-                    ) : (
-                        <>
+                        <div className="rounded-xl bg-surface-muted border border-line px-4 py-3">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-faint">Cost</p>
+                            <p className="mt-1 text-xl font-bold text-heading tabular">{formatMoney(product.purchase, { decimals: 2 })}</p>
+                        </div>
+                        <div className="rounded-xl bg-surface-muted border border-line px-4 py-3">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-faint">Margin</p>
+                            <p className={`mt-1 text-xl font-bold tabular ${margin === null ? "text-faint" : margin >= 0 ? "text-success" : "text-danger"}`}>
+                                {margin === null ? "—" : `${margin.toFixed(1)}%`}
+                            </p>
+                        </div>
+                    </div>
 
-                            {/* Product Details */}
-                            <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Detail label={term.category}>{product.productCategory?.categoryName}</Detail>
+                        <Detail label={term.supplier}>{product.supplierName}</Detail>
+                        {showField(fields.SKU) && <Detail label="SKU">{product.sku}</Detail>}
+                        {showField(fields.BARCODE) && <Detail label="Barcode">{product.barcode}</Detail>}
+                        {showField(fields.MRP) && <Detail label="MRP">{product.mrp ? formatMoney(product.mrp, { decimals: 2 }) : null}</Detail>}
+                        {showField(fields.TAX) && <Detail label="GST rate">{`${product.taxRate || 0}%`}</Detail>}
+                        {showField(fields.HSN) && <Detail label="HSN code">{product.hsnCode}</Detail>}
+                        {showField(fields.BATCH) && <Detail label="Batch no.">{product.batchNumber}</Detail>}
+                        {showField(fields.EXPIRY) && (
+                            <Detail label={profile.id === "grocery" || profile.id === "bakery" ? "Best before" : "Expiry date"}>
+                                {product.ExpiryDate ? new Date(product.ExpiryDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : null}
+                            </Detail>
+                        )}
+                        {showField(fields.WARRANTY) && <Detail label="Warranty">{product.warrantyMonths ? `${product.warrantyMonths} months` : null}</Detail>}
+                        <Detail label="Stock value (cost)">{formatMoney((product.stock || 0) * (product.purchase || 0))}</Detail>
+                        <Detail label="Last updated">
+                            {product.updatedAt ? new Date(product.updatedAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : null}
+                        </Detail>
+                    </dl>
 
-                                {/* Category */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2">
-
-                                    <div className="p-4 bg-gray-50 dark:bg-darkColor border-b sm:border-r">
-                                        <p className="text-xs dark:text-white text-gray-500">
-                                            Category
-                                        </p>
-
-                                        <p className="text-sm sm:text-base dark:text-white font-semibold mt-1 capitalize">
-                                            {product.productCategory?.categoryName || "-"}
-                                        </p>
-                                    </div>
-
-                                    {/* Stock */}
-                                    <div className="p-4 border-b dark:bg-darkColor">
-                                        <p className="text-xs dark:text-white text-gray-500">
-                                            Stock
-                                        </p>
-
-                                        <p className={`text-sm sm:text-base font-bold mt-1 ${stockColor}`}>
-                                            {product.stock}
-                                        </p>
-                                    </div>
-
-                                    {/* Purchase */}
-                                    <div className="p-4 bg-gray-50 border-b dark:bg-darkColor sm:border-r">
-                                        <p className="text-xs dark:text-white text-gray-500">
-                                            Purchase Price
-                                        </p>
-
-                                        <p className="text-sm sm:text-base dark:text-white font-semibold mt-1">
-                                            ₹{Number(product.purchase || 0).toFixed(2)}
-                                        </p>
-                                    </div>
-
-                                    {/* Selling */}
-                                    <div className="p-4 border-b dark:bg-darkColor">
-                                        <p className="text-xs text-gray-500 dark:text-white">
-                                            Selling Price
-                                        </p>
-
-                                        <p className="text-sm sm:text-base font-semibold text-green-600 mt-1">
-                                            ₹{Number(product.sellingPrice || 0).toFixed(2)}
-                                        </p>
-                                    </div>
-
-                                    {/* Expiry */}
-                                    <div className="p-4 bg-gray-50 border-b sm:border-r dark:bg-darkColor">
-                                        <p className="text-xs text-gray-500 dark:text-white">
-                                            Expiry Date
-                                        </p>
-
-                                        <p className="text-sm sm:text-base font-semibold mt-1 dark:text-white">
-                                            {product.ExpiryDate
-                                                ? new Date(
-                                                    product.ExpiryDate
-                                                ).toLocaleDateString("en-GB")
-                                                : "-"
-                                            }
-                                        </p>
-                                    </div>
-
-                                    {/* Supplier */}
-                                    <div className="p-4 border-b dark:bg-darkColor">
-                                        <p className="text-xs text-gray-500 dark:text-white">
-                                            Supplier
-                                        </p>
-
-                                        <p className="text-sm sm:text-base dark:text-white font-semibold mt-1 capitalize break-words">
-                                            {product.supplierName || "-"}
-                                        </p>
-                                    </div>
-
-                                    {/* Status */}
-                                    <div className="p-4 bg-gray-50 sm:col-span-2 dark:bg-darkColor">
-                                        <p className="text-xs text-gray-500 mb-2 dark:text-white">
-                                            Status
-                                        </p>
-
-                                        <span
-                                            className={`
-                                                inline-flex
-                                                items-center
-                                                px-3
-                                                py-1.5
-                                                rounded-full
-                                                text-xs
-                                                sm:text-sm
-                                                font-semibold
-
-                                                ${
-                                                    product.stock === 0
-                                                        ? "text-red-600 bg-red-100"
-                                                        : product.stock < 50
-                                                            ? "text-orange-600 bg-orange-100"
-                                                            : "text-green-600 bg-green-100"
-                                                }
-                                            `}
-                                        >
-                                            <span className="mr-1">•</span>
-                                            {stockStatus}
-                                        </span>
-                                    </div>
-
-                                </div>
-                            </div>
-
-                            {/* Buy Button */}
-                            <div className="mt-5 sm:mt-6 flex justify-center">
-
-                                <button
-                                    type="button"
-                                    className="
-                                        w-full
-                                        sm:w-auto
-                                        min-w-[160px]
-                                        bg-primary
-                                        text-white
-                                        px-6
-                                        py-3
-                                        rounded-lg
-                                        text-sm
-                                        font-semibold
-                                        transition
-                                        hover:shadow-lg
-                                        dark:bg-black• Low Stock
-                                        active:scale-[0.98]
-                                    "
-                                >
-                                    Buy Product
-                                </button>
-
-                            </div>
-
-                        </>
+                    {product.notes && (
+                        <div className="rounded-xl border border-line px-4 py-3">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-faint">Notes</p>
+                            <p className="mt-1 text-sm text-body whitespace-pre-wrap">{product.notes}</p>
+                        </div>
                     )}
-
                 </div>
-            </div>
-        </div>
+            )}
+        </Modal>
     );
 }

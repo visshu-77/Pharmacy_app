@@ -1,554 +1,119 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Save, Store, User, Phone, Mail, Building2, Map as MapIcon, FileText, ShieldCheck, AlertCircle } from "lucide-react";
 
-import {
-    getCustomerById,
-    updateCustomer
-} from "../services/adminService";
+import PageHeader from "../../components/ui/PageHeader";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import { Input, Select, Textarea } from "../../components/ui/Field";
+import { Spinner } from "../../components/ui/State";
+import { useToast } from "../../components/ui/Toast";
 
+import { getCustomerById, updateCustomer } from "../services/adminService";
+import { BUSINESS_TYPES, getBusinessType } from "../../config/businessTypes";
+
+const FIELDS = ["Shopname", "businessType", "ownerName", "mobileNumber", "email", "shopAddress", "city", "state", "gstNumber", "licenseNumber"];
 
 export default function EditCustomer() {
 
     const { id } = useParams();
     const navigate = useNavigate();
+    const toast = useToast();
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-
     const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
-
-    const [formData, setFormData] = useState({
-        Shopname: "",
-        ownerName: "",
-        mobileNumber: "",
-        email: "",
-        shopAddress: "",
-        city: "",
-        state: "",
-        gstNumber: "",
-        licenseNumber: ""
-    });
-
-
-    // =========================
-    // FETCH CUSTOMER
-    // =========================
+    const [formData, setFormData] = useState(Object.fromEntries(FIELDS.map((f) => [f, ""])));
 
     useEffect(() => {
-
-        const fetchCustomer = async () => {
-
-            try {
-
-                setLoading(true);
-                setError("");
-
-                const response = await getCustomerById(id);
-
-                console.log("CUSTOMER DATA:", response);
-
-                const customer =
-                    response.customer || response.user;
-
+        getCustomerById(id)
+            .then((response) => {
+                const customer = response.customer || response.user;
                 if (!customer) {
-
-                    setError("Customer not found");
+                    setError("Shop not found");
                     return;
-
                 }
-
-
-                setFormData({
-
-                    Shopname:
-                        customer.Shopname || "",
-
-                    ownerName:
-                        customer.ownerName || "",
-
-                    mobileNumber:
-                        customer.mobileNumber || "",
-
-                    email:
-                        customer.email || "",
-
-                    shopAddress:
-                        customer.shopAddress || "",
-
-                    city:
-                        customer.city || "",
-
-                    state:
-                        customer.state || "",
-
-                    gstNumber:
-                        customer.gstNumber || "",
-
-                    licenseNumber:
-                        customer.licenseNumber || ""
-
-                });
-
-
-            } catch (err) {
-
-                console.log(
-                    "Fetch customer error:",
-                    err
+                setFormData(
+                    Object.fromEntries(
+                        FIELDS.map((f) => [f, customer[f] != null ? String(customer[f]) : f === "businessType" ? "general" : ""])
+                    )
                 );
-
-                setError(
-                    err?.response?.data?.message ||
-                    "Unable to fetch customer"
-                );
-
-            } finally {
-
-                setLoading(false);
-
-            }
-
-        };
-
-
-        fetchCustomer();
-
+            })
+            .catch((err) => setError(err?.response?.data?.message || "Could not load shop"))
+            .finally(() => setLoading(false));
     }, [id]);
 
-
-    // =========================
-    // INPUT CHANGE
-    // =========================
-
-    const handleChange = (e) => {
-
-        const {
-            name,
-            value
-        } = e.target;
-
-
-        setFormData((previous) => ({
-            ...previous,
-            [name]: value
-        }));
-
-
-        if (error) {
-            setError("");
-        }
-
-        if (success) {
-            setSuccess("");
-        }
-
+    const onChange = (e) => {
+        setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+        setError("");
     };
-
-
-    // =========================
-    // SUBMIT
-    // =========================
 
     const handleSubmit = async (e) => {
-
         e.preventDefault();
-
-        const confirmed = window.confirm(
-            "Are you sure you want to update this customer?"
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
         try {
-
             setSaving(true);
-            setError("");
-            setSuccess("");
-
-
-            const response = await updateCustomer( id, formData);
-            console.log("UPDATE CUSTOMER RESPONSE:",response);
-
-            
-            setSuccess(response?.message ||"Customer updated successfully");
-
-            setTimeout(() => {
-                navigate("/admin/customers");
-            }, 1000);
-
-
+            await updateCustomer(id, formData);
+            toast.success(`${formData.Shopname} updated`);
+            navigate(`/admin/customers/${id}`);
         } catch (err) {
-
-            console.log(
-                "Update customer error:",
-                err
-            );
-
-
-            setError(
-                err?.response?.data?.message ||
-                "Unable to update customer"
-            );
-
+            setError(err?.response?.data?.message || "Could not update shop");
         } finally {
-
             setSaving(false);
-
         }
-
     };
 
+    if (loading) return <Spinner />;
 
-    // =========================
-    // LOADING
-    // =========================
-
-    if (loading) {
-
-        return (
-
-            <div className="min-h-screen flex items-center justify-center">
-
-                <p className="text-sm text-gray-500">
-                    Loading customer...
-                </p>
-
-            </div>
-
-        );
-
-    }
-
-
-    // =========================
-    // PAGE
-    // =========================
+    const profile = getBusinessType(formData.businessType);
 
     return (
-
-        <div className="min-h-screen bg-[#F7F9FC]">
-
-            {/* ================= HEADER ================= */}
-
-            <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
-
-                <div>
-
-                    <h1 className="text-lg font-semibold text-gray-900">
-                        Edit Customer
-                    </h1>
-
-                    <p className="text-xs text-gray-500 mt-0.5">
-                        Update customer information
-                    </p>
-
-                </div>
-
-
-                <button
-                    type="button"
-                    onClick={() =>
-                        navigate("/admin/customers")
-                    }
-                    className="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition"
-                >
-                    Back
-                </button>
-
-            </header>
-
-
-            {/* ================= CONTENT ================= */}
-
-            <div className="p-6">
-
-                <div className="max-w-4xl mx-auto">
-
-                    <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
-
-                        {/* CARD HEADER */}
-
-                        <div className="px-6 py-5 border-b border-gray-200">
-
-                            <h2 className="text-base font-semibold text-gray-900">
-                                Customer Information
-                            </h2>
-
-                            <p className="text-xs text-gray-500 mt-1">
-                                Update the customer's account details below.
-                            </p>
-
-                        </div>
-
-
-                        {/* ================= FORM ================= */}
-
-                        <form
-                            onSubmit={handleSubmit}
-                            className="p-6"
-                        >
-
-                            {/* ERROR */}
-
-                            {error && (
-
-                                <div className="mb-5 p-3 rounded-lg bg-red-50 border border-red-200">
-
-                                    <p className="text-sm text-red-600">
-                                        {error}
-                                    </p>
-
-                                </div>
-
-                            )}
-
-
-                            {/* SUCCESS */}
-
-                            {success && (
-
-                                <div className="mb-5 p-3 rounded-lg bg-green-50 border border-green-200">
-
-                                    <p className="text-sm text-green-600">
-                                        {success}
-                                    </p>
-
-                                </div>
-
-                            )}
-
-
-                            {/* ================= GRID ================= */}
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-
-                                {/* SHOP NAME */}
-
-                                <div>
-
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Shop Name
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="Shopname"
-                                        value={formData.Shopname}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-
-                                </div>
-
-
-                                {/* OWNER NAME */}
-
-                                <div>
-
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Owner Name
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="ownerName"
-                                        value={formData.ownerName}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-
-                                </div>
-
-
-                                {/* MOBILE */}
-
-                                <div>
-
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Mobile Number
-                                    </label>
-
-                                    <input
-                                        type="tel"
-                                        name="mobileNumber"
-                                        value={formData.mobileNumber}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-
-                                </div>
-
-
-                                {/* EMAIL */}
-
-                                <div>
-
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Email
-                                    </label>
-
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-
-                                </div>
-
-
-                                {/* SHOP ADDRESS */}
-
-                                <div className="md:col-span-2">
-
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Shop Address
-                                    </label>
-
-                                    <textarea
-                                        name="shopAddress"
-                                        value={formData.shopAddress}
-                                        onChange={handleChange}
-                                        required
-                                        rows="3"
-                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-
-                                </div>
-
-
-                                {/* CITY */}
-
-                                <div>
-
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        City
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="city"
-                                        value={formData.city}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-
-                                </div>
-
-
-                                {/* STATE */}
-
-                                <div>
-
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        State
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="state"
-                                        value={formData.state}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-
-                                </div>
-
-
-                                {/* GST */}
-
-                                <div>
-
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        GST Number
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="gstNumber"
-                                        value={formData.gstNumber}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm uppercase focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-
-                                </div>
-
-
-                                {/* LICENSE */}
-
-                                <div>
-
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        License Number
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="licenseNumber"
-                                        value={formData.licenseNumber}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-
-                                </div>
-
-                            </div>
-
-
-                            {/* ================= BUTTONS ================= */}
-
-                            <div className="flex items-center justify-end gap-3 mt-7 pt-5 border-t border-gray-200">
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        navigate("/admin/customers")
-                                    }
-                                    disabled={saving}
-                                    className="px-5 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
-                                >
-                                    Cancel
-                                </button>
-
-
-                                <button
-                                    type="submit"
-                                    disabled={saving}
-                                    className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-                                >
-
-                                    {saving
-                                        ? "Updating..."
-                                        : "Update Customer"
-                                    }
-
-                                </button>
-
-                            </div>
-
-                        </form>
-
+        <div className="space-y-6 max-w-4xl">
+            <PageHeader
+                title="Edit shop"
+                subtitle={formData.Shopname}
+                breadcrumbs={false}
+                actions={<Button variant="ghost" icon={ArrowLeft} onClick={() => navigate(-1)}>Back</Button>}
+            />
+
+            <Card>
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input label="Shop name" name="Shopname" icon={Store} value={formData.Shopname} onChange={onChange} required />
+                    <Select
+                        label="Business type"
+                        name="businessType"
+                        value={formData.businessType}
+                        onChange={onChange}
+                        options={BUSINESS_TYPES.map((t) => ({ value: t.id, label: t.label }))}
+                    />
+                    <Input label="Owner name" name="ownerName" icon={User} value={formData.ownerName} onChange={onChange} required />
+                    <Input label="Mobile" name="mobileNumber" type="tel" icon={Phone} value={formData.mobileNumber} onChange={onChange} required />
+                    <Input className="md:col-span-2" label="Email" name="email" type="email" icon={Mail} value={formData.email} onChange={onChange} required />
+                    <Textarea className="md:col-span-2" label="Shop address" name="shopAddress" rows={2} value={formData.shopAddress} onChange={onChange} />
+                    <Input label="City" name="city" icon={Building2} value={formData.city} onChange={onChange} />
+                    <Input label="State" name="state" icon={MapIcon} value={formData.state} onChange={onChange} />
+                    <Input label="GST number" name="gstNumber" icon={FileText} value={formData.gstNumber} onChange={onChange} />
+                    <Input
+                        label={profile.licence?.label || "Licence no."}
+                        name="licenseNumber"
+                        icon={ShieldCheck}
+                        value={formData.licenseNumber}
+                        onChange={onChange}
+                        required={Boolean(profile.licence?.required)}
+                    />
+
+                    {error && (
+                        <p className="md:col-span-2 flex items-center gap-1.5 text-sm text-danger" role="alert">
+                            <AlertCircle className="h-4 w-4" />
+                            {error}
+                        </p>
+                    )}
+
+                    <div className="md:col-span-2 flex justify-end gap-2 pt-4 border-t border-line">
+                        <Button variant="secondary" onClick={() => navigate(-1)} disabled={saving}>Cancel</Button>
+                        <Button type="submit" icon={Save} loading={saving}>Save changes</Button>
                     </div>
-
-                </div>
-
-            </div>
-
+                </form>
+            </Card>
         </div>
-
     );
-
 }

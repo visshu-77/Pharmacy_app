@@ -1,5 +1,11 @@
 import { Upload, Download, Plus } from "lucide-react";
 
+import Button from "./ui/Button";
+
+/**
+ * Page title with up to three actions (Export / Import / Add).
+ * Kept for older pages; new pages use ui/PageHeader directly.
+ */
 export default function HeadingWithButton({
     mainheading,
     contentLine,
@@ -11,53 +17,38 @@ export default function HeadingWithButton({
     onSecondButtonClick,
 }) {
     return (
-        <div className="flex sm:flex-row flex-col justify-between mt-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mt-4">
 
-            <div>
-                <h2 className="text-xl dark:text-white font-semibold">
+            <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
                     {mainheading}
-                </h2>
+                </h1>
 
-                <p className="text-sm text-text">
-                    {contentLine}
-                </p>
+                {contentLine && (
+                    <p className="text-sm text-muted mt-0.5">
+                        {contentLine}
+                    </p>
+                )}
             </div>
 
-            <div className="flex gap-2 items-center sm:mt-0 mt-4">
-
-                {/* Export */}
+            <div className="flex flex-wrap gap-2 items-center">
                 {firstButton && (
-                    <button
-                        onClick={onFirstButtonClick}
-                        className="px-4 py-2 rounded-lg border-primary text-sm text-text dark:text-white dark:bg-darkColor dark:border-white/50 font-semibold border flex items-center gap-2 cursor-pointer"
-                    >
-                        <Download size={15} />
+                    <Button variant="secondary" icon={Download} onClick={onFirstButtonClick}>
                         {firstButton}
-                    </button>
+                    </Button>
                 )}
 
-                {/* Import */}
                 {secondButton && (
-                    <button
-                        onClick={onSecondButtonClick}
-                        className="px-4 py-2 rounded-lg border-primary text-sm text-text dark:text-white dark:bg-darkColor dark:border-white/50 font-semibold border flex items-center gap-2 cursor-pointer"
-                    >
-                        <Upload size={15} />
+                    <Button variant="secondary" icon={Upload} onClick={onSecondButtonClick}>
                         {secondButton}
-                    </button>
+                    </Button>
                 )}
 
-                {/* Add */}
                 {thirdButton && (
-                    <button
-                        onClick={onThirdButtonClick}
-                        className="bg-primary px-4 py-2 rounded-lg text-sm text-white dark:text-white dark:bg-darkColor dark:border-white/50 font-semibold border flex items-center gap-2 cursor-pointer"
-                    >
-                        <Plus size={15} />
+                    <Button icon={Plus} onClick={onThirdButtonClick}>
                         {thirdButton}
-                    </button>
+                    </Button>
                 )}
-
             </div>
         </div>
     );

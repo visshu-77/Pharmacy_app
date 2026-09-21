@@ -1,229 +1,141 @@
 import { useState } from "react";
-import SettingsHeading from "./settingHeading";
+import { useTranslation } from "react-i18next";
+import { Lock, Eye, EyeOff, KeyRound, AlertCircle } from "lucide-react";
+
+import SettingsHeading, { SettingsSection } from "./settingHeading";
+import Button from "../ui/Button";
+import { Input } from "../ui/Field";
+import { useToast } from "../ui/Toast";
+
 import { changePassword } from "../../services/userService";
 
-import { useTranslation } from "react-i18next";
+const EMPTY = { currentPassword: "", newPassword: "", confirmPassword: "" };
 
 export default function Security() {
 
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
+    const toast = useToast();
 
-    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-    const [showNewPassword, setShowNewPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+    const [formData, setFormData] = useState(EMPTY);
+    const [show, setShow] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const [formData, setFormData] = useState({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: ""
-    });
+    const onChange = (e) => {
+        setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+        setError("");
+    };
 
-    const handleUpdatePassword = async () => {
+    const strength = (() => {
+        const p = formData.newPassword;
+        let score = 0;
+        if (p.length >= 8) score++;
+        if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++;
+        if (/\d/.test(p)) score++;
+        if (/[^A-Za-z0-9]/.test(p)) score++;
+        return score;
+    })();
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (formData.newPassword.length < 8) {
+            setError("New password must be at least 8 characters");
+            return;
+        }
+        if (formData.newPassword !== formData.confirmPassword) {
+            setError("New passwords do not match");
+            return;
+        }
+
         try {
-            setError("");
             setLoading(true);
-
             const result = await changePassword(formData);
-
-            alert(result.message);
-
-            setFormData({
-                currentPassword: "",
-                newPassword: "",
-                confirmPassword: ""
-            });
-
+            toast.success(result.message || "Password updated");
+            setFormData(EMPTY);
         } catch (err) {
-            setError(
-                err.response?.data?.message ||
-                "Something went wrong"
-            );
-
-            console.log(err);
-
+            setError(err.response?.data?.message || "Could not update password");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value
-        }));
-    };
+    const type = show ? "text" : "password";
 
     return (
-        <div className="w-full">
-
+        <div>
             <SettingsHeading
                 heading={t("SecurityInformation.title")}
                 content={t("SecurityInformation.content")}
+                action={
+                    <Button variant="ghost" size="sm" icon={show ? EyeOff : Eye} onClick={() => setShow((v) => !v)}>
+                        {show ? "Hide" : "Show"} passwords
+                    </Button>
+                }
             />
 
-            {/* Password Form */}
-            <div className="border border-gray-200 rounded-xl p-4 sm:p-6 mt-5">
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-
-                    {/* Current Password */}
-                    <div>
-
-                        <label className="block text-sm font-semibold mb-2">
-                            {t("SecurityInformation.CurrentPassword")}
-                        </label>
-
-                        <div className="relative">
-
-                            <input
-                                type={
-                                    showCurrentPassword
-                                        ? "text"
-                                        : "password"
-                                }
-                                name="currentPassword"
-                                value={formData.currentPassword}
-                                onChange={handleChange}
-                                placeholder="********"
-                                className="w-full border text-sm rounded-lg px-4 py-3 pr-12 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
-                            />
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setShowCurrentPassword(
-                                        !showCurrentPassword
-                                    )
-                                }
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-gray-400 hover:text-gray-600"
-                            >
-                                {showCurrentPassword
-                                    ? "🙈"
-                                    : "👁️"
-                                }
-                            </button>
-
-                        </div>
-
-                    </div>
-
-
-                    {/* New Password */}
-                    <div>
-
-                        <label className="block text-sm font-semibold mb-2">
-                            {t("SecurityInformation.NewPassword")}
-                        </label>
-
-                        <div className="relative">
-
-                            <input
-                                type={
-                                    showNewPassword
-                                        ? "text"
-                                        : "password"
-                                }
-                                name="newPassword"
-                                value={formData.newPassword}
-                                onChange={handleChange}
-                                placeholder="********"
-                                className="w-full border text-sm rounded-lg px-4 py-3 pr-12 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
-                            />
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setShowNewPassword(
-                                        !showNewPassword
-                                    )
-                                }
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-gray-400 hover:text-gray-600"
-                            >
-                                {showNewPassword
-                                    ? "🙈"
-                                    : "👁️"
-                                }
-                            </button>
-
-                        </div>
-
-                    </div>
-
-
-                    {/* Confirm Password */}
-                    <div className="sm:col-span-2">
-
-                        <label className="block text-sm font-semibold mb-2">
-                            {t("SecurityInformation.ConfirmNewPassword")}
-                        </label>
-
-                        <div className="relative">
-
-                            <input
-                                type={
-                                    showConfirmPassword
-                                        ? "text"
-                                        : "password"
-                                }
-                                name="confirmPassword"
-                                value={formData.confirmPassword}
-                                onChange={handleChange}
-                                placeholder="********"
-                                className="w-full border text-sm rounded-lg px-4 py-3 pr-12 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-darkColor dark:text-white"
-                            />
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setShowConfirmPassword(
-                                        !showConfirmPassword
-                                    )
-                                }
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-gray-400 hover:text-gray-600"
-                            >
-                                {showConfirmPassword
-                                    ? "🙈"
-                                    : "👁️"
-                                }
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                {/* Error */}
-                {error && (
-                    <div className="mt-4 rounded-lg bg-red-50 border border-red-200 px-3 py-2.5">
-                        <p className="text-xs sm:text-sm text-red-600">
-                            {error}
-                        </p>
-                    </div>
-                )}
-
-
-                {/* Button */}
-                <button
-                    type="button"
-                    onClick={handleUpdatePassword}
-                    disabled={loading}
-                    className="mt-5 w-full sm:w-auto bg-blue-600 text-white px-5 py-3 rounded-lg font-semibold text-sm hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed dark:bg-black dark:text-white dark:border dark:border-white/30"
+            <form onSubmit={handleSubmit}>
+                <SettingsSection
+                    title="Change password"
+                    description="Use at least 8 characters with a mix of letters and numbers."
+                    footer={<Button type="submit" icon={KeyRound} loading={loading}>{t("SecurityInformation.SaveButton")}</Button>}
                 >
-                    {loading
-                        ? `${t("SecurityInformation.Saving")}`
-                        : `${t("SecurityInformation.SaveButton")}`
-                    }
-                </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Input
+                            className="sm:col-span-2"
+                            label={t("SecurityInformation.CurrentPassword")}
+                            name="currentPassword"
+                            type={type}
+                            icon={Lock}
+                            autoComplete="current-password"
+                            value={formData.currentPassword}
+                            onChange={onChange}
+                            required
+                        />
 
-            </div>
+                        <div>
+                            <Input
+                                label={t("SecurityInformation.NewPassword")}
+                                name="newPassword"
+                                type={type}
+                                icon={Lock}
+                                autoComplete="new-password"
+                                value={formData.newPassword}
+                                onChange={onChange}
+                                required
+                            />
+                            {formData.newPassword && (
+                                <div className="mt-2 flex gap-1" aria-label={`Password strength ${strength} of 4`}>
+                                    {[0, 1, 2, 3].map((i) => (
+                                        <span
+                                            key={i}
+                                            className={`h-1 flex-1 rounded-full ${i < strength ? (strength <= 1 ? "bg-danger" : strength <= 2 ? "bg-warning" : "bg-success") : "bg-line"}`}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
 
+                        <Input
+                            label={t("SecurityInformation.ConfirmNewPassword")}
+                            name="confirmPassword"
+                            type={type}
+                            icon={Lock}
+                            autoComplete="new-password"
+                            value={formData.confirmPassword}
+                            onChange={onChange}
+                            required
+                        />
+
+                        {error && (
+                            <p className="sm:col-span-2 flex items-center gap-1.5 text-sm text-danger" role="alert">
+                                <AlertCircle className="h-4 w-4" />
+                                {error}
+                            </p>
+                        )}
+                    </div>
+                </SettingsSection>
+            </form>
         </div>
     );
 }

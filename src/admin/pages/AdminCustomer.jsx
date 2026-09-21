@@ -1,624 +1,264 @@
-import { getAllCustomers, deleteCustomer } from "../services/adminService";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Users, Search, Eye, Pencil, Trash2, Lock, AlertCircle } from "lucide-react";
+
+import PageHeader from "../../components/ui/PageHeader";
+import Card from "../../components/ui/Card";
+import Badge from "../../components/ui/Badge";
+import Button, { IconButton } from "../../components/ui/Button";
+import Modal from "../../components/ui/Modal";
+import { Input, Select } from "../../components/ui/Field";
+import { SkeletonRows, EmptyState, ErrorState } from "../../components/ui/State";
+import { useToast } from "../../components/ui/Toast";
+
+import { getAllCustomers, deleteCustomer } from "../services/adminService";
+import { BUSINESS_TYPES, getBusinessType } from "../../config/businessTypes";
+
+const LIMIT = 10;
 
 export default function AdminCustomers() {
+
     const navigate = useNavigate();
+    const toast = useToast();
 
-    const [customerData, setCustomerData] = useState(null);
-
+    const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // Search
-    const [search, setSearch] = useState("");
     const [searchInput, setSearchInput] = useState("");
+    const [search, setSearch] = useState("");
+    const [businessType, setBusinessType] = useState("all");
+    const [status, setStatus] = useState("all");
+    const [plan, setPlan] = useState("all");
+    const [page, setPage] = useState(1);
 
-    const [deleteLoading, setDeleteLoading] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
     const [deletePassword, setDeletePassword] = useState("");
     const [deleteError, setDeleteError] = useState("");
-    const [selectedCustomerId, setSelectedCustomerId] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
-    // Pagination
-    const [page, setPage] = useState(1);
-    const [limit] = useState(10);
-
-
-    const fetchCustomers = async () => {
-
+    const load = async () => {
         try {
-
             setLoading(true);
             setError("");
-
-            const response = await getAllCustomers({
-                page,
-                limit,
-                search,
-                status: "all",
-                plan: "all"
-            });
-
-            console.log("CUSTOMERS RESPONSE:", response);
-
-            setCustomerData(response);
-
+            setData(await getAllCustomers({ page, limit: LIMIT, search, status, plan, businessType }));
         } catch (err) {
-
-            console.log("Get customers error:", err);
-
-            setError(
-                err?.response?.data?.message ||
-                "Unable to fetch customers"
-            );
-
+            setError(err?.response?.data?.message || "Could not load shops");
         } finally {
-
             setLoading(false);
-
         }
     };
 
-
-    // Fetch customers whenever page/search changes
     useEffect(() => {
+        load();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page, search, status, plan, businessType]);
 
-        fetchCustomers();
-
-    }, [page, search]);
-
-
-    // const handleSearch = (e) => {
-
-    //     const value = e.target.value;
-
-    //     setSearch(value);
-
-    //     setPage(1);
-
-    // };
-
-    const handleSearch = (e) => {
-        setSearchInput(e.target.value);
-    };
-
+    // Debounce typing so every keystroke doesn't hit the API.
     useEffect(() => {
-
         const timer = setTimeout(() => {
-
-            setSearch(searchInput);
+            setSearch(searchInput.trim());
             setPage(1);
-
-        }, 500);
-
-        return () => {
-            clearTimeout(timer);
-        };
-
+        }, 400);
+        return () => clearTimeout(timer);
     }, [searchInput]);
 
+    const customers = data?.customers || [];
+    const pagination = data?.pagination;
 
-    if (loading) {
-
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-
-                <p className="text-sm text-gray-500">
-                    Loading customers...
-                </p>
-
-            </div>
-        );
-
-    }
-
-
-    if (error) {
-
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-
-                <p className="text-sm text-red-500">
-                    {error}
-                </p>
-
-            </div>
-        );
-
-    }
-
-
-    const customers = customerData?.customers || [];
-
-    const pagination = customerData?.pagination;
-
-    const handleDeleteCustomer = async () => {
-
+    const confirmDelete = async (e) => {
+        e.preventDefault();
         if (!deletePassword.trim()) {
-            setDeleteError("Please enter your admin password");
+            setDeleteError("Enter your admin password to confirm");
             return;
         }
-
         try {
-
-            setDeleteLoading(true);
-            setDeleteError("");
-
-            const response = await deleteCustomer(
-                selectedCustomerId,
-                deletePassword
-            );
-
-            console.log("Customer deleted:", response);
-
-            alert("Customer deleted successfully!");
-
-            setShowDeleteModal(false);
-            setDeletePassword("");
-            setSelectedCustomerId(null);
-
-            // Refresh customer list
-            fetchCustomers();
-
-        } catch (error) {
-
-            console.log("Delete customer error:", error);
-
-            setDeleteError(
-                error?.response?.data?.message ||
-                "Failed to delete customer"
-            );
-
+            setDeleting(true);
+            await deleteCustomer(deleteTarget._id, deletePassword);
+            toast.success(`${deleteTarget.Shopname} deleted`);
+            setDeleteTarget(null);
+            load();
+        } catch (err) {
+            setDeleteError(err?.response?.data?.message || "Could not delete");
         } finally {
-
-            setDeleteLoading(false);
-
+            setDeleting(false);
         }
     };
 
-
     return (
+        <div className="space-y-6">
+            <PageHeader
+                icon={Users}
+                title="Shops"
+                subtitle={`${pagination?.totalCustomers ?? "—"} registered shops`}
+                breadcrumbs={false}
+            />
 
-        <div className="min-h-screen">
-
-            {/* Header */}
-
-            <header className="h-16 bg-white border-b border-gray-200 flex items-center px-6">
-
-                <div>
-
-                    <h1 className="text-lg font-semibold text-gray-900">
-                        Customers
-                    </h1>
-
-                    <p className="text-xs text-gray-500 mt-0.5">
-                        Manage all registered customers
-                    </p>
-
-                </div>
-
-            </header>
-
-
-            {/* Content */}
-
-            <div className="p-6">
-
-                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-
-
-                    {/* Top Section */}
-
-                    <div className="px-6 py-5 border-b border-gray-100">
-
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-
-                            <div>
-
-                                <h2 className="text-base font-semibold text-gray-900">
-                                    All Customers
-                                </h2>
-
-                                <p className="text-xs text-gray-500 mt-1">
-
-                                    {pagination?.totalCustomers || 0}
-                                    {" "}
-                                    customers found
-
-                                </p>
-
-                            </div>
-
-
-                            {/* Search */}
-
-                            <div className="w-full sm:w-[300px]">
-
-                                <input
-                                    type="text"
-                                    value={searchInput}
-                                    onChange={handleSearch}
-                                    placeholder="Search customers..."
-                                    className="w-full h-10 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-
-                            </div>
-
-                        </div>
-
+            <Card padded={false}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))] gap-3 p-4">
+                    <div className="relative">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
+                        <input
+                            type="search"
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            placeholder="Search owner, shop, email or city…"
+                            className="w-full h-11 pl-9 pr-3 rounded-lg border border-line bg-surface text-sm text-heading focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            aria-label="Search shops"
+                        />
                     </div>
-
-
-                    {/* Empty State */}
-
-                    {customers.length === 0 ? (
-
-                        <div className="px-6 py-16 text-center">
-
-                            <p className="text-sm text-gray-500">
-                                No customers found.
-                            </p>
-
-                        </div>
-
-                    ) : (
-
-                        <>
-
-                            {/* Table */}
-
-                            <div className="overflow-x-auto">
-
-                                <table className="w-full">
-
-                                    <thead>
-
-                                        <tr className="border-b border-gray-100 bg-gray-50">
-
-                                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500">
-                                                Customer
-                                            </th>
-
-                                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500">
-                                                Email
-                                            </th>
-
-                                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500">
-                                                Mobile
-                                            </th>
-
-                                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500">
-                                                Shop
-                                            </th>
-
-                                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500">
-                                                Status
-                                            </th>
-
-                                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500">
-                                                Plan
-                                            </th>
-
-                                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500">
-                                                Actions
-                                            </th>
-
-                                        </tr>
-
-                                    </thead>
-
-
-                                    <tbody>
-
-                                        {customers.map((customer) => (
-
-                                            <tr
-                                                key={customer._id}
-                                                className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition"
-                                            >
-
-                                                {/* Customer */}
-
-                                                <td className="px-6 py-4">
-
-                                                    <div>
-
-                                                        <p className="text-sm font-semibold text-gray-900">
-                                                            {customer.ownerName}
-                                                        </p>
-
-                                                        <p className="text-xs text-gray-500 mt-1">
-                                                            {customer._id}
-                                                        </p>
-
-                                                    </div>
-
-                                                </td>
-
-
-                                                {/* Email */}
-
-                                                <td className="px-6 py-4">
-
-                                                    <p className="text-sm text-gray-700">
-                                                        {customer.email}
-                                                    </p>
-
-                                                </td>
-
-
-                                                {/* Mobile */}
-
-                                                <td className="px-6 py-4">
-
-                                                    <p className="text-sm text-gray-700">
-                                                        {customer.mobileNumber}
-                                                    </p>
-
-                                                </td>
-
-
-                                                {/* Shop */}
-
-                                                <td className="px-6 py-4">
-
-                                                    <div>
-
-                                                        <p className="text-sm font-medium text-gray-800">
-                                                            {customer.Shopname}
-                                                        </p>
-
-                                                        <p className="text-xs text-gray-500 mt-1">
-                                                            {customer.city},{" "}
-                                                            {customer.state}
-                                                        </p>
-
-                                                    </div>
-
-                                                </td>
-
-
-                                                {/* Status */}
-
-                                                <td className="px-6 py-4">
-
-                                                    <span
-                                                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${customer.isActive
-                                                            ? "bg-green-50 text-green-600"
-                                                            : "bg-red-50 text-red-600"
-                                                            }`}
-                                                    >
-
-                                                        {customer.isActive
-                                                            ? "Active"
-                                                            : "Inactive"}
-
-                                                    </span>
-
-                                                </td>
-
-
-                                                {/* Plan */}
-
-                                                <td className="px-6 py-4">
-
-                                                    {customer.currentSubscription ? (
-
-                                                        <div>
-
-                                                            <p className="text-sm font-semibold text-gray-800 capitalize">
-                                                                {customer.currentSubscription.plan}
-                                                            </p>
-
-                                                            <p className="text-xs text-gray-500 mt-1">
-                                                                {customer.subscriptionStatus}
-                                                            </p>
-
-                                                        </div>
-
-                                                    ) : (
-
-                                                        <span className="text-sm text-gray-400">
-                                                            No Plan
-                                                        </span>
-
-                                                    )}
-
-                                                </td>
-
-
-                                                {/* Actions */}
-
-                                                <td className="px-6 py-4 flex gap-2">
-
-                                                    <button
-                                                        onClick={() => navigate(`/admin/customers/${customer._id}`)}
-                                                        type="button"
-                                                        className="text-sm text-blue-600 hover:underline"
-                                                    >
-                                                        View
-                                                    </button>
-
-                                                    <button
-                                                        onClick={() =>
-                                                            navigate(`/admin/customers/${customer._id}/edit`)
-                                                        }
-                                                        className="text-sm text-green-600 hover:underline"
-                                                    >
-                                                        Edit
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setSelectedCustomerId(customer._id);
-                                                            setDeletePassword("");
-                                                            setDeleteError("");
-                                                            setShowDeleteModal(true);
-                                                        }}
-                                                        className="text-sm text-red-600 hover:underline"
-                                                    >
-                                                        Delete
-                                                    </button>
-
-                                                </td>
-
-                                            </tr>
-
-                                        ))}
-
-                                    </tbody>
-
-                                </table>
-
-                            </div>
-
-
-                            {/* Pagination */}
-
-                            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-
-                                <p className="text-xs text-gray-500">
-
-                                    Page{" "}
-                                    <span className="font-semibold text-gray-700">
-                                        {pagination?.currentPage || 1}
-                                    </span>
-                                    {" "}of{" "}
-                                    <span className="font-semibold text-gray-700">
-                                        {pagination?.totalPages || 1}
-                                    </span>
-
-                                </p>
-
-
-                                <div className="flex items-center gap-2">
-
-                                    <button
-                                        type="button"
-                                        disabled={page === 1}
-                                        onClick={() =>
-                                            setPage((prev) => prev - 1)
-                                        }
-                                        className="px-3 py-2 text-xs font-medium border border-gray-200 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
-                                    >
-                                        Previous
-                                    </button>
-
-
-                                    <button
-                                        type="button"
-                                        disabled={
-                                            page >=
-                                            (pagination?.totalPages || 1)
-                                        }
-                                        onClick={() =>
-                                            setPage((prev) => prev + 1)
-                                        }
-                                        className="px-3 py-2 text-xs font-medium border border-gray-200 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
-                                    >
-                                        Next
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                        </>
-
-                    )}
-
-                    {showDeleteModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-
-                            <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-6">
-
-                                <h2 className="text-lg font-semibold text-gray-900">
-                                    Delete Customer?
-                                </h2>
-
-                                <p className="text-sm text-gray-500 mt-2">
-                                    This action will permanently delete the customer
-                                    and their subscription history.
-                                </p>
-
-
-                                {/* Password */}
-
-                                <div className="mt-5">
-
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Enter Admin Password
-                                    </label>
-
-                                    <input
-                                        type="password"
-                                        value={deletePassword}
-                                        onChange={(e) => {
-                                            setDeletePassword(e.target.value);
-                                            setDeleteError("");
-                                        }}
-                                        placeholder="Enter your password"
-                                        disabled={deleteLoading}
-                                        className="w-full h-10 px-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                                    />
-
-                                </div>
-
-
-                                {/* Error */}
-
-                                {deleteError && (
-                                    <p className="text-sm text-red-500 mt-2">
-                                        {deleteError}
-                                    </p>
-                                )}
-
-
-                                {/* Buttons */}
-
-                                <div className="flex justify-end gap-3 mt-6">
-
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowDeleteModal(false);
-                                            setDeletePassword("");
-                                            setDeleteError("");
-                                            setSelectedCustomerId(null);
-                                        }}
-                                        disabled={deleteLoading}
-                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
-                                    >
-                                        Cancel
-                                    </button>
-
-
-                                    <button
-                                        type="button"
-                                        onClick={handleDeleteCustomer}
-                                        disabled={deleteLoading}
-                                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition disabled:opacity-50"
-                                    >
-                                        {deleteLoading
-                                            ? "Deleting..."
-                                            : "Yes, Delete"
-                                        }
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-                    )}
-
+                    <Select
+                        value={businessType}
+                        onChange={(e) => { setBusinessType(e.target.value); setPage(1); }}
+                        aria-label="Business type"
+                        options={[{ value: "all", label: "All business types" }, ...BUSINESS_TYPES.map((t) => ({ value: t.id, label: t.shortLabel }))]}
+                    />
+                    <Select
+                        value={status}
+                        onChange={(e) => { setStatus(e.target.value); setPage(1); }}
+                        aria-label="Plan status"
+                        options={[
+                            { value: "all", label: "Any plan status" },
+                            { value: "active", label: "Active" },
+                            { value: "expired", label: "Expired" },
+                            { value: "pending", label: "Pending" }
+                        ]}
+                    />
+                    <Select
+                        value={plan}
+                        onChange={(e) => { setPlan(e.target.value); setPage(1); }}
+                        aria-label="Plan"
+                        options={[
+                            { value: "all", label: "Any plan" },
+                            { value: "normal", label: "Normal" },
+                            { value: "premium", label: "Premium" },
+                            { value: "business", label: "Business" }
+                        ]}
+                    />
                 </div>
 
-            </div>
+                <div className="border-t border-line">
+                    {loading ? (
+                        <SkeletonRows rows={6} columns={6} />
+                    ) : error ? (
+                        <div className="p-5"><ErrorState message={error} onRetry={load} /></div>
+                    ) : customers.length === 0 ? (
+                        <EmptyState icon={Users} title="No shops found" message="Try a different search or filter." />
+                    ) : (
+                        <div className="overflow-x-auto thin-scrollbar">
+                            <table className="w-full min-w-[960px] text-sm">
+                                <thead>
+                                    <tr className="bg-surface-muted text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
+                                        <th className="py-3 px-5">Shop</th>
+                                        <th className="py-3 px-3">Type</th>
+                                        <th className="py-3 px-3">Owner</th>
+                                        <th className="py-3 px-3">Account</th>
+                                        <th className="py-3 px-3">Plan</th>
+                                        <th className="py-3 px-5 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-line">
+                                    {customers.map((customer) => {
+                                        const profile = getBusinessType(customer.businessType);
+                                        const Icon = profile.icon;
+                                        return (
+                                            <tr key={customer._id} className="hover:bg-surface-hover">
+                                                <td className="py-3 px-5">
+                                                    <button type="button" onClick={() => navigate(`/admin/customers/${customer._id}`)} className="text-left group">
+                                                        <p className="font-semibold text-heading group-hover:text-primary transition-colors">{customer.Shopname}</p>
+                                                        <p className="text-xs text-muted">{[customer.city, customer.state].filter(Boolean).join(", ") || "—"}</p>
+                                                    </button>
+                                                </td>
+                                                <td className="py-3 px-3">
+                                                    <span className="inline-flex items-center gap-2 text-xs font-medium text-body">
+                                                        <span className="grid place-items-center h-6 w-6 rounded-md text-white" style={{ backgroundColor: profile.accent }}>
+                                                            <Icon className="h-3.5 w-3.5" />
+                                                        </span>
+                                                        {profile.shortLabel}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 px-3">
+                                                    <p className="text-heading">{customer.ownerName}</p>
+                                                    <p className="text-xs text-muted">{customer.email} · {customer.mobileNumber}</p>
+                                                </td>
+                                                <td className="py-3 px-3">
+                                                    <Badge size="sm" dot tone={customer.isActive ? "success" : "danger"}>
+                                                        {customer.isActive ? "Active" : "Deactivated"}
+                                                    </Badge>
+                                                </td>
+                                                <td className="py-3 px-3">
+                                                    {customer.currentSubscription ? (
+                                                        <div>
+                                                            <p className="font-semibold text-heading capitalize">{customer.currentSubscription.plan}</p>
+                                                            <p className="text-xs text-muted capitalize">{customer.subscriptionStatus}</p>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-faint">No plan</span>
+                                                    )}
+                                                </td>
+                                                <td className="py-3 px-5">
+                                                    <div className="flex justify-end gap-1">
+                                                        <IconButton icon={Eye} label="View" size="sm" onClick={() => navigate(`/admin/customers/${customer._id}`)} />
+                                                        <IconButton icon={Pencil} label="Edit" size="sm" onClick={() => navigate(`/admin/customers/${customer._id}/edit`)} />
+                                                        <IconButton
+                                                            icon={Trash2}
+                                                            label="Delete"
+                                                            size="sm"
+                                                            className="hover:!bg-danger/10 hover:!text-danger"
+                                                            onClick={() => { setDeleteTarget(customer); setDeletePassword(""); setDeleteError(""); }}
+                                                        />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
 
+                {pagination && pagination.totalPages > 1 && (
+                    <div className="flex items-center justify-between border-t border-line px-5 py-3">
+                        <p className="text-xs text-muted">Page {pagination.currentPage} of {pagination.totalPages}</p>
+                        <div className="flex gap-2">
+                            <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
+                            <Button size="sm" variant="secondary" disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
+                        </div>
+                    </div>
+                )}
+            </Card>
+
+            <Modal
+                open={Boolean(deleteTarget)}
+                onClose={() => !deleting && setDeleteTarget(null)}
+                size="sm"
+                icon={Trash2}
+                title={`Delete ${deleteTarget?.Shopname}?`}
+                footer={
+                    <>
+                        <Button variant="secondary" onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</Button>
+                        <Button variant="danger" type="submit" form="delete-shop-form" loading={deleting}>Delete permanently</Button>
+                    </>
+                }
+            >
+                <form id="delete-shop-form" onSubmit={confirmDelete} className="space-y-4">
+                    <p className="text-sm text-body">
+                        This permanently deletes the shop account and its subscription history. It can't be undone.
+                    </p>
+                    <Input
+                        label="Your admin password"
+                        type="password"
+                        icon={Lock}
+                        autoFocus
+                        value={deletePassword}
+                        onChange={(e) => { setDeletePassword(e.target.value); setDeleteError(""); }}
+                    />
+                    {deleteError && (
+                        <p className="flex items-center gap-1.5 text-sm text-danger"><AlertCircle className="h-4 w-4" />{deleteError}</p>
+                    )}
+                </form>
+            </Modal>
         </div>
-
     );
 }

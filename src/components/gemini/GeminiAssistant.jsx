@@ -1,38 +1,57 @@
-import { useState } from "react";
-import { askCustomerQuery } from "../../services/aiService";
+import { useEffect, useRef, useState } from "react";
+import { Sparkles, X, SendHorizontal, Bot } from "lucide-react";
 
+import { askCustomerQuery } from "../../services/aiService";
+import { useBusiness } from "../../context/BusinessContext";
+
+/**
+ * Floating AI assistant. Suggested questions adapt to the shop's business
+ * type so a hardware owner is not asked about expiring medicines.
+ */
 const GeminiAssistant = () => {
+
+    const { term, profile, shopName } = useBusiness();
 
     const [isOpen, setIsOpen] = useState(false);
     const [question, setQuestion] = useState("");
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    const handleAsk = async () => {
+    const scrollRef = useRef(null);
+    const inputRef = useRef(null);
 
-        const trimmedQuestion = question.trim();
+    const suggestions = [
+        "How much did I sell today?",
+        `Which ${term.itemsLower} are running low?`,
+        `What are my top selling ${term.itemsLower} this month?`,
+        profile.tracksExpiry
+            ? `Which ${term.itemsLower} expire soon?`
+            : `Which ${term.category.toLowerCase()} earns the most?`
+    ];
 
-        if (!trimmedQuestion || loading) {
-            return;
-        }
+    useEffect(() => {
+        scrollRef.current?.scrollTo({
+            top: scrollRef.current.scrollHeight,
+            behavior: "smooth"
+        });
+    }, [messages, loading]);
 
-        // Add user message
-        setMessages((prev) => [
-            ...prev,
-            {
-                role: "user",
-                text: trimmedQuestion
-            }
-        ]);
+    useEffect(() => {
+        if (isOpen) inputRef.current?.focus();
+    }, [isOpen]);
 
+    const ask = async (text) => {
+
+        const trimmed = (text ?? question).trim();
+
+        if (!trimmed || loading) return;
+
+        setMessages((prev) => [...prev, { role: "user", text: trimmed }]);
         setQuestion("");
         setLoading(true);
 
         try {
-
-            const data = await askCustomerQuery(trimmedQuestion);
-
-            console.log("Gemini response:", data);
+            const data = await askCustomerQuery(trimmed);
 
             setMessages((prev) => [
                 ...prev,
@@ -41,350 +60,184 @@ const GeminiAssistant = () => {
                     text:
                         data.answer ||
                         data.message ||
-                        "I couldn't generate an answer."
+                        "I couldn't find an answer to that."
                 }
             ]);
 
         } catch (error) {
-
-            console.error("Gemini error:", error);
-
             setMessages((prev) => [
                 ...prev,
                 {
                     role: "assistant",
+                    error: true,
                     text:
                         error?.response?.data?.message ||
                         "Something went wrong. Please try again."
                 }
             ]);
-
         } finally {
-
             setLoading(false);
-
         }
     };
 
-
-    const handleKeyDown = (e) => {
-
-        if (e.key === "Enter" && !e.shiftKey) {
-
-            e.preventDefault();
-
-            handleAsk();
-
+    const handleKeyDown = (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            ask();
         }
     };
-
 
     return (
         <>
-            {/* Floating Button */}
-
             {!isOpen && (
-
                 <button
                     type="button"
                     onClick={() => setIsOpen(true)}
-                    className="
-        fixed
-        bottom-6
-        left-6
-        z-50
-        group
-        flex
-        items-center
-        gap-2
-        rounded-full
-        text-sm
-        px-4
-        py-1
-        font-semibold
-        shadow-[0_0_30px_rgba(66,133,244,0.55)]
-        bg-[linear-gradient(90deg,#4285f4,#9b72cb,#d96570,#4285f4)]
-        bg-[length:300%_100%]
-        animate-[gradient_3s_linear_infinite]
-        shadow-[0_0_20px_rgba(66,133,244,0.35)]
-        hover:shadow-[0_0_30px_rgba(66,133,244,0.55)]
-        transition-shadow
-        text-white
-    "
+                    className="no-print fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-50 flex items-center justify-center gap-2 rounded-full bg-[linear-gradient(90deg,#2563eb,#7c3aed,#db2777,#2563eb)] bg-[length:300%_100%] animate-[gradient_6s_linear_infinite] h-12 w-12 sm:w-auto sm:h-11 sm:pl-3.5 sm:pr-4 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-shadow"
+                    aria-label="Open AI assistant"
                 >
-
-                    <span className="text-lg">
-                        🤖
-                    </span>
-
-                    <span className="font-medium">
-                        Ask Gemini
-                    </span>
-
+                    <Sparkles className="h-5 w-5 sm:h-4 sm:w-4" aria-hidden="true" />
+                    <span className="hidden sm:inline">Ask AI</span>
                 </button>
-
             )}
 
-
-            {/* Chat Window */}
-
             {isOpen && (
-
                 <div
-                    className="
-                        fixed
-                        bottom-6
-                        left-6
-                        z-50
-                        flex
-                        h-[600px]
-                        w-[400px]
-                        flex-col
-                        overflow-hidden
-                        rounded-2xl
-                        border
-                        border-gray-200
-                        bg-white
-                        shadow-2xl
-                    "
+                    className="no-print fixed z-50 inset-x-3 bottom-3 sm:inset-x-auto sm:right-5 sm:bottom-5 flex h-[min(620px,calc(100vh-1.5rem))] sm:w-[400px] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-lg animate-slide-up"
+                    role="dialog"
+                    aria-label="AI business assistant"
                 >
-
                     {/* Header */}
+                    <div className="flex items-center justify-between gap-3 px-4 py-3.5 bg-gradient-to-r from-primary to-indigo-600 text-white">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <span className="grid place-items-center h-9 w-9 rounded-xl bg-white/20">
+                                <Sparkles className="h-4 w-4" aria-hidden="true" />
+                            </span>
 
-                    <div
-                        className="
-                            flex
-                            items-center
-                            justify-between
-                            border-b
-                            border-gray-200
-                            bg-blue-600
-                            px-5
-                            py-4
-                            text-white
-                        "
-                    >
-
-                        <div>
-
-                            <h3 className="font-semibold">
-                                AI Business Assistant
-                            </h3>
-
-                            <p className="text-xs text-blue-100">
-                                Ask about your business
-                            </p>
-
+                            <div className="min-w-0">
+                                <h3 className="font-semibold text-sm text-white">
+                                    Business Assistant
+                                </h3>
+                                <p className="text-[11px] text-white/75 truncate">
+                                    Answers from {shopName}'s own data
+                                </p>
+                            </div>
                         </div>
-
 
                         <button
                             type="button"
                             onClick={() => setIsOpen(false)}
-                            className="
-                                rounded-lg
-                                px-2
-                                py-1
-                                text-xl
-                                hover:bg-blue-700
-                            "
+                            className="grid place-items-center h-8 w-8 rounded-lg hover:bg-white/15 transition-colors"
+                            aria-label="Close assistant"
                         >
-                            ×
+                            <X className="h-4 w-4" />
                         </button>
-
                     </div>
 
-
                     {/* Messages */}
-
                     <div
-                        className="
-                            flex-1
-                            overflow-y-auto
-                            space-y-4
-                            bg-gray-50
-                            p-4
-                        "
+                        ref={scrollRef}
+                        className="flex-1 overflow-y-auto thin-scrollbar bg-surface-muted p-4 space-y-3"
                     >
-
                         {messages.length === 0 && (
-
-                            <div className="flex h-full items-center justify-center">
-
+                            <div className="h-full flex flex-col justify-center">
                                 <div className="text-center">
+                                    <span className="inline-grid place-items-center h-12 w-12 rounded-2xl bg-primary/10 text-primary">
+                                        <Bot className="h-6 w-6" aria-hidden="true" />
+                                    </span>
 
-                                    <div className="mb-3 text-4xl">
-                                        🤖
-                                    </div>
-
-                                    <h4 className="font-semibold text-gray-800">
+                                    <h4 className="mt-3 font-semibold text-heading">
                                         How can I help?
                                     </h4>
 
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        Ask me about sales, products,
-                                        inventory, orders or subscriptions.
+                                    <p className="mt-1 text-xs text-muted">
+                                        Ask about sales, {term.itemsLower}, stock or payments.
                                     </p>
-
                                 </div>
 
+                                <div className="mt-5 space-y-2">
+                                    {suggestions.map((suggestion) => (
+                                        <button
+                                            key={suggestion}
+                                            type="button"
+                                            onClick={() => ask(suggestion)}
+                                            className="w-full text-left rounded-xl border border-line bg-surface px-3.5 py-2.5 text-xs font-medium text-body hover:border-primary/40 hover:bg-primary/5 hover:text-primary transition-colors"
+                                        >
+                                            {suggestion}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-
                         )}
 
-
                         {messages.map((message, index) => (
-
                             <div
                                 key={index}
-                                className={
-                                    message.role === "user"
-                                        ? "flex justify-end"
-                                        : "flex justify-start"
-                                }
+                                className={message.role === "user" ? "flex justify-end" : "flex justify-start"}
                             >
-
                                 <div
                                     className={
                                         message.role === "user"
-                                            ? `
-                                                max-w-[80%]
-                                                rounded-2xl
-                                                rounded-br-sm
-                                                bg-blue-600
-                                                px-4
-                                                py-3
-                                                text-sm
-                                                text-white
-                                            `
-                                            : `
-                                                max-w-[80%]
-                                                rounded-2xl
-                                                rounded-bl-sm
-                                                bg-white
-                                                px-4
-                                                py-3
-                                                text-sm
-                                                text-gray-800
-                                                shadow-sm
-                                                border
-                                                border-gray-100
-                                            `
+                                            ? "max-w-[85%] rounded-2xl rounded-br-md bg-primary px-3.5 py-2.5 text-sm text-white whitespace-pre-wrap"
+                                            : [
+                                                "max-w-[85%] rounded-2xl rounded-bl-md border px-3.5 py-2.5 text-sm whitespace-pre-wrap",
+                                                message.error
+                                                    ? "border-danger/25 bg-danger/5 text-danger"
+                                                    : "border-line bg-surface text-body"
+                                            ].join(" ")
                                     }
                                 >
-
                                     {message.text}
-
                                 </div>
-
                             </div>
-
                         ))}
 
-
-                        {/* Loading */}
-
                         {loading && (
-
                             <div className="flex justify-start">
-
-                                <div
-                                    className="
-                                        rounded-2xl
-                                        rounded-bl-sm
-                                        bg-white
-                                        px-4
-                                        py-3
-                                        text-sm
-                                        text-gray-500
-                                        shadow-sm
-                                        border
-                                        border-gray-100
-                                    "
-                                >
-                                    Gemini is thinking...
+                                <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-line bg-surface px-4 py-3">
+                                    {[0, 1, 2].map((dot) => (
+                                        <span
+                                            key={dot}
+                                            className="h-1.5 w-1.5 rounded-full bg-faint animate-bounce"
+                                            style={{ animationDelay: `${dot * 120}ms` }}
+                                        />
+                                    ))}
                                 </div>
-
                             </div>
-
                         )}
-
                     </div>
 
-
                     {/* Input */}
-
-                    <div
-                        className="
-                            border-t
-                            border-gray-200
-                            bg-white
-                            p-3
-                        "
-                    >
-
+                    <div className="border-t border-line bg-surface p-3">
                         <div className="flex items-end gap-2">
-
                             <textarea
+                                ref={inputRef}
                                 value={question}
                                 onChange={(e) => setQuestion(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                placeholder="Ask something..."
+                                placeholder="Ask about your shop…"
                                 rows={1}
                                 disabled={loading}
-                                className="
-                                    max-h-24
-                                    min-h-[44px]
-                                    flex-1
-                                    resize-none
-                                    rounded-xl
-                                    border
-                                    border-gray-200
-                                    px-4
-                                    py-3
-                                    text-sm
-                                    outline-none
-                                    focus:border-blue-500
-                                    focus:ring-1
-                                    focus:ring-blue-500
-                                    disabled:bg-gray-100
-                                "
+                                className="max-h-24 min-h-[44px] flex-1 resize-none rounded-xl border border-line bg-surface px-3.5 py-3 text-sm text-heading focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
                             />
 
                             <button
                                 type="button"
-                                onClick={handleAsk}
-                                disabled={
-                                    loading ||
-                                    !question.trim()
-                                }
-                                className="
-                                    rounded-xl
-                                    bg-blue-600
-                                    px-4
-                                    py-3
-                                    text-white
-                                    transition
-                                    hover:bg-blue-700
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-50
-                                "
+                                onClick={() => ask()}
+                                disabled={loading || !question.trim()}
+                                className="grid place-items-center h-11 w-11 shrink-0 rounded-xl bg-primary text-white hover:bg-primary-strong transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                                aria-label="Send question"
                             >
-                                ➤
+                                <SendHorizontal className="h-4 w-4" />
                             </button>
-
                         </div>
 
-                        <p className="mt-2 text-center text-[11px] text-gray-400">
-                            Press Enter to ask
+                        <p className="mt-2 text-center text-[10px] text-faint">
+                            Enter to send · Shift + Enter for a new line
                         </p>
-
                     </div>
-
                 </div>
-
             )}
-
         </>
     );
 };

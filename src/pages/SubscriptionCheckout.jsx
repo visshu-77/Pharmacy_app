@@ -1,254 +1,168 @@
-import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { createSubscription, createPaymentOrder,verifyPayment } from "../services/subscriptionService";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ArrowLeft, Crown, ShieldCheck, Lock, CreditCard, Smartphone, Landmark, Wallet } from "lucide-react";
 
+import PageHeader from "../components/ui/PageHeader";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import { EmptyState } from "../components/ui/State";
+import { useToast } from "../components/ui/Toast";
+
+import { createPaymentOrder, verifyPayment } from "../services/subscriptionService";
 import { useSubscription } from "../context/SubscriptionContext";
+import { useBusiness } from "../context/BusinessContext";
+import BRAND from "../config/brand";
+
+const CYCLE_LABEL = { monthly: "Monthly", sixMonths: "6 months", yearly: "12 months" };
 
 export default function SubscriptionCheckout() {
 
     const location = useLocation();
     const navigate = useNavigate();
+    const toast = useToast();
 
     const { fetchSubscription } = useSubscription();
+    const { user, shopName } = useBusiness();
 
-    const [paymentMethod, setPaymentMethod] = useState("UPI");
     const [loading, setLoading] = useState(false);
 
-    const {
-        plan,
-        planName,
-        duration,
-        price
-    } = location.state || {};
-
-    const handleSubscription = async () => {
-        try {
-            setLoading(true);
-
-            const subscriptionData = {
-                plan,
-                duration,
-                price,
-                paymentMethod
-            };
-
-            const result = await createSubscription(
-                subscriptionData
-            )
-
-            alert("subscription activated successfully");
-            navigate("/");
-
-        } catch (err) {
-            console.log(err);
-            const message = err.response?.data?.message ||
-                "Failed to create subscription";
-
-            alert(message);
-        } finally {
-            setLoading(false);
-        }
-    }
+    const { plan, planName, duration, price } = location.state || {};
 
     const handlePayment = async () => {
+        if (!window.Razorpay) {
+            toast.error("Payment gateway failed to load. Check your connection and refresh.");
+            return;
+        }
+
         try {
             setLoading(true);
-            const result = await createPaymentOrder({
-                plan,
-                duration
-            });
 
-            const options = {
+            const result = await createPaymentOrder({ plan, duration });
+
+            const razorpay = new window.Razorpay({
                 key: process.env.REACT_APP_RAZORPAY_KEY_ID,
                 amount: result.order.amount,
                 currency: result.order.currency,
-                name: "Your Software Name",
-                description: `${planName} - ${duration}`,
+                name: BRAND.name,
+                description: `${planName} plan · ${CYCLE_LABEL[duration] || duration}`,
                 order_id: result.order.id,
-                handler: async function (response) {
+                prefill: {
+                    name: user?.ownerName || "",
+                    email: user?.email || "",
+                    contact: user?.mobileNumber ? String(user.mobileNumber) : ""
+                },
+                notes: { shop: shopName },
+                theme: { color: "#2563EB" },
+                modal: { ondismiss: () => setLoading(false) },
+                handler: async (response) => {
                     try {
-                        const verifyData = {
-                            razorpay_order_id:
-                                response.razorpay_order_id,
-                            razorpay_payment_id:
-                                response.razorpay_payment_id,
-                            razorpay_signature:
-                                response.razorpay_signature,
+                        await verifyPayment({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
                             plan,
                             duration
-                        };
-                        const result =
-                            await verifyPayment(verifyData);
+                        });
                         await fetchSubscription();
-                        alert(
-                            "Payment successful! Subscription activated."
-                        );
-                        navigate("/");
-                    } catch (error) {
-                        console.log(
-                            "Verification error:",
-                            error
-                        );
-                        alert(
-                            "Payment was received but verification failed."
-                        );
+                        toast.success(`${planName} plan is now active`, { title: "Payment successful" });
+                        navigate("/", { replace: true });
+                    } catch {
+                        toast.error("Payment was received but could not be verified. Please contact support with your payment ID.", { duration: 0 });
+                    } finally {
+                        setLoading(false);
                     }
-                },
-                prefill: {
-                    name: "",
-                    email: ""
-                },
-                theme: {
-                    color: "#2563EB"
                 }
-            };
-            const razorpay =
-                new window.Razorpay(options);
+            });
+
             razorpay.open();
         } catch (error) {
-            console.log(
-                "Payment error:",
-                error
-            );
-            alert(
-                error.response?.data?.message ||
-                "Unable to start payment"
-            );
-        } finally {
+            toast.error(error.response?.data?.message || "Could not start payment");
             setLoading(false);
         }
     };
+
     if (!location.state) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-
-                <div className="text-center">
-
-                    <h2 className="text-xl font-bold">
-                        No subscription selected
-                    </h2>
-
-                    <button
-                        onClick={() => navigate("/subscription")}
-                        className="mt-4 bg-blue-600 text-white px-5 py-2 rounded-lg"
-                    >
-                        Choose a Plan
-                    </button>
-
-                </div>
-
-            </div>
+            <Card className="max-w-lg mx-auto mt-10">
+                <EmptyState
+                    icon={Crown}
+                    title="No plan selected"
+                    message="Pick a plan to continue to checkout."
+                    action={<Button to="/subscription">See plans</Button>}
+                />
+            </Card>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#F7F9FC] p-6">
+        <div className="space-y-6">
+            <PageHeader
+                icon={Crown}
+                title="Checkout"
+                subtitle="Review your plan and pay securely"
+                actions={<Button variant="ghost" icon={ArrowLeft} onClick={() => navigate(-1)}>Back</Button>}
+            />
 
-            <div className="max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] gap-6 max-w-5xl">
+                <Card>
+                    <h2 className="font-semibold text-heading">Order summary</h2>
 
-                <button
-                    onClick={() => navigate(-1)}
-                    className="text-sm text-gray-500 mb-6"
-                >
-                    ← Back
-                </button>
+                    <div className="mt-5 flex items-start gap-4 rounded-xl border border-line bg-surface-muted p-4">
+                        <span className="grid place-items-center h-12 w-12 shrink-0 rounded-xl bg-primary/10 text-primary">
+                            <Crown className="h-6 w-6" />
+                        </span>
+                        <div className="flex-1">
+                            <p className="font-bold text-heading text-lg">{planName} plan</p>
+                            <p className="text-sm text-muted">{CYCLE_LABEL[duration] || duration} · for {shopName}</p>
+                        </div>
+                    </div>
 
-                <h1 className="text-3xl font-bold">
-                    Confirm Your Subscription
-                </h1>
+                    <dl className="mt-6 space-y-3 text-sm">
+                        <div className="flex justify-between">
+                            <dt className="text-muted">Billing period</dt>
+                            <dd className="font-medium text-heading">{CYCLE_LABEL[duration] || duration}</dd>
+                        </div>
+                        <div className="flex justify-between">
+                            <dt className="text-muted">Account</dt>
+                            <dd className="font-medium text-heading truncate ml-4">{user?.email}</dd>
+                        </div>
+                        <div className="flex justify-between items-baseline pt-4 border-t border-line">
+                            <dt className="font-semibold text-heading">Total due today</dt>
+                            <dd className="text-3xl font-extrabold tracking-tight text-heading tabular">
+                                ₹{Number(price).toLocaleString("en-IN")}
+                            </dd>
+                        </div>
+                    </dl>
+                </Card>
 
-                <div className="bg-white border rounded-xl p-6 mt-6">
+                <Card className="h-fit">
+                    <h2 className="font-semibold text-heading">Pay with Razorpay</h2>
+                    <p className="text-sm text-muted mt-1">Choose UPI, card, net banking or wallet in the next step.</p>
 
-                    <p className="text-sm text-gray-400 uppercase">
-                        Selected Plan
+                    <div className="mt-5 grid grid-cols-4 gap-2">
+                        {[
+                            { icon: Smartphone, label: "UPI" },
+                            { icon: CreditCard, label: "Card" },
+                            { icon: Landmark, label: "Bank" },
+                            { icon: Wallet, label: "Wallet" }
+                        ].map(({ icon: Icon, label }) => (
+                            <div key={label} className="flex flex-col items-center gap-1 rounded-lg border border-line py-2.5 text-[11px] font-medium text-muted">
+                                <Icon className="h-4 w-4" />
+                                {label}
+                            </div>
+                        ))}
+                    </div>
+
+                    <Button fullWidth size="lg" className="mt-6 h-12" icon={Lock} loading={loading} onClick={handlePayment}>
+                        Pay ₹{Number(price).toLocaleString("en-IN")}
+                    </Button>
+
+                    <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted">
+                        <ShieldCheck className="h-3.5 w-3.5 text-success" />
+                        Secured by Razorpay
                     </p>
-
-                    <h2 className="text-2xl font-bold mt-2">
-                        {planName}
-                    </h2>
-
-                    <div className="border-t my-5" />
-
-                    <div className="flex justify-between">
-                        <span>Billing Period</span>
-
-                        <span className="font-semibold">
-                            {duration === "monthly"
-                                ? "Monthly"
-                                : duration === "sixMonths"
-                                    ? "6 Months"
-                                    : "12 Months"
-                            }
-                        </span>
-                    </div>
-
-                    <div className="flex justify-between mt-4">
-
-                        <span>Total</span>
-
-                        <span className="text-xl font-bold">
-                            ₹{Number(price).toLocaleString("en-IN")}
-                        </span>
-
-                    </div>
-
-                    <button
-                        onClick={handlePayment}
-                        disabled={loading}
-                        className="w-full mt-8 bg-blue-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
-                    >
-                        {loading
-                            ? "Opening Payment..."
-                            : `Pay ₹${Number(price).toLocaleString("en-IN")}`
-                        }
-                    </button>
-
-                </div>
-
-                <div className="mt-6">
-
-                    <h3 className="font-semibold text-gray-900 mb-3">
-                        Payment Method
-                    </h3>
-
-                    <div className="grid grid-cols-3 gap-3">
-
-                        <button
-                            onClick={() => setPaymentMethod("UPI")}
-                            className={`border rounded-lg p-3 text-sm ${paymentMethod === "UPI"
-                                ? "border-blue-600 bg-blue-50 text-blue-600"
-                                : "border-gray-200"
-                                }`}
-                        >
-                            UPI
-                        </button>
-
-                        <button
-                            onClick={() => setPaymentMethod("Card")}
-                            className={`border rounded-lg p-3 text-sm ${paymentMethod === "Card"
-                                ? "border-blue-600 bg-blue-50 text-blue-600"
-                                : "border-gray-200"
-                                }`}
-                        >
-                            Card
-                        </button>
-
-                        <button
-                            onClick={() => setPaymentMethod("Cash")}
-                            className={`border rounded-lg p-3 text-sm ${paymentMethod === "Cash"
-                                ? "border-blue-600 bg-blue-50 text-blue-600"
-                                : "border-gray-200"
-                                }`}
-                        >
-                            Cash
-                        </button>
-
-                    </div>
-
-                </div>
-
+                </Card>
             </div>
-
         </div>
     );
 }

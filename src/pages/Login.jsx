@@ -1,259 +1,166 @@
 import { Link, useNavigate } from "react-router-dom";
-import LoginRegisterSidebar from "../components/loginRegisterSideBar";
-import { loginUser } from "../services/authService";
 import { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
-import { useSubscription } from "../context/SubscriptionContext";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react";
 
-const loginData = [
-    {
-        id: 1,
-        name: "email",
-        type: "email",
-        label: "Phone / Email",
-        placeholder: "Phone Number / Email",
-        required: true,
-    },
-    {
-        id: 2,
-        name: "password",
-        type: "password",
-        label: "Password",
-        placeholder: "Password",
-        required: true,
-    }
-];
+import AuthShell from "../components/AuthShell";
+import Button from "../components/ui/Button";
+import { Input } from "../components/ui/Field";
+import { useToast } from "../components/ui/Toast";
+
+import { loginUser } from "../services/authService";
+import { useSubscription } from "../context/SubscriptionContext";
+import { useBusiness } from "../context/BusinessContext";
+import { useCart } from "../context/CartContext";
+import { clearSession } from "../utils/session";
 
 export default function Login() {
 
     const navigate = useNavigate();
+    const toast = useToast();
     const { fetchSubscription } = useSubscription();
+    const { syncCartOwner } = useCart();
+    const { refresh: refreshBusiness } = useBusiness();
 
-    const [formData, setFormData] = useState({
-        email: "",
-        password: "",
-    });
-
+    const [formData, setFormData] = useState({ email: "", password: "" });
+    const [showPassword, setShowPassword] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-
-        if (token) {
-            navigate("/", {
-                replace: true
-            });
+        if (localStorage.getItem("token")) {
+            navigate("/", { replace: true });
         }
     }, [navigate]);
 
-
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-
-        // Clear error when user starts typing
-        if (error) {
-            setError("");
-        }
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+        if (error) setError("");
     };
 
-
     const handleSubmit = async (e) => {
-
         e.preventDefault();
 
         try {
-
+            setSubmitting(true);
             setError("");
 
             const result = await loginUser(formData);
 
-            localStorage.setItem(
-                "token",
-                result.token
-            );
-            localStorage.setItem(
-                "user",
-                JSON.stringify(result.user)
-            );
-            await fetchSubscription();
-            alert("Login successful");
-
-            if (result.user?.role === "admin") {
-
-                navigate("/admin", {
-                    replace: true
-                });
-
-            } else {
-
-                navigate("/", {
-                    replace: true
-                });
-
+            // Drop any leftovers from a previous account (unless it's the same one).
+            const previousOwner = localStorage.getItem("cartOwner");
+            if (previousOwner && previousOwner !== result.user?.id) {
+                clearSession();
             }
 
-        } catch (err) {
+            localStorage.setItem("token", result.token);
+            localStorage.setItem("user", JSON.stringify(result.user));
+            syncCartOwner();
 
-            setError(
-                err.response?.data?.message ||
-                "Something went wrong"
+            await Promise.all([fetchSubscription(), refreshBusiness()]);
+
+            toast.success(
+                result.user?.Shopname
+                    ? `Welcome back to ${result.user.Shopname}`
+                    : "Signed in successfully"
             );
 
-            console.log(err);
+            navigate(result.user?.role === "admin" ? "/admin" : "/", {
+                replace: true
+            });
+
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                "Could not sign in. Please check your connection and try again."
+            );
+        } finally {
+            setSubmitting(false);
         }
     };
 
-
     return (
-
-        <div className="w-full min-h-screen bg-white">
-
-            <div className="w-full min-h-screen flex">
-
-
-                {/* ================= SIDEBAR ================= */}
-
-                <div className="hidden lg:block lg:w-[20%] lg:flex-shrink-0">
-
-                    <LoginRegisterSidebar />
-
-                </div>
-
-                <div className="w-full lg:w-[80%] min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
-                    <div className="w-full max-w-md">
-                        <div className="border border-gray-200 rounded-xl p-5 sm:p-7 lg:p-10 shadow-sm bg-white">
-                            <div className="text-center">
-                                <h2 className="font-bold text-xl sm:text-2xl text-gray-900">
-                                    Welcome to the dashboard
-                                </h2>
-                                <p className="text-text text-xs sm:text-sm mt-2 font-normal">
-                                    Sign in to access your account
-                                </p>
-                            </div>
-
-                            <form
-                                className="mt-7 sm:mt-10"
-                                onSubmit={handleSubmit}
-                            >
-
-                                {loginData.map((data) => {
-
-                                    return (
-
-                                        <div
-                                            key={data.id}
-                                            className="mb-4"
-                                        >
-
-                                            <label className="block font-bold text-xs text-text mb-2">
-
-                                                {data.label}
-
-                                            </label>
-
-                                            <input
-                                                type={data.type}
-                                                name={data.name}
-                                                placeholder={data.placeholder}
-                                                required={data.required}
-                                                value={formData[data.name]}
-                                                onChange={handleChange}
-                                                className="focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm border border-gray-200 rounded-lg w-full p-3 transition"
-                                            />
-
-                                        </div>
-
-                                    );
-
-                                })}
-
-                                <div className="flex items-start gap-2 w-full mt-2">
-
-                                    <input
-                                        type="checkbox"
-                                        className="cursor-pointer mt-0.5 flex-shrink-0"
-                                        required
-                                    />
-
-                                    <p className="text-xs text-text leading-5">
-
-                                        I Agree to MediStock's{" "}
-
-                                        <Link
-                                            to="#"
-                                            className="text-primary hover:underline"
-                                        >
-                                            Terms Of Service
-                                        </Link>
-
-                                        {" "}and{" "}
-
-                                        <Link
-                                            to="#"
-                                            className="text-primary hover:underline"
-                                        >
-                                            Privacy Policy
-                                        </Link>
-
-                                    </p>
-
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    className="text-center text-sm font-bold bg-primary w-full text-white p-3 mt-5 rounded-lg hover:shadow-xl hover:bg-[#1b5ce9] transition"
-                                >
-
-                                    Sign in
-
-                                </button>
-
-
-                            </form>
-
-                            <div className="flex flex-col sm:flex-row gap-3 items-center justify-between mt-5 pt-2">
-
-                                <Link
-                                    to="/forgotPassword"
-                                    className="text-xs text-primary hover:underline"
-                                >
-                                    Forgot Password?
-                                </Link>
-
-                                <Link
-                                    to="/register"
-                                    className="text-xs text-primary hover:underline"
-                                >
-                                    Create an Account
-                                </Link>
-
-                            </div>
-
-                            {error && (
-
-                                <div className="mt-4 rounded-lg bg-red-50 border border-red-200 px-3 py-2">
-
-                                    <p className="text-xs text-center text-red-500">
-
-                                        {error}
-
-                                    </p>
-
-                                </div>
-
-                            )}
-
-                        </div>
-
-                    </div>
-
-                </div>
-
+        <AuthShell>
+            <div>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                    Welcome back
+                </h1>
+                <p className="text-sm text-muted mt-2">
+                    Sign in to manage your shop's billing and stock.
+                </p>
             </div>
 
-        </div>
+            <form onSubmit={handleSubmit} className="mt-8 space-y-4" noValidate={false}>
+
+                <Input
+                    label="Email address"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@yourshop.com"
+                    icon={Mail}
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                />
+
+                <div>
+                    <div className="relative">
+                        <Input
+                            label="Password"
+                            name="password"
+                            type={showPassword ? "text" : "password"}
+                            autoComplete="current-password"
+                            placeholder="Your password"
+                            icon={Lock}
+                            value={formData.password}
+                            onChange={handleChange}
+                            required
+                        />
+
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword((value) => !value)}
+                            className="absolute right-2 bottom-1.5 grid place-items-center h-8 w-8 rounded-md text-faint hover:text-heading"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                    </div>
+
+                    <div className="flex justify-end mt-2">
+                        <Link
+                            to="/forgotPassword"
+                            className="text-xs font-semibold text-primary hover:underline"
+                        >
+                            Forgot password?
+                        </Link>
+                    </div>
+                </div>
+
+                {error && (
+                    <div className="flex items-start gap-2 rounded-lg border border-danger/25 bg-danger/5 px-3 py-2.5" role="alert">
+                        <AlertCircle className="h-4 w-4 text-danger shrink-0 mt-0.5" />
+                        <p className="text-sm text-danger">{error}</p>
+                    </div>
+                )}
+
+                <Button
+                    type="submit"
+                    size="lg"
+                    fullWidth
+                    loading={submitting}
+                    iconRight={ArrowRight}
+                >
+                    Sign in
+                </Button>
+            </form>
+
+            <p className="mt-8 text-center text-sm text-muted">
+                New to StoreFlow?{" "}
+                <Link to="/register" className="font-semibold text-primary hover:underline">
+                    Set up your shop
+                </Link>
+            </p>
+        </AuthShell>
     );
 }

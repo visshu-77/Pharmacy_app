@@ -1,473 +1,392 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+    IndianRupee,
+    ReceiptText,
+    TrendingUp,
+    Wallet,
+    PackageMinus,
+    PackageX,
+    CalendarClock,
+    CalendarX2,
+    Package,
+    Tags,
+    Truck,
+    Plus,
+    ScanBarcode,
+    ArrowRight,
+    Trophy,
+    CheckCircle2
+} from "lucide-react";
+
+import Card, { CardHeader } from "../components/ui/Card";
+import StatCard from "../components/ui/StatCard";
+import Button from "../components/ui/Button";
+import { Breadcrumbs } from "../components/ui/PageHeader";
+import { Skeleton, EmptyState } from "../components/ui/State";
+import SalesTrendChart, { fillDailySeries } from "../components/charts/SalesTrendChart";
+
 import { getDashboardSummary } from "../services/dashboardService";
+import { getTopSellingProducts, getSalesOverview } from "../services/reportService";
+import { useBusiness } from "../context/BusinessContext";
 
-import LastParams from "../components/lastParams";
-
-import FilledButton from "../components/filledButton";
-import TransparentButton from "../components/transparentButton";
-
-import CapsuleIcon from "../components/Icons/CapsuleIcon";
-import AlertIcon from "../components/Icons/AlertIcon";
-import CalenderIcon from "../components/Icons/CalenderIcon";
-import MoneyIcon from "../components/Icons/moneyIcon";
-import GraphIcon from "../components/Icons/GraphIcon";
-import RailIcon from "../components/Icons/RailIcon";
-import ProfileIcon from "../components/Icons/ProfileIcon";
-import CartIcon from "../components/Icons/CartIcon";
-
-import { getTopSellingProducts } from "../services/reportService";
-import { getProfile } from "../services/userService";
+const greeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+};
 
 export default function Dashboard() {
 
-    const [currentUser, setCurrentUser] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const {
+        profile,
+        term,
+        shopName,
+        ownerName,
+        formatMoney,
+        formatNumber,
+        lowStockThreshold
+    } = useBusiness();
 
-    const [dashboardSummary, setDashboardSummary] = useState({
-        todaysRevenue: 0,
-        ordersToday: 0,
-        lowStock: 0,
-        expiringSoon: 0
-    });
-
-    const [dashboardBoxes, setDashboardBoxes] = useState({
-        totalProducts: 0,
-        lowStockItems: 0,
-        expiringSoon: 0,
-        todaysSales: 0,
-        monthlyProfit: 0,
-        totalSuppliers: 0,
-        employees: 0,
-        pendingPurchases: 0,
-        monthlyRevenue: 0,
-        yearlyRevenue: 0,
-        totalCategories: 0
-    });
-
-    const [dashboardLoading, setDashboardLoading] = useState(true);
+    const [summary, setSummary] = useState({});
+    const [summaryLoading, setSummaryLoading] = useState(true);
 
     const [topProducts, setTopProducts] = useState([]);
-    const [topProductsLoading, setTopProductsLoading] = useState(true);
+    const [topLoading, setTopLoading] = useState(true);
+
+    const [sales, setSales] = useState([]);
+    const [salesLoading, setSalesLoading] = useState(true);
 
     useEffect(() => {
-        const fetchDashboardSummary = async () => {
-            try {
-                setDashboardLoading(true);
+        getDashboardSummary()
+            .then((data) => setSummary(data.summary || {}))
+            .catch((err) => console.log("Dashboard summary:", err))
+            .finally(() => setSummaryLoading(false));
 
-                const data = await getDashboardSummary();
+        getTopSellingProducts("quantity")
+            .then((data) => setTopProducts(data.products || []))
+            .catch((err) => console.log("Top products:", err))
+            .finally(() => setTopLoading(false));
 
-                console.log(data);
-
-                setDashboardSummary(data.summary || {});
-                setDashboardBoxes(data.summary || {});
-
-            } catch (err) {
-                console.log(err);
-            } finally {
-                setDashboardLoading(false);
-            }
-        };
-
-        fetchDashboardSummary();
+        getSalesOverview("last14Days")
+            .then((data) => setSales(data.sales || []))
+            .catch((err) => console.log("Sales overview:", err))
+            .finally(() => setSalesLoading(false));
     }, []);
 
-    useEffect(() => {
-        const fetchTopProducts = async () => {
-            try {
-                setTopProductsLoading(true);
+    const series = useMemo(() => {
+        const to = new Date();
+        const from = new Date();
+        from.setDate(to.getDate() - 13);
+        return fillDailySeries(sales, { from, to });
+    }, [sales]);
 
-                const data = await getTopSellingProducts("quantity");
+    const fortnightTotal = series.reduce((sum, day) => sum + day.totalSales, 0);
 
-                console.log("Home Top Products:", data);
-
-                setTopProducts(data.products || []);
-
-            } catch (error) {
-                console.log("Home top products error:", error);
-            } finally {
-                setTopProductsLoading(false);
-            }
-        };
-
-        fetchTopProducts();
-    }, []);
-
-    useEffect(() => {
-        const fetchCurrentUser = async () => {
-            try {
-                setLoading(true);
-
-                const data = await getProfile();
-
-                console.log("Profile data ======>", data);
-
-                setCurrentUser(data.user);
-
-            } catch (err) {
-                console.log(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchCurrentUser();
-    }, []);
-
-    const counterData = [
+    const alerts = [
         {
-            number: `₹${Number(
-                dashboardSummary.todaysRevenue || 0
-            ).toLocaleString("en-IN")}`,
-            content: "Today's Revenue"
+            key: "low",
+            icon: PackageMinus,
+            label: "Low stock",
+            hint: `At or below ${lowStockThreshold} units`,
+            value: summary.lowStock || 0,
+            tone: "warning"
         },
         {
-            number: dashboardSummary.ordersToday || 0,
-            content: "Orders Today"
+            key: "out",
+            icon: PackageX,
+            label: "Out of stock",
+            hint: "Can't be billed right now",
+            value: summary.outOfStock || 0,
+            tone: "danger"
         },
-        {
-            number: dashboardSummary.lowStock || 0,
-            content: "Low Stock"
-        },
-        {
-            number: dashboardSummary.expiringSoon || 0,
-            content: "Expiring Soon"
-        }
+        ...(profile.tracksExpiry
+            ? [
+                {
+                    key: "soon",
+                    icon: CalendarClock,
+                    label: "Expiring soon",
+                    hint: "Within the next 30 days",
+                    value: summary.expiringSoon || 0,
+                    tone: "warning"
+                },
+                {
+                    key: "expired",
+                    icon: CalendarX2,
+                    label: "Expired",
+                    hint: "Remove from shelves",
+                    value: summary.expired || 0,
+                    tone: "danger"
+                }
+            ]
+            : [])
     ];
 
-    const BoxesData = [
-        {
-            icon: CapsuleIcon,
-            number: dashboardBoxes.totalProducts || 0,
-            content: "Total Product",
-            status: "Total products"
-        },
-        {
-            icon: AlertIcon,
-            number: dashboardBoxes.lowStock || 0,
-            content: "Low Stock Items",
-            status: "Needs attention"
-        },
-        {
-            icon: CalenderIcon,
-            number: dashboardBoxes.expiringSoon || 0,
-            content: "Expiring Soon",
-            status: "Within 30 days"
-        },
-        {
-            icon: MoneyIcon,
-            number: `₹${Number(
-                dashboardBoxes.todaysRevenue || 0
-            ).toLocaleString("en-IN")}`,
-            content: "Today's Sales",
-            status: "Today's revenue"
-        },
-        {
-            icon: GraphIcon,
-            number: `₹${Number(
-                dashboardSummary.monthlyRevenue || 0
-            ).toLocaleString("en-IN")}`,
-            content: "Monthly Profit",
-            status: "This month"
-        },
-        {
-            icon: RailIcon,
-            number: dashboardBoxes.totalSuppliers || 0,
-            content: "Total Suppliers",
-            status: "Active suppliers"
-        },
-        {
-            icon: ProfileIcon,
-            number: `₹${Number(
-                dashboardSummary.yearlyRevenue || 0
-            ).toLocaleString("en-IN")}`,
-            content: "This Year Revenue",
-            status: "Current year"
-        },
-        {
-            icon: CartIcon,
-            number: dashboardSummary.totalCategories || 0,
-            content: "Total Categories",
-            status: "All categories"
-        }
-    ];
+    const attentionCount = alerts.reduce((sum, alert) => sum + alert.value, 0);
+
+    const BusinessIcon = profile.icon;
+    const firstName = ownerName?.split(" ")[0];
 
     return (
-        <div className="w-full bg-white dark:bg-black min-w-0">
+        <div className="space-y-6">
 
-            {/* Params */}
-            <div className="w-full">
-                <LastParams />
-            </div>
+            <Breadcrumbs />
 
-            {/* Welcome */}
-            <div className="bg-primary dark:bg-darkColor text-white dark:text-white  p-4 sm:p-5 rounded-2xl mt-4">
+            {/* ---------------- Hero ---------------- */}
+            <section className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#1e3a8a_0%,#2563eb_55%,#4f46e5_100%)] text-white shadow-lg">
+                <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" aria-hidden="true" />
+                <div className="pointer-events-none absolute right-24 -bottom-24 h-56 w-56 rounded-full bg-indigo-300/20 blur-3xl" aria-hidden="true" />
 
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <div className="relative p-6 sm:p-8">
+                    <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="min-w-0">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white/90">
+                                <BusinessIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                                {profile.shortLabel}
+                            </span>
 
-                    {/* Welcome text */}
-                    <div className="min-w-0">
+                            <h1 className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                                {greeting()}{firstName ? `, ${firstName}` : ""} 👋
+                            </h1>
 
-                        <h2 className="text-xl sm:text-2xl font-semibold capitalize break-words">
-                            {loading
-                                ? "Welcome..."
-                                : `Welcome ${
-                                    currentUser?.ownerName?.split(" ")[0] || ""
-                                }`
-                            } 👋
-                        </h2>
-
-                        <p className="text-xs sm:text-sm text-[#BEDBFF] mt-1">
-                            Here's what's happening at City Medicals today.
-                        </p>
-
-                    </div>
-
-                    {/* Buttons */}
-                    <div className="flex flex-col xs:flex-row sm:flex-row gap-2 w-full lg:w-auto">
-
-                        <div className="w-full sm:w-auto">
-                            <FilledButton
-                                name="Quick Sale"
-                                link="/settings"
-                            />
-                        </div>
-
-                        <div className="w-full sm:w-auto">
-                            <TransparentButton
-                                name="Add a Product"
-                                link="/Product"
-                            />
-                        </div>
-
-                    </div>
-
-                </div>
-
-                {/* Summary */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-5 gap-x-3 border-t border-[#ffffff4a] pt-4 mt-5">
-
-                    {counterData.map((item, index) => (
-
-                        <div
-                            key={index}
-                            className={`
-                                min-w-0
-                                ${
-                                    index !== 0
-                                        ? "sm:border-l sm:border-[#ffffff25] sm:pl-4"
-                                        : ""
-                                }
-                            `}
-                        >
-
-                            <h2 className="text-base sm:text-xl font-semibold truncate">
-                                {dashboardLoading
-                                    ? "..."
-                                    : item.number
-                                }
-                            </h2>
-
-                            <p className="text-[10px] sm:text-xs text-[#BEDBFF] mt-1">
-                                {item.content}
+                            <p className="mt-1.5 text-sm text-white/75">
+                                Here's how <span className="font-semibold text-white">{shopName}</span> is doing today.
                             </p>
-
                         </div>
 
-                    ))}
+                        <div className="flex flex-wrap gap-2">
+                            <Link
+                                to="/billing"
+                                className="inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-white text-primary text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                            >
+                                <ScanBarcode className="h-4 w-4" />
+                                New sale
+                            </Link>
 
-                </div>
-
-            </div>
-
-            {/* Dashboard Boxes */}
-            <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-4 sm:mt-5">
-
-                {BoxesData.map((item, index) => {
-
-                    const Icons = item.icon;
-
-                    return (
-
-                        <div
-                            key={index}
-                            className="
-                                border
-                                border-[#d8d8d86b]
-                                rounded-2xl
-                                p-4
-                                sm:p-5
-                                flex
-                                justify-between
-                                gap-3
-                                min-w-0
-                                bg-white
-                                dark:bg-darkColor
-                                dark:text-white
-                                cursor-pointer
-                                transition
-                                hover:shadow-lg
-                            "
-                        >
-
-                            {/* Left */}
-                            <div className="min-w-0 flex-1">
-
-                                <Icons className="h-9 w-9 sm:h-11 sm:w-11" />
-
-                                <h2 className="text-xl sm:text-2xl font-bold mt-4 sm:mt-5 truncate">
-                                    {item.number}
-                                </h2>
-
-                                <p className="text-xs sm:text-sm text-[#939393] truncate mt-1">
-                                    {item.content}
-                                </p>
-
-                            </div>
-
-                            {/* Right */}
-                            <div className="flex-shrink-0 flex items-start justify-end">
-
-                                <p className="text-[10px] sm:text-xs dark:text-white text-secondary font-medium text-right">
-                                    {item.status}
-                                </p>
-
-                            </div>
-
+                            <Link
+                                to="/product"
+                                className="inline-flex items-center gap-2 h-11 px-5 rounded-xl border border-white/30 bg-white/10 text-white text-sm font-semibold hover:bg-white/20 transition-colors"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Add {term.itemLower}
+                            </Link>
                         </div>
-
-                    );
-                })}
-
-            </div>
-
-            {/* Top Selling */}
-            <div className="mt-4 sm:mt-5 dark:bg-darkColor">
-
-                <div className="w-full rounded-xl border dark:text-white border-[#9393934a] shadow-sm sm:shadow-lg p-4 sm:p-5">
-
-                    {/* Header */}
-                    <div className="flex items-center justify-between gap-3">
-
-                        <h3 className="font-bold text-base sm:text-xl">
-                            Top Selling Medicines
-                        </h3>
-
-                        <a
-                            href="/reports"
-                            className="
-                                flex-shrink-0
-                                text-primary
-                                font-semibold
-                                dark:bg-black
-                                dark:text-white
-                                bg-blue-100
-                                px-2.5
-                                py-1
-                                rounded-full
-                                text-[10px]
-                                sm:text-xs
-                            "
-                        >
-                            See All
-                        </a>
-
                     </div>
 
-                    {/* Products */}
-                    <div className="mt-4 flex flex-col">
-
-                        {topProductsLoading ? (
-
-                            <div className="py-8 text-center text-sm text-gray-500">
-                                Loading...
+                    <dl className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-2xl bg-white/15">
+                        {[
+                            { label: "Today's revenue", value: formatMoney(summary.todaysRevenue) },
+                            { label: "Bills today", value: formatNumber(summary.ordersToday) },
+                            { label: "This month", value: formatMoney(summary.monthlyRevenue) },
+                            { label: "This year", value: formatMoney(summary.yearlyRevenue) }
+                        ].map((item) => (
+                            <div key={item.label} className="bg-white/[0.06] backdrop-blur-sm px-4 py-4 sm:px-5">
+                                <dt className="text-[11px] font-medium uppercase tracking-wider text-white/65">
+                                    {item.label}
+                                </dt>
+                                <dd className="mt-1 text-xl sm:text-2xl font-bold tabular text-white truncate">
+                                    {summaryLoading ? <span className="inline-block h-7 w-20 rounded bg-white/20 animate-pulse" /> : item.value}
+                                </dd>
                             </div>
+                        ))}
+                    </dl>
+                </div>
+            </section>
 
-                        ) : topProducts.length === 0 ? (
+            {/* ---------------- Inventory at a glance ---------------- */}
+            <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard
+                    icon={Package}
+                    label={`Total ${term.itemsLower}`}
+                    value={formatNumber(summary.totalProducts)}
+                    loading={summaryLoading}
+                    to="/product"
+                />
+                <StatCard
+                    icon={Wallet}
+                    label="Stock value (at cost)"
+                    value={formatMoney(summary.stockValue)}
+                    loading={summaryLoading}
+                    tone="success"
+                />
+                <StatCard
+                    icon={Tags}
+                    label={term.categories}
+                    value={formatNumber(summary.totalCategories)}
+                    loading={summaryLoading}
+                    tone="info"
+                    to="/category"
+                />
+                <StatCard
+                    icon={Truck}
+                    label={term.suppliers}
+                    value={formatNumber(summary.totalSuppliers)}
+                    loading={summaryLoading}
+                    tone="neutral"
+                    to="/suppliers"
+                />
+            </section>
 
-                            <div className="py-8 text-center text-sm text-gray-500">
-                                No product sales available.
-                            </div>
+            {/* ---------------- Chart + alerts ---------------- */}
+            <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <Card className="xl:col-span-2">
+                    <CardHeader
+                        icon={TrendingUp}
+                        title="Sales, last 14 days"
+                        subtitle={salesLoading ? "Loading…" : `${formatMoney(fortnightTotal)} total`}
+                        action={
+                            <Button to="/reports" variant="ghost" size="sm" iconRight={ArrowRight}>
+                                Reports
+                            </Button>
+                        }
+                    />
 
+                    <div className="mt-5">
+                        {salesLoading ? (
+                            <Skeleton className="h-[260px] w-full rounded-xl" />
+                        ) : fortnightTotal === 0 ? (
+                            <EmptyState
+                                icon={IndianRupee}
+                                title="No sales in the last 14 days"
+                                message="Your daily sales will chart here as soon as you create your first bill."
+                                action={<Button to="/billing" icon={ReceiptText}>Create a bill</Button>}
+                                className="py-10"
+                            />
                         ) : (
-
-                            topProducts.slice(0, 5).map((product, index) => (
-
-                                <div
-                                    className="
-                                        flex
-                                        items-center
-                                        justify-between
-                                        gap-3
-                                        py-3
-                                        border-b
-                                        last:border-b-0
-                                    "
-                                    key={product._id}
-                                >
-
-                                    {/* Product info */}
-                                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-
-                                        <div className="flex-shrink-0">
-
-                                            <p className="
-                                                text-[10px]
-                                                sm:text-xs
-                                                text-text
-                                                font-semibold
-                                                bg-gray-200
-                                                rounded-full
-                                                w-6
-                                                h-6
-                                                flex
-                                                items-center
-                                                justify-center
-                                            ">
-                                                {index + 1}
-                                            </p>
-
-                                        </div>
-
-                                        <div className="min-w-0">
-
-                                            <h3 className="text-sm sm:text-base font-medium truncate">
-                                                {product.productName}
-                                            </h3>
-
-                                            <p className="text-[10px] sm:text-xs text-[#939393]">
-                                                {Number(
-                                                    product.quantitySold || 0
-                                                ).toLocaleString("en-IN")}{" "}
-                                                units
-                                            </p>
-
-                                        </div>
-
-                                    </div>
-
-                                    {/* Sales */}
-                                    <div className="flex-shrink-0 text-right">
-
-                                        <h3 className="font-semibold text-xs sm:text-sm">
-                                            ₹{Number(
-                                                product.totalSales || 0
-                                            ).toLocaleString("en-IN")}
-                                        </h3>
-
-                                    </div>
-
-                                </div>
-
-                            ))
-
+                            <SalesTrendChart data={series} />
                         )}
-
                     </div>
+                </Card>
 
+                <Card>
+                    <CardHeader
+                        title="Needs attention"
+                        subtitle={
+                            summaryLoading
+                                ? "Checking stock…"
+                                : attentionCount === 0
+                                    ? "Everything looks healthy"
+                                    : `${formatNumber(attentionCount)} ${attentionCount === 1 ? term.itemLower : term.itemsLower} to review`
+                        }
+                    />
+
+                    <ul className="mt-4 space-y-2">
+                        {alerts.map(({ key, icon: Icon, label, hint, value, tone }) => {
+                            const active = value > 0;
+                            const toneClass = !active
+                                ? "bg-surface-hover text-faint"
+                                : tone === "danger"
+                                    ? "bg-danger/10 text-danger"
+                                    : "bg-warning/10 text-warning";
+
+                            return (
+                                <li key={key}>
+                                    <Link
+                                        to="/product"
+                                        className="flex items-center gap-3 rounded-xl border border-line px-3 py-3 hover:bg-surface-hover transition-colors"
+                                    >
+                                        <span className={`grid place-items-center h-9 w-9 shrink-0 rounded-lg ${toneClass}`}>
+                                            <Icon className="h-4 w-4" aria-hidden="true" />
+                                        </span>
+
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-sm font-semibold text-heading">{label}</p>
+                                            <p className="text-xs text-muted truncate">{hint}</p>
+                                        </div>
+
+                                        {summaryLoading ? (
+                                            <Skeleton className="h-5 w-8" />
+                                        ) : (
+                                            <span className={`text-lg font-bold tabular ${active ? "text-heading" : "text-faint"}`}>
+                                                {formatNumber(value)}
+                                            </span>
+                                        )}
+                                    </Link>
+                                </li>
+                            );
+                        })}
+                    </ul>
+
+                    {!summaryLoading && attentionCount === 0 && (
+                        <p className="mt-4 flex items-center gap-2 text-xs text-success font-medium">
+                            <CheckCircle2 className="h-4 w-4" />
+                            No stock alerts right now
+                        </p>
+                    )}
+                </Card>
+            </section>
+
+            {/* ---------------- Top sellers ---------------- */}
+            <Card padded={false}>
+                <div className="p-5 pb-0">
+                    <CardHeader
+                        icon={Trophy}
+                        title={`Top selling ${term.itemsLower}`}
+                        subtitle="By units sold, all time"
+                        action={
+                            <Button to="/reports" variant="ghost" size="sm" iconRight={ArrowRight}>
+                                See all
+                            </Button>
+                        }
+                    />
                 </div>
 
-            </div>
+                <div className="mt-4">
+                    {topLoading ? (
+                        <div className="px-5 pb-5 space-y-3">
+                            {[0, 1, 2, 3].map((row) => <Skeleton key={row} className="h-10 w-full" />)}
+                        </div>
+                    ) : topProducts.length === 0 ? (
+                        <EmptyState
+                            icon={Trophy}
+                            title="No sales yet"
+                            message={`Your best selling ${term.itemsLower} will appear here once you start billing.`}
+                            className="py-10"
+                        />
+                    ) : (
+                        <ol className="divide-y divide-line">
+                            {topProducts.slice(0, 5).map((product, index) => {
+                                const max = Number(topProducts[0]?.quantitySold || 1);
+                                const share = Math.max(4, (Number(product.quantitySold || 0) / max) * 100);
 
+                                return (
+                                    <li key={product._id} className="flex items-center gap-4 px-5 py-3.5">
+                                        <span
+                                            className={[
+                                                "grid place-items-center h-8 w-8 shrink-0 rounded-lg text-xs font-bold",
+                                                index === 0 ? "bg-warning/15 text-warning" : "bg-surface-hover text-muted"
+                                            ].join(" ")}
+                                        >
+                                            {index + 1}
+                                        </span>
+
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-baseline justify-between gap-3">
+                                                <p className="text-sm font-semibold text-heading truncate">
+                                                    {product.productName}
+                                                </p>
+                                                <p className="text-sm font-semibold text-heading tabular shrink-0">
+                                                    {formatMoney(product.totalSales)}
+                                                </p>
+                                            </div>
+
+                                            <div className="mt-1.5 flex items-center gap-3">
+                                                <div className="h-1.5 flex-1 rounded-full bg-surface-hover overflow-hidden">
+                                                    <div className="h-full rounded-full bg-primary" style={{ width: `${share}%` }} />
+                                                </div>
+                                                <span className="text-xs text-muted tabular shrink-0 w-20 text-right">
+                                                    {formatNumber(product.quantitySold)} sold
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ol>
+                    )}
+                </div>
+            </Card>
         </div>
     );
 }
