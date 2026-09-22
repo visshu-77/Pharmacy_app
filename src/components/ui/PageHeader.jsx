@@ -18,6 +18,8 @@ export function Breadcrumbs({ className = "" }) {
         suppliers: business?.term.suppliers || "Suppliers",
         reports: "Reports",
         billing: "New bill",
+        notes: "Sales note",
+        guide: "Help & guide",
         subscription: "Plans",
         settings: "Settings",
         checkout: "Checkout"

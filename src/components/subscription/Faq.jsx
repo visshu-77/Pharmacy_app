@@ -8,8 +8,12 @@ const FAQS = [
             "Yes. Pick your business type — grocery, hardware, pharmacy, electronics, mobile, stationery, clothing, footwear, bakery, cosmetics, auto parts or general — and StoreFlow adjusts its fields, units and alerts. You can switch type any time in Settings without losing data."
     },
     {
-        question: "Can I change my plan later?",
-        answer: "Yes. Upgrade or downgrade whenever you like; the change applies from your next billing period."
+        question: "Why is there only one plan?",
+        answer: "So you never have to guess what you're missing. StoreFlow Pro includes every feature for every kind of shop — you only choose whether to pay monthly, every 6 months or yearly."
+    },
+    {
+        question: "Can I switch between monthly and yearly?",
+        answer: "Yes. Pick a different billing cycle when you renew; longer cycles cost less per month."
     },
     {
         question: "What happens when my plan expires?",

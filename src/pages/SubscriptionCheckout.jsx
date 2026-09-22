@@ -44,7 +44,7 @@ export default function SubscriptionCheckout() {
                 amount: result.order.amount,
                 currency: result.order.currency,
                 name: BRAND.name,
-                description: `${planName} plan · ${CYCLE_LABEL[duration] || duration}`,
+                description: `${planName} · ${CYCLE_LABEL[duration] || duration}`,
                 order_id: result.order.id,
                 prefill: {
                     name: user?.ownerName || "",
@@ -64,7 +64,7 @@ export default function SubscriptionCheckout() {
                             duration
                         });
                         await fetchSubscription();
-                        toast.success(`${planName} plan is now active`, { title: "Payment successful" });
+                        toast.success(`${planName} is now active`, { title: "Payment successful" });
                         navigate("/", { replace: true });
                     } catch {
                         toast.error("Payment was received but could not be verified. Please contact support with your payment ID.", { duration: 0 });
@@ -112,7 +112,7 @@ export default function SubscriptionCheckout() {
                             <Crown className="h-6 w-6" />
                         </span>
                         <div className="flex-1">
-                            <p className="font-bold text-heading text-lg">{planName} plan</p>
+                            <p className="font-bold text-heading text-lg">{planName}</p>
                             <p className="text-sm text-muted">{CYCLE_LABEL[duration] || duration} · for {shopName}</p>
                         </div>
                     </div>

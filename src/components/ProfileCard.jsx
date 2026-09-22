@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import {
     LayoutDashboard,
     ReceiptText,
+    NotebookPen,
+    LifeBuoy,
     Package,
     Tags,
     Truck,
@@ -19,10 +21,13 @@ import { useSubscription } from "../context/SubscriptionContext";
 import { useBusiness } from "../context/BusinessContext";
 import { useTheme } from "../context/ThemeContext";
 import { logout } from "../utils/session";
+import { planLabel } from "../config/plans";
+import { getSubscriptionTiming } from "../utils/subscription";
 
-const daysUntil = (endDate) => {
-    const difference = new Date(endDate) - new Date();
-    return Math.max(0, Math.ceil(difference / (1000 * 60 * 60 * 24)));
+const BAR_TONE = {
+    success: "bg-white",
+    warning: "bg-amber-300",
+    danger: "bg-red-300"
 };
 
 /**
@@ -33,7 +38,7 @@ export default function ProfileCard({ closeSidebar }) {
 
     const { t } = useTranslation();
 
-    const { subscription, subscriptionLoading } = useSubscription();
+    const { subscription, subscriptionLoading, upcoming, now } = useSubscription();
     const { profile, term, shopName } = useBusiness();
     const { theme, toggleTheme } = useTheme();
 
@@ -44,7 +49,8 @@ export default function ProfileCard({ closeSidebar }) {
             label: "Overview",
             items: [
                 { icon: LayoutDashboard, name: t("sidebar.dashboard"), path: "/", end: true },
-                { icon: ReceiptText, name: t("sidebar.billing"), path: "/billing" }
+                { icon: ReceiptText, name: t("sidebar.billing"), path: "/billing" },
+                { icon: NotebookPen, name: t("sidebar.notes", "Sales Note"), path: "/notes" }
             ]
         },
         {
@@ -66,7 +72,8 @@ export default function ProfileCard({ closeSidebar }) {
             label: "Account",
             items: [
                 { icon: Crown, name: t("sidebar.subscription"), path: "/subscription" },
-                { icon: Settings2, name: t("sidebar.settings"), path: "/settings" }
+                { icon: Settings2, name: t("sidebar.settings"), path: "/settings" },
+                { icon: LifeBuoy, name: t("sidebar.guide", "Help & Guide"), path: "/guide" }
             ]
         }
     ];
@@ -76,7 +83,8 @@ export default function ProfileCard({ closeSidebar }) {
         logout();
     };
 
-    const remaining = subscription ? daysUntil(subscription.endDate) : 0;
+    const timing = getSubscriptionTiming(subscription, now);
+    const queued = upcoming?.length > 0;
 
     return (
         <div className="flex h-full flex-col bg-surface border-r border-line">
@@ -162,22 +170,36 @@ export default function ProfileCard({ closeSidebar }) {
                             className="block rounded-xl bg-gradient-to-br from-primary to-indigo-600 p-3.5 text-white shadow-md hover:shadow-lg transition-shadow"
                         >
                             <div className="flex items-center justify-between">
-                                <p className="text-xs font-semibold capitalize">
-                                    {subscription.plan} plan
+                                <p className="text-xs font-semibold">
+                                    {planLabel(subscription.plan)}
                                 </p>
                                 <Crown className="h-3.5 w-3.5 opacity-80" aria-hidden="true" />
                             </div>
 
-                            <p className="text-[11px] text-white/80 mt-0.5">
-                                {remaining} day{remaining === 1 ? "" : "s"} remaining
+                            <p className="text-[11px] text-white/85 mt-0.5 tabular">
+                                {timing?.label}
+                                {timing && !timing.expired && ` · of ${timing.totalDays}`}
                             </p>
 
-                            <div className="mt-2 h-1.5 rounded-full bg-white/25 overflow-hidden">
+                            <div
+                                className="mt-2 h-1.5 rounded-full bg-white/25 overflow-hidden"
+                                role="progressbar"
+                                aria-label="Plan time remaining"
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                aria-valuenow={Math.round(timing?.remainingPercent || 0)}
+                            >
                                 <div
-                                    className="h-full rounded-full bg-white"
-                                    style={{ width: `${Math.min(100, (remaining / 30) * 100)}%` }}
+                                    className={`h-full rounded-full transition-[width] duration-700 ${BAR_TONE[timing?.tone] || BAR_TONE.success}`}
+                                    style={{ width: `${timing?.remainingPercent || 0}%` }}
                                 />
                             </div>
+
+                            {queued && (
+                                <p className="text-[10px] text-white/75 mt-1.5">
+                                    + renewal queued
+                                </p>
+                            )}
                         </NavLink>
                     ) : (
                         <NavLink

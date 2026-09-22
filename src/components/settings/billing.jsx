@@ -10,6 +10,7 @@ import { cycleLabel } from "./subscription";
 
 import { getBillingDetails } from "../../services/userService";
 import { useBusiness } from "../../context/BusinessContext";
+import { planLabel } from "../../config/plans";
 
 const formatDate = (date) =>
     date ? new Date(date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
@@ -44,7 +45,7 @@ export default function Billing() {
             {current && (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {[
-                        { label: t("BillingInformation.CurrentPlan"), value: <span className="capitalize">{current.plan}</span> },
+                        { label: t("BillingInformation.CurrentPlan"), value: planLabel(current.plan) },
                         { label: t("BillingInformation.CurrentPrice"), value: formatMoney(current.price) },
                         { label: t("BillingInformation.BillingCycle"), value: cycleLabel(current.duration) },
                         { label: "Valid until", value: formatDate(current.endDate) }
@@ -81,7 +82,7 @@ export default function Billing() {
                             <tbody className="divide-y divide-line">
                                 {history.map((payment) => (
                                     <tr key={payment._id} className="hover:bg-surface-hover">
-                                        <td className="py-3 px-5 font-semibold text-heading capitalize">{payment.plan}</td>
+                                        <td className="py-3 px-5 font-semibold text-heading">{planLabel(payment.plan)}</td>
                                         <td className="py-3 px-3 text-body">{cycleLabel(payment.duration)}</td>
                                         <td className="py-3 px-3 text-right font-semibold text-heading tabular">{formatMoney(payment.price)}</td>
                                         <td className="py-3 px-3">

@@ -1,75 +1,63 @@
 import { Check, Sparkles } from "lucide-react";
 
 import Button from "../ui/Button";
+import { BILLING_CYCLES } from "../../config/plans";
 
-const PERIOD = {
-    monthly: "/ month",
-    sixMonths: "/ 6 months",
-    yearly: "/ year"
-};
-
-const MONTHS = { monthly: 1, sixMonths: 6, yearly: 12 };
-
+/** The single StoreFlow plan: price for the chosen cycle plus what's included. */
 export default function PricingCard({ plan, duration, onSelect, current = false }) {
 
+    const cycle = BILLING_CYCLES.find((c) => c.id === duration) || BILLING_CYCLES[0];
     const price = plan.prices[duration];
-    const featured = plan.id === "premium";
-    const perMonth = Math.round(price / MONTHS[duration]);
+    const perMonth = Math.round(price / cycle.months);
 
     return (
-        <div
-            className={[
-                "relative flex flex-col rounded-2xl border bg-surface p-6 transition-all duration-200",
-                featured
-                    ? "border-primary shadow-lg ring-1 ring-primary/30 md:-translate-y-2"
-                    : "border-line shadow-card hover:shadow-md"
-            ].join(" ")}
-        >
-            {featured && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow">
-                    <Sparkles className="h-3 w-3" />
-                    Most popular
-                </span>
-            )}
+        <div className="relative rounded-3xl border border-primary bg-surface shadow-lg ring-1 ring-primary/30 overflow-hidden">
+            <div className="grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
 
-            <div>
-                <h3 className="text-lg font-bold text-heading">{plan.name}</h3>
-                <p className="text-sm text-muted mt-1">{plan.description}</p>
-            </div>
-
-            <div className="mt-6">
-                <div className="flex items-baseline gap-1.5">
-                    <span className="text-4xl font-extrabold tracking-tight text-heading tabular">
-                        ₹{price.toLocaleString("en-IN")}
+                {/* Price */}
+                <div className="p-8 bg-primary/5 border-b md:border-b-0 md:border-r border-line flex flex-col">
+                    <span className="self-start inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
+                        <Sparkles className="h-3 w-3" />
+                        All features included
                     </span>
-                    <span className="text-sm text-muted">{PERIOD[duration]}</span>
+
+                    <h3 className="mt-5 text-2xl font-extrabold tracking-tight text-heading">{plan.name}</h3>
+                    <p className="text-sm text-muted mt-1">{plan.description}</p>
+
+                    <div className="mt-8">
+                        <div className="flex items-baseline gap-1.5">
+                            <span className="text-5xl font-extrabold tracking-tight text-heading tabular">
+                                ₹{price.toLocaleString("en-IN")}
+                            </span>
+                            <span className="text-sm text-muted">{cycle.period}</span>
+                        </div>
+                        {cycle.months > 1 && (
+                            <p className="text-sm text-muted mt-1 tabular">≈ ₹{perMonth.toLocaleString("en-IN")} per month</p>
+                        )}
+                    </div>
+
+                    <div className="mt-auto pt-8">
+                        <Button fullWidth size="lg" className="h-12" disabled={current} onClick={() => onSelect(plan)}>
+                            {current ? "Your current plan" : `Get ${plan.name}`}
+                        </Button>
+                    </div>
                 </div>
-                {duration !== "monthly" && (
-                    <p className="text-xs text-muted mt-1 tabular">≈ ₹{perMonth.toLocaleString("en-IN")} per month</p>
-                )}
+
+                {/* Features */}
+                <div className="p-8">
+                    <p className="text-xs font-bold uppercase tracking-wider text-faint">What's included</p>
+                    <ul className="mt-5 grid sm:grid-cols-2 gap-x-6 gap-y-3.5">
+                        {plan.features.map((feature) => (
+                            <li key={feature} className="flex items-start gap-2.5 text-sm text-body">
+                                <span className="grid place-items-center h-5 w-5 shrink-0 rounded-full bg-primary/10 text-primary mt-px">
+                                    <Check className="h-3 w-3" />
+                                </span>
+                                {feature}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
             </div>
-
-            <Button
-                fullWidth
-                size="lg"
-                variant={featured ? "primary" : "secondary"}
-                className="mt-6"
-                disabled={current}
-                onClick={() => onSelect(plan)}
-            >
-                {current ? "Current plan" : `Choose ${plan.name}`}
-            </Button>
-
-            <ul className="mt-6 pt-6 border-t border-line space-y-3 flex-1">
-                {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2.5 text-sm text-body">
-                        <span className="grid place-items-center h-5 w-5 shrink-0 rounded-full bg-primary/10 text-primary">
-                            <Check className="h-3 w-3" />
-                        </span>
-                        {feature}
-                    </li>
-                ))}
-            </ul>
         </div>
     );
 }

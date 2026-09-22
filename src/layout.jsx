@@ -5,6 +5,7 @@ import { Menu, X } from 'lucide-react';
 import ProfileCard from './components/ProfileCard';
 import GeminiAssistant from './components/gemini/GeminiAssistant';
 import Logo from './components/brand/Logo';
+import PlanReminder from './components/PlanReminder';
 
 export default function Layout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -70,6 +71,7 @@ export default function Layout() {
             </div>
 
             <GeminiAssistant />
+            <PlanReminder />
         </div>
     );
 }

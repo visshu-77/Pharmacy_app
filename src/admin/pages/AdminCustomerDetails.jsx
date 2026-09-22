@@ -9,6 +9,7 @@ import { Spinner, ErrorState, EmptyState } from "../../components/ui/State";
 
 import { getCustomerById } from "../services/adminService";
 import { getBusinessType } from "../../config/businessTypes";
+import { planLabel } from "../../config/plans";
 
 const formatDate = (date) =>
     date ? new Date(date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
@@ -95,7 +96,7 @@ export default function AdminCustomerDetails() {
                 <h2 className="font-semibold text-heading mb-4">Subscription</h2>
                 {sub ? (
                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                        <Info label="Plan" value={<span className="capitalize">{sub.plan}</span>} />
+                        <Info label="Plan" value={planLabel(sub.plan)} />
                         <Info label="Cycle" value={sub.duration} />
                         <Info label="Price" value={`₹${Number(sub.price || 0).toLocaleString("en-IN")}`} />
                         <Info label="Status" value={<span className="capitalize">{customer.subscriptionStatus}</span>} />

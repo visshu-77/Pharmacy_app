@@ -24,7 +24,9 @@
         "reports": "रिपोर्ट",
         "billing": "बिलिंग",
         "subscription": "सब्सक्रिप्शन",
-        "settings": "सेटिंग्स"
+        "settings": "सेटिंग्स",
+        "notes": "बिक्री नोट",
+        "guide": "सहायता और गाइड"
     },
     "settings": {
         "title": "सेटिंग्स",

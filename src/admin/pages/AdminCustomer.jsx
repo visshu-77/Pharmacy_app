@@ -13,6 +13,7 @@ import { useToast } from "../../components/ui/Toast";
 
 import { getAllCustomers, deleteCustomer } from "../services/adminService";
 import { BUSINESS_TYPES, getBusinessType } from "../../config/businessTypes";
+import { PLAN, planLabel } from "../../config/plans";
 
 const LIMIT = 10;
 
@@ -130,9 +131,10 @@ export default function AdminCustomers() {
                         aria-label="Plan"
                         options={[
                             { value: "all", label: "Any plan" },
-                            { value: "normal", label: "Normal" },
-                            { value: "premium", label: "Premium" },
-                            { value: "business", label: "Business" }
+                            { value: PLAN.id, label: PLAN.name },
+                            { value: "normal", label: planLabel("normal") },
+                            { value: "premium", label: planLabel("premium") },
+                            { value: "business", label: planLabel("business") }
                         ]}
                     />
                 </div>
@@ -189,7 +191,7 @@ export default function AdminCustomers() {
                                                 <td className="py-3 px-3">
                                                     {customer.currentSubscription ? (
                                                         <div>
-                                                            <p className="font-semibold text-heading capitalize">{customer.currentSubscription.plan}</p>
+                                                            <p className="font-semibold text-heading">{planLabel(customer.currentSubscription.plan)}</p>
                                                             <p className="text-xs text-muted capitalize">{customer.subscriptionStatus}</p>
                                                         </div>
                                                     ) : (

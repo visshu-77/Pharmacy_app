@@ -16,7 +16,6 @@
         "view": "View",
         "search": "Search"
     },
-
     "sidebar": {
         "dashboard": "Dashboard",
         "product": "Products",
@@ -25,9 +24,10 @@
         "reports": "Reports",
         "billing": "New Bill",
         "subscription": "Plan",
-        "settings": "Settings"
+        "settings": "Settings",
+        "notes": "Sales Note",
+        "guide": "Help & Guide"
     },
-
     "settings": {
         "title": "Settings",
         "language": "Language",
@@ -36,7 +36,6 @@
         "preferences": "Preferences",
         "saveChanges": "Save Changes"
     },
-
     "settingSidebar": {
         "profile": "Profile",
         "businessInformation": "Business",
@@ -46,7 +45,6 @@
         "notifications": "Notifications",
         "preferences": "Preferences"
     },
-
     "dashboard": {
         "title": "Dashboard",
         "totalCustomers": "Total Customers",
@@ -54,12 +52,10 @@
         "expiredSubscriptions": "Expired Subscriptions",
         "revenue": "Revenue"
     },
-
-    "mainName" : {
+    "mainName": {
         "title": "StoreFlow",
         "content": "Run your store, end to end."
     },
-
     "profile": {
         "title": "Profile Information",
         "content": "Manage your personal account information.",
@@ -69,27 +65,25 @@
         "saveButton": "Save Changes",
         "saving": "Saving..."
     },
-
     "bussinessInformation": {
         "title": "Business Information",
         "content": "Manage your shop and business details.",
         "ShopName": "Shop Name",
         "GSTNumber": "GST Number",
-        "LicenseNumber":"License Number",
-        "City":"City",
+        "LicenseNumber": "License Number",
+        "City": "City",
         "State": "State",
         "ShopAddress": "Shop Address",
         "SaveButton": "Save business details",
         "saving": "Saving..."
     },
-
     "SubscriptionInformation": {
         "title": "Subscription",
         "content": "Your current plan and billing details.",
         "CurrentPlan": "Current Plan",
         "BillingCycle": "Billing Cycle",
-        "Price":"Price",
-        "PaymentStatus":"Payment Status",
+        "Price": "Price",
+        "PaymentStatus": "Payment Status",
         "StartDate": "Start date",
         "ExpiryDate": "Expiry date",
         "DaysRemaining": "Days remaining",
@@ -97,12 +91,11 @@
         "SubscriptionPeriod": "Subscription period",
         "elapsed": "elapsed"
     },
-
     "BillingInformation": {
         "title": "Billing & Payments",
         "content": "Manage payment methods and view billing history.",
         "CurrentPlan": "Current Plan",
-        "CurrentPrice":"Current Price",
+        "CurrentPrice": "Current Price",
         "BillingCycle": "Billing Cycle",
         "StartDate": "Start date",
         "ExpiryDate": "Expiry date",
@@ -111,13 +104,13 @@
         "Duration": "Duration",
         "Amount": "Amount",
         "Status": "Status",
-        "Date":"Date"
+        "Date": "Date"
     },
     "SecurityInformation": {
         "title": "Security",
         "content": "Manage your password and account security.",
         "CurrentPassword": "Current Password",
-        "NewPassword":"New Password",
+        "NewPassword": "New Password",
         "ConfirmNewPassword": "Confirm New Password",
         "SaveButton": "Update Password",
         "Saving": "Saving.."
@@ -126,14 +119,14 @@
         "title": "Notifications",
         "content": "Choose which notifications you want to receive.",
         "EmailNotifications": "Email Notifications",
-        "EmailNotificationsContent":"Receive all notifications via email.",
+        "EmailNotificationsContent": "Receive all notifications via email.",
         "OrderNotifications": "Order Notifications",
         "OrderNotificationsContent": "Get notified when new orders are placed or updated.",
-        "LowStockAlerts":"Low Stock Alerts",
-        "LowStockAlertsContent":"We'll alert you when products drop below stock threshold.",
-        "SubscriptionExpiryAlerts":"Subscription Expiry Alerts",
+        "LowStockAlerts": "Low Stock Alerts",
+        "LowStockAlertsContent": "We'll alert you when products drop below stock threshold.",
+        "SubscriptionExpiryAlerts": "Subscription Expiry Alerts",
         "SubscriptionExpiryAlertsContent": "Reminders 30, 15, and 7 days before your plan expires.",
-        "PaymentNotifications":"Payment Notifications",
+        "PaymentNotifications": "Payment Notifications",
         "PaymentNotificationsContent": "Confirmations and failures for all payment events.",
         "PromotionalUpdates": "Promotional Updates",
         "PromotionalUpdatesContent": "News, feature announcements, and special offers."
@@ -142,23 +135,23 @@
         "title": "Preferences",
         "content": "Customize your regional and display preferences.",
         "Language": "Language",
-        "English":"English",
+        "English": "English",
         "Hindi": "Hindi",
-        "Currency":"Currency",
+        "Currency": "Currency",
         "INR": "INR",
-        "USD":"USD",
+        "USD": "USD",
         "TimeZone": "Time Zone",
-        "India(Asia/Kolkata)":"India(Asia/Kolkata)",
+        "India(Asia/Kolkata)": "India(Asia/Kolkata)",
         "Dubai(Asia/Dubai)": "Dubai(Asia/Dubai)",
-        "NewYork(America/New_york)":"New York(America/New_york)",
+        "NewYork(America/New_york)": "New York(America/New_york)",
         "London(Europe/London)": "London(Europe/London)",
-        "DateFormat":"Date Format",
+        "DateFormat": "Date Format",
         "DefaultPage": "Default Page",
-        "Dashboard":"Dashboard",
-        "Products":"Products",
+        "Dashboard": "Dashboard",
+        "Products": "Products",
         "orders": "orders",
-        "Theme":"Theme",
-        "Light":"Light",
+        "Theme": "Theme",
+        "Light": "Light",
         "Dark": "Dark"
     }
 }

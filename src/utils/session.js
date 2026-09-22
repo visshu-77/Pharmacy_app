@@ -16,6 +16,12 @@ export const SESSION_KEYS = [
 
 export const clearSession = () => {
     SESSION_KEYS.forEach((key) => localStorage.removeItem(key));
+    // Per-login flags (e.g. "plan reminder already shown").
+    try {
+        sessionStorage.clear();
+    } catch {
+        // sessionStorage can be unavailable in private modes; nothing to clear.
+    }
 };
 
 /** Sign out and hard-reload so every context starts empty. */

@@ -11,6 +11,8 @@ import Category from "./pages/Category.jsx";
 import Login from "./pages/Login.jsx";
 import ForgotPassword from "./pages/Forgotpassword.jsx";
 import Billing from "./pages/Billing.jsx";
+import SalesNote from "./pages/SalesNote.jsx";
+import Guide from "./pages/Guide.jsx";
 import Settings from "./pages/Settings.jsx";
 import Report from "./pages/Report.jsx";
 import Suppliers from "./pages/Suppliers.jsx";
@@ -95,6 +97,30 @@ function App() {
                                 <UserRoute>
                                     <SubscriptionRoute>
                                         <Billing />
+                                    </SubscriptionRoute>
+                                </UserRoute>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/guide"
+                        element={
+                            <ProtectedRoute>
+                                <UserRoute>
+                                    <Guide />
+                                </UserRoute>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/notes"
+                        element={
+                            <ProtectedRoute>
+                                <UserRoute>
+                                    <SubscriptionRoute>
+                                        <SalesNote />
                                     </SubscriptionRoute>
                                 </UserRoute>
                             </ProtectedRoute>
