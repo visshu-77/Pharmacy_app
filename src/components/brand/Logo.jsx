@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 import BRAND from "../../config/brand";
 
 /**
@@ -6,6 +8,8 @@ import BRAND from "../../config/brand";
  */
 export function LogoMark({ className = "h-9 w-9", tone = "brand" }) {
     const isLight = tone === "light";
+    // Unique per instance: several marks can share a page.
+    const gradientId = `storeflow-mark-${useId()}`;
 
     return (
         <svg
@@ -14,30 +18,39 @@ export function LogoMark({ className = "h-9 w-9", tone = "brand" }) {
             role="img"
             aria-label={`${BRAND.name} logo`}
         >
+            {!isLight && (
+                <defs>
+                    {/* Same blue -> indigo as the favicon and app icons. */}
+                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stopColor="#2563eb" />
+                        <stop offset="1" stopColor="#4f46e5" />
+                    </linearGradient>
+                </defs>
+            )}
+
             <rect
                 width="40"
                 height="40"
                 rx="11"
-                fill={isLight ? "rgba(255,255,255,0.16)" : "rgb(var(--color-primary))"}
+                fill={isLight ? "rgba(255,255,255,0.16)" : `url(#${gradientId})`}
             />
 
-            {/* awning */}
+            {/* awning — same geometry as public/ icons, so the mark is
+                identical in the tab, on the home screen and in the app */}
             <path
-                d="M10 15.5 12 10h16l2 5.5c0 1.9-1.6 3.5-3.5 3.5S23 17.4 23 15.5c0 1.9-1.4 3.5-3 3.5s-3-1.6-3-3.5c0 1.9-1.6 3.5-3.5 3.5S10 17.4 10 15.5Z"
+                d="M12.5 9h15l2.5 5c0 1.85-1.48 3.3-3.3 3.3S23.4 15.85 23.4 14c0 1.85-1.48 3.3-3.3 3.3S16.7 15.85 16.7 14c0 1.85-1.48 3.3-3.3 3.3S10 15.85 10 14Z"
                 fill="#fff"
             />
 
             {/* flow line */}
             <path
-                d="M11 29.5 16.5 24l4 3.5L29 21"
+                d="M10 31 17 24l4.5 4 8-7"
                 fill="none"
                 stroke="#fff"
-                strokeWidth="2.6"
+                strokeWidth="3.6"
                 strokeLinecap="round"
                 strokeLinejoin="round"
             />
-
-            <circle cx="29" cy="21" r="2" fill="#fff" />
         </svg>
     );
 }

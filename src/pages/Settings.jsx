@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
     Settings2,
@@ -39,7 +40,15 @@ export default function Settings() {
 
     const { t } = useTranslation();
 
-    const [activeTab, setActiveTab] = useState("business");
+    // Tab lives in the URL (?tab=notifications) so it can be linked and
+    // survives a refresh.
+    const [searchParams, setSearchParams] = useSearchParams();
+    const tabFromUrl = searchParams.get("tab");
+    const activeTab = PANELS[tabFromUrl] ? tabFromUrl : "business";
+
+    const setActiveTab = (id) =>
+        setSearchParams(id === "business" ? {} : { tab: id }, { replace: true });
+
     const [confirmLogout, setConfirmLogout] = useState(false);
 
     const menuItems = [
@@ -53,6 +62,11 @@ export default function Settings() {
     ];
 
     const handleLogout = () => logout();
+
+    // On phones the tabs scroll sideways; keep the selected one in view.
+    const focusActiveTab = useCallback((node) => {
+        node?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    }, []);
 
     const Panel = PANELS[activeTab];
 
@@ -70,6 +84,7 @@ export default function Settings() {
                             return (
                                 <button
                                     key={id}
+                                    ref={active ? focusActiveTab : undefined}
                                     type="button"
                                     onClick={() => setActiveTab(id)}
                                     aria-current={active ? "page" : undefined}

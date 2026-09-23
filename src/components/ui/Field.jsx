@@ -206,17 +206,19 @@ export function Toggle({ checked, onChange, label, description, disabled }) {
     const id = useId();
 
     return (
-        <div className="flex items-start justify-between gap-4 py-3">
+        <div className="flex items-start justify-between gap-3 sm:gap-6 py-3.5">
             <div className="min-w-0">
                 <label
                     htmlFor={id}
-                    className="text-sm font-medium text-heading cursor-pointer"
+                    className="block text-sm font-medium text-heading cursor-pointer"
                 >
                     {label}
                 </label>
 
                 {description && (
-                    <p className="text-xs text-muted mt-0.5">{description}</p>
+                    <p className="text-xs text-muted mt-0.5 leading-relaxed">
+                        {description}
+                    </p>
                 )}
             </div>
 
@@ -229,16 +231,20 @@ export function Toggle({ checked, onChange, label, description, disabled }) {
                 disabled={disabled}
                 onClick={() => onChange(!checked)}
                 className={[
-                    "relative shrink-0 h-6 w-11 rounded-full transition-colors duration-200",
+                    // The knob is anchored with left-0.5 — without a horizontal
+                    // anchor it would sit at its "static position" (the middle
+                    // of the button) and slide out of the track.
+                    "relative shrink-0 mt-0.5 h-6 w-11 rounded-full transition-colors duration-200",
                     "disabled:opacity-50 disabled:cursor-not-allowed",
                     checked ? "bg-primary" : "bg-line-strong"
                 ].join(" ")}
             >
                 <span
+                    aria-hidden="true"
                     className={[
-                        "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm",
+                        "absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm",
                         "transition-transform duration-200",
-                        checked ? "translate-x-[22px]" : "translate-x-0.5"
+                        checked ? "translate-x-5" : "translate-x-0"
                     ].join(" ")}
                 />
             </button>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" role="img" aria-label="StoreFlow">
+  <title>StoreFlow</title>
+  <defs>
+    <linearGradient id="sf" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#4f46e5"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="40" height="40" rx="11" fill="url(#sf)"/>
+
+  <!-- Rising flow line. Kept simple so it stays readable at 16px. -->
+  <path d="M8.5 27.5 17 19l5 5 8-11.5"
+        fill="none" stroke="#fff" stroke-width="4.4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="30" cy="12.5" r="3.3" fill="#fff"/>
+</svg>
