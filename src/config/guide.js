@@ -70,7 +70,8 @@ export const buildGuideTopics = (t) => [
             "Add the purchase price to see your margin on every item, and a barcode or SKU to find it instantly at the counter.",
             "Set a “Low stock alert at” level per item, or leave it blank to use your shop-wide default.",
             `To bring an existing list, use Import CSV. Columns: Product, SKU, Barcode, Brand, Variant, Category, Unit, Stock, Purchase, Selling, MRP, TaxRate, HSN, Supplier, Batch, Expiry, WarrantyMonths. Missing ${t.categories.toLowerCase()} are created for you.`,
-            "Use Filters to see only low stock, out of stock or expiring items. Export gives you a CSV you can re-import."
+            "Use Filters to see only low stock, out of stock or expiring items. Export gives you a CSV you can re-import.",
+            "New to this? Download the 50-item sample CSV from the empty inventory screen, open it in Excel or Google Sheets, replace the rows with your own and import it."
         ],
         tips: [
             "Stock goes down automatically with every bill and every Sales Note line — you never need to adjust it by hand after a sale.",

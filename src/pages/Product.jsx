@@ -458,9 +458,18 @@ export default function ProductPage() {
                                 title={`No ${term.itemsLower} yet`}
                                 message={`Add your first ${term.itemLower} or import a CSV to start billing.`}
                                 action={
-                                    <div className="flex flex-wrap justify-center gap-2">
-                                        <Button icon={Plus} onClick={() => setFormProduct({})}>Add {term.itemLower}</Button>
-                                        <Button variant="secondary" icon={Upload} onClick={() => fileInputRef.current?.click()}>Import CSV</Button>
+                                    <div className="space-y-3">
+                                        <div className="flex flex-wrap justify-center gap-2">
+                                            <Button icon={Plus} onClick={() => setFormProduct({})}>Add {term.itemLower}</Button>
+                                            <Button variant="secondary" icon={Upload} onClick={() => fileInputRef.current?.click()}>Import CSV</Button>
+                                        </div>
+                                        <a
+                                            href={`${process.env.PUBLIC_URL || ""}/demo-products.csv`}
+                                            download
+                                            className="block text-xs font-semibold text-primary hover:underline"
+                                        >
+                                            Download a 50-item sample CSV
+                                        </a>
                                     </div>
                                 }
                             />

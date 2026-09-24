@@ -565,5 +565,5 @@ export default function Register() {
                 </div>
             </form>
         </AuthShell>
-    );
+        );
 }

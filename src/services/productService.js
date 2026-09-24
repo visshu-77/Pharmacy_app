@@ -71,17 +71,24 @@ export const exportProducts = async () => {
 
 export const importProducts = async (file) => {
     const token = localStorage.getItem("token");
+
     const formData = new FormData();
-    formData.append("file",file);
+    formData.append("file", file);
+
     const response = await api.post(
         `/product/imports`,
         formData,
         {
-            headers:{
-                Authorization:`Bearer ${token}`
-            },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                // The shared axios instance sends application/json by default.
+                // Clearing it lets the browser set multipart/form-data with the
+                // boundary multer needs — otherwise the upload arrives empty.
+                "Content-Type": undefined
+            }
         }
     );
+
     return response.data;
 }
 
