@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
     Store,
@@ -14,29 +14,23 @@ import {
     ArrowRight,
     ArrowLeft,
     Check,
-    AlertCircle,
-    MailCheck,
-    RotateCcw
+    AlertCircle
 } from "lucide-react";
 
 import AuthShell from "../components/AuthShell";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Field";
-import OtpInput from "../components/ui/OtpInput";
 import { useToast } from "../components/ui/Toast";
 
-import { sendSignupOtp, resendSignupOtp, verifySignupOtp } from "../services/authService";
+import { registerUser } from "../services/authService";
 import { BUSINESS_TYPES, getBusinessType } from "../config/businessTypes";
 import BRAND from "../config/brand";
 
 const STEPS = [
     { id: 1, title: "Your business", short: "Business" },
     { id: 2, title: "Shop details", short: "Shop" },
-    { id: 3, title: "Your account", short: "Account" },
-    { id: 4, title: "Verify email", short: "Verify" }
+    { id: 3, title: "Your account", short: "Account" }
 ];
-
-const RESEND_SECONDS = 60;
 
 const INITIAL_FORM = {
     businessType: "",
@@ -115,14 +109,6 @@ export default function Register() {
     const [submitting, setSubmitting] = useState(false);
     const [serverError, setServerError] = useState("");
 
-    // Step 4 — email verification
-    const [otp, setOtp] = useState("");
-    const [otpError, setOtpError] = useState("");
-    const [resendIn, setResendIn] = useState(0);
-    const [resending, setResending] = useState(false);
-    const [devCodeNotice, setDevCodeNotice] = useState(false);
-    const resendTimer = useRef(null);
-
     const profile = useMemo(
         () => (formData.businessType ? getBusinessType(formData.businessType) : null),
         [formData.businessType]
@@ -196,99 +182,6 @@ export default function Register() {
 
     const goBack = () => setStep((current) => Math.max(1, current - 1));
 
-    // Countdown before another code can be requested.
-    useEffect(() => {
-        if (resendIn <= 0) return undefined;
-
-        resendTimer.current = setTimeout(() => setResendIn((s) => s - 1), 1000);
-
-        return () => clearTimeout(resendTimer.current);
-    }, [resendIn]);
-
-    const startCountdown = (seconds = RESEND_SECONDS) => setResendIn(seconds);
-
-    /** Step 3 -> send the code and move to the verify step. */
-    const requestCode = async () => {
-        if (!validateStep(3)) return;
-
-        try {
-            setSubmitting(true);
-            setServerError("");
-
-            const result = await sendSignupOtp({
-                ...formData,
-                gstNumber: formData.gstNumber.trim().toUpperCase()
-            });
-
-            setDevCodeNotice(Boolean(result.devMode));
-            setOtp("");
-            setOtpError("");
-            setStep(4);
-            startCountdown(result.resendAfterSeconds || RESEND_SECONDS);
-
-            toast.success(result.message || `Code sent to ${formData.email}`);
-
-        } catch (err) {
-            setServerError(
-                err?.response?.data?.message ||
-                "Could not send the verification code. Please try again."
-            );
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const handleResend = async () => {
-        try {
-            setResending(true);
-            setOtpError("");
-
-            const result = await resendSignupOtp(formData.email);
-
-            setOtp("");
-            setDevCodeNotice(Boolean(result.devMode));
-            startCountdown(result.resendAfterSeconds || RESEND_SECONDS);
-            toast.success(result.message || "New code sent");
-
-        } catch (err) {
-            const wait = err?.response?.data?.retryAfter;
-            if (wait) startCountdown(wait);
-            setOtpError(err?.response?.data?.message || "Could not send a new code");
-        } finally {
-            setResending(false);
-        }
-    };
-
-    /** Step 4 -> verify the code; the account is created on success. */
-    const verifyCode = async (code = otp) => {
-        if (code.length !== 6) {
-            setOtpError("Enter the 6-digit code");
-            return;
-        }
-
-        try {
-            setSubmitting(true);
-            setOtpError("");
-
-            await verifySignupOtp({ email: formData.email, otp: code });
-
-            toast.success(
-                `${formData.Shopname} is set up with starter ${profile.categoryLabelPlural.toLowerCase()}. Sign in to continue.`,
-                { title: "Email verified" }
-            );
-
-            navigate("/login", { replace: true });
-
-        } catch (err) {
-            const data = err?.response?.data;
-            setOtpError(data?.message || "Could not verify that code");
-
-            if (data?.expired) setOtp("");
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -297,12 +190,32 @@ export default function Register() {
             return;
         }
 
-        if (step === 3) {
-            await requestCode();
-            return;
-        }
+        if (!validateStep(3)) return;
 
-        await verifyCode();
+        try {
+            setSubmitting(true);
+            setServerError("");
+
+            await registerUser({
+                ...formData,
+                gstNumber: formData.gstNumber.trim().toUpperCase()
+            });
+
+            toast.success(
+                `${formData.Shopname} is set up with starter ${profile.categoryLabelPlural.toLowerCase()}. Sign in to continue.`,
+                { title: "Account created" }
+            );
+
+            navigate("/login", { replace: true });
+
+        } catch (err) {
+            setServerError(
+                err?.response?.data?.message ||
+                "Could not create your account. Please try again."
+            );
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -341,7 +254,6 @@ export default function Register() {
                     {step === 1 && "What kind of shop do you run?"}
                     {step === 2 && "Tell us about your shop"}
                     {step === 3 && "Create your owner account"}
-                    {step === 4 && "Check your email"}
                 </h1>
 
                 <p className="text-sm text-muted mt-2">
@@ -351,13 +263,6 @@ export default function Register() {
                         "These details appear on every invoice you print."}
                     {step === 3 &&
                         "You'll use this to sign in and receive important alerts."}
-                    {step === 4 && (
-                        <>
-                            We've sent a 6-digit code to{" "}
-                            <span className="font-semibold text-heading">{formData.email}</span>.
-                            It expires in 10 minutes.
-                        </>
-                    )}
                 </p>
             </div>
 
@@ -633,68 +538,6 @@ export default function Register() {
                     </div>
                 )}
 
-                {/* ---------------- Step 4: email verification ---------------- */}
-                {step === 4 && (
-                    <div className="max-w-md">
-                        <div className="flex items-center gap-3 rounded-xl border border-line bg-surface-muted px-4 py-3">
-                            <MailCheck className="h-5 w-5 text-primary shrink-0" />
-                            <p className="text-sm text-muted">
-                                Enter the code to finish creating your account. Nothing is saved until it's verified.
-                            </p>
-                        </div>
-
-                        <div className="mt-6">
-                            <OtpInput
-                                value={otp}
-                                onChange={(next) => { setOtp(next); setOtpError(""); }}
-                                onComplete={(code) => verifyCode(code)}
-                                invalid={Boolean(otpError)}
-                                disabled={submitting}
-                            />
-
-                            {otpError && (
-                                <p className="mt-3 flex items-center gap-1.5 text-sm text-danger" role="alert">
-                                    <AlertCircle className="h-4 w-4 shrink-0" />
-                                    {otpError}
-                                </p>
-                            )}
-                        </div>
-
-                        {devCodeNotice && (
-                            <p className="mt-4 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2.5 text-xs text-heading">
-                                Email sending isn't configured on the server, so the code was printed in the
-                                server log instead. Set RESEND_API_KEY to send real emails.
-                            </p>
-                        )}
-
-                        <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                            <span className="text-muted">Didn't get it?</span>
-
-                            <button
-                                type="button"
-                                onClick={handleResend}
-                                disabled={resendIn > 0 || resending}
-                                className="inline-flex items-center gap-1.5 font-semibold text-primary hover:underline disabled:text-faint disabled:no-underline disabled:cursor-not-allowed"
-                            >
-                                <RotateCcw className="h-3.5 w-3.5" />
-                                {resendIn > 0 ? `Resend in ${resendIn}s` : resending ? "Sending…" : "Send a new code"}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => { setStep(3); setOtp(""); setOtpError(""); }}
-                                className="font-semibold text-muted hover:text-heading"
-                            >
-                                Change email
-                            </button>
-                        </div>
-
-                        <p className="mt-4 text-xs text-faint">
-                            Check your spam folder if it hasn't arrived within a minute.
-                        </p>
-                    </div>
-                )}
-
                 {serverError && (
                     <div className="mt-5 flex items-start gap-2 rounded-lg border border-danger/25 bg-danger/5 px-3 py-2.5" role="alert">
                         <AlertCircle className="h-4 w-4 text-danger shrink-0 mt-0.5" />
@@ -717,7 +560,7 @@ export default function Register() {
                         iconRight={ArrowRight}
                         className="sm:min-w-[180px]"
                     >
-                        {step < 3 ? "Continue" : step === 3 ? "Send code" : "Verify & create account"}
+                        {step < 3 ? "Continue" : "Create account"}
                     </Button>
                 </div>
             </form>
