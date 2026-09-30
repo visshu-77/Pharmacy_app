@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import Papa from "papaparse";
 import { Truck, Plus, Upload, Download, Search, Pencil, Trash2, Phone, Mail, MapPin } from "lucide-react";
 
 import PageHeader from "../components/ui/PageHeader";
@@ -11,15 +10,16 @@ import { useToast } from "../components/ui/Toast";
 import Pagination from "../components/pagination";
 
 import SupplierModal from "../components/suppliers/SupplierModal";
-import ImportSupplierModal from "../components/suppliers/ImportSupplierModal";
+import ImportProgressModal from "../components/ImportProgressModal";
+import useCsvImport from "../hooks/useCsvImport";
 
-import { api } from "../services/api";
 import {
     getSuppliers,
     createSupplier,
     updateSupplier,
     deleteSupplier,
-    deleteSelectedSuppliers
+    deleteSelectedSuppliers,
+    importSuppliersBatch
 } from "../services/supplierService";
 import { useBusiness } from "../context/BusinessContext";
 
@@ -59,12 +59,6 @@ export default function Suppliers() {
     const [busy, setBusy] = useState(false);
 
     const fileRef = useRef(null);
-    const [importData, setImportData] = useState([]);
-    const [showImport, setShowImport] = useState(false);
-    const [importLoading, setImportLoading] = useState(false);
-    const [importProgress, setImportProgress] = useState(0);
-    const [importSuccess, setImportSuccess] = useState(false);
-
     const load = async () => {
         try {
             const data = await getSuppliers();
@@ -174,9 +168,17 @@ export default function Suppliers() {
         URL.revokeObjectURL(url);
     };
 
+    // Rows are sent in small batches so the progress bar shows rows actually
+    // saved, and a bad row is skipped instead of failing the whole file.
+    const csvImport = useCsvImport({
+        sendBatch: importSuppliersBatch,
+        onFinished: load
+    });
+
     const onCSVSelected = (e) => {
         const file = e.target.files?.[0];
         e.target.value = "";
+
         if (!file) return;
 
         if (!file.name.toLowerCase().endsWith(".csv")) {
@@ -184,55 +186,7 @@ export default function Suppliers() {
             return;
         }
 
-        Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
-            complete: (results) => {
-                setImportData(
-                    results.data.map((row) => ({
-                        supplierName: row["Supplier Name"]?.trim() || "",
-                        phone: row["Phone"]?.trim() || "",
-                        email: row["Email"]?.trim() || "",
-                        address: row["Address"]?.trim() || "",
-                        city: row["City"]?.trim() || "",
-                        state: row["State"]?.trim() || "",
-                        gstNumber: row["GST Number"]?.trim() || ""
-                    }))
-                );
-                setImportSuccess(false);
-                setImportProgress(0);
-                setShowImport(true);
-            },
-            error: () => toast.error("Could not read that CSV file")
-        });
-    };
-
-    const runImport = async () => {
-        try {
-            setImportLoading(true);
-            setImportProgress(30);
-
-            await api.post(
-                "/supplier/import",
-                { suppliers: importData.filter((row) => row.supplierName) },
-                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-            );
-
-            setImportProgress(100);
-            setImportSuccess(true);
-            await load();
-        } catch (err) {
-            setImportProgress(0);
-            toast.error(err?.response?.data?.message || "Import failed");
-        } finally {
-            setImportLoading(false);
-        }
-    };
-
-    const closeImport = () => {
-        setShowImport(false);
-        setImportData([]);
-        setImportSuccess(false);
+        csvImport.start(file);
     };
 
     return (
@@ -243,7 +197,7 @@ export default function Suppliers() {
                 subtitle={loading ? "Loading…" : `${formatNumber(suppliers.length)} ${term.suppliers.toLowerCase()} you buy stock from`}
                 actions={
                     <>
-                        <Button variant="secondary" icon={Upload} onClick={() => fileRef.current?.click()}>Import CSV</Button>
+                        <Button variant="secondary" icon={Upload} loading={csvImport.busy} onClick={() => fileRef.current?.click()}>Import CSV</Button>
                         <Button variant="secondary" icon={Download} onClick={exportCSV} disabled={!suppliers.length}>Export</Button>
                         <Button icon={Plus} onClick={() => openForm()}>Add {term.supplier.toLowerCase()}</Button>
                     </>
@@ -390,15 +344,11 @@ export default function Suppliers() {
                 loading={saving}
             />
 
-            <ImportSupplierModal
-                show={showImport}
-                importData={importData}
-                importLoading={importLoading}
-                importProgress={importProgress}
-                importSuccess={importSuccess}
-                onConfirm={runImport}
-                onCancel={closeImport}
-                onDone={closeImport}
+            <ImportProgressModal
+                state={csvImport}
+                label={term.suppliers.toLowerCase()}
+                onCancel={csvImport.cancel}
+                onClose={csvImport.reset}
             />
 
             <ConfirmDialog

@@ -152,3 +152,16 @@ export const deleteAllProducts = async () => {
     );
     return response.data;
 }
+
+/** Import one chunk of already-parsed CSV rows (used for live progress). */
+export const importProductsBatch = async ({ rows, rowOffset, duplicateMode }) => {
+    const token = localStorage.getItem("token");
+
+    const response = await api.post(
+        `/product/import-batch`,
+        { rows, rowOffset, duplicateMode },
+        { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    return response.data;
+};

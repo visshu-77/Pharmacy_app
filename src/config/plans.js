@@ -7,9 +7,9 @@ export const PLAN = {
     name: "StoreFlow Pro",
     description: "Everything your shop needs — billing, stock, reports and more.",
     prices: {
-        monthly: 999,
-        sixMonths: 4999,
-        yearly: 9999
+        monthly: 499,
+        sixMonths: 2899,
+        yearly: 4999
     },
     features: [
         "Unlimited products & categories",

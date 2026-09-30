@@ -32,7 +32,7 @@ import {
     getProducts,
     deleteProduct,
     exportProducts,
-    importProducts,
+    importProductsBatch,
     deleteSingleProducts,
     deleteAllProducts
 } from "../services/productService";
@@ -42,6 +42,8 @@ import { getSuppliers } from "../services/supplierService";
 import ProductFormModal from "../components/modals/ProductFormModal";
 import ViewProductModal from "../components/modals/ViewProductModal";
 import CartDrawer from "../components/drawer/CartDrawer";
+import ImportProgressModal from "../components/ImportProgressModal";
+import useCsvImport from "../hooks/useCsvImport";
 
 import { useCart } from "../context/CartContext";
 import { useBusiness } from "../context/BusinessContext";
@@ -80,7 +82,6 @@ export default function ProductPage() {
     const [confirm, setConfirm] = useState(null);
     const [confirmBusy, setConfirmBusy] = useState(false);
 
-    const [importing, setImporting] = useState(false);
     const fileInputRef = useRef(null);
 
     const loadProducts = async () => {
@@ -226,26 +227,23 @@ export default function ProductPage() {
         }
     };
 
-    const handleImport = async (e) => {
-        const file = e.target.files?.[0];
-        e.target.value = "";
-        if (!file) return;
-
-        try {
-            setImporting(true);
-            const result = await importProducts(file);
+    // Rows go to the server in small batches, so the progress bar reflects
+    // rows actually saved rather than a guess.
+    const csvImport = useCsvImport({
+        sendBatch: importProductsBatch,
+        // An item already on file is never duplicated; the shopkeeper decides
+        // whether its stock goes up, is replaced, or is left alone.
+        askDuplicateMode: true,
+        onFinished: async () => {
             await loadProducts();
             setPage(1);
-
-            toast.success(
-                `${result.importedCount} imported${result.skippedCount ? `, ${result.skippedCount} skipped` : ""}`,
-                { title: "Import complete" }
-            );
-        } catch (err) {
-            toast.error(err?.response?.data?.message || "Import failed");
-        } finally {
-            setImporting(false);
         }
+    });
+
+    const handleImport = (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        csvImport.start(file);
     };
 
     const handleAddToCart = (product) => {
@@ -322,7 +320,7 @@ export default function ProductPage() {
                         <Button variant="secondary" icon={Download} onClick={handleExport} disabled={!products.length}>
                             Export
                         </Button>
-                        <Button variant="secondary" icon={Upload} loading={importing} onClick={() => fileInputRef.current?.click()}>
+                        <Button variant="secondary" icon={Upload} loading={csvImport.busy} onClick={() => fileInputRef.current?.click()}>
                             Import CSV
                         </Button>
                         <Button icon={Plus} onClick={() => setFormProduct({})}>
@@ -620,6 +618,13 @@ export default function ProductPage() {
             {viewId && <ViewProductModal productId={viewId} onClose={() => setViewId(null)} />}
 
             <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+
+            <ImportProgressModal
+                state={csvImport}
+                label={term.itemsLower}
+                onCancel={csvImport.cancel}
+                onClose={csvImport.reset}
+            />
 
             <ConfirmDialog
                 open={Boolean(confirm)}

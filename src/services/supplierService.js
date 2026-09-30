@@ -112,3 +112,16 @@ export const searchSuppliers = async (name) => {
 
     return response.data;
 };
+
+/** Import one chunk of already-parsed CSV rows (used for live progress). */
+export const importSuppliersBatch = async ({ rows, rowOffset }) => {
+    const token = localStorage.getItem("token");
+
+    const response = await api.post(
+        `/supplier/import-batch`,
+        { rows, rowOffset },
+        { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    return response.data;
+};
