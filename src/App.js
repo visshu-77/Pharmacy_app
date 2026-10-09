@@ -12,6 +12,8 @@ import Login from "./pages/Login.jsx";
 import ForgotPassword from "./pages/Forgotpassword.jsx";
 import Billing from "./pages/Billing.jsx";
 import SalesNote from "./pages/SalesNote.jsx";
+import Udhar from "./pages/Udhar.jsx";
+import UdharCustomer from "./pages/UdharCustomer.jsx";
 import Guide from "./pages/Guide.jsx";
 import Settings from "./pages/Settings.jsx";
 import Report from "./pages/Report.jsx";
@@ -121,6 +123,32 @@ function App() {
                                 <UserRoute>
                                     <SubscriptionRoute>
                                         <SalesNote />
+                                    </SubscriptionRoute>
+                                </UserRoute>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/udhar"
+                        element={
+                            <ProtectedRoute>
+                                <UserRoute>
+                                    <SubscriptionRoute>
+                                        <Udhar />
+                                    </SubscriptionRoute>
+                                </UserRoute>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/udhar/:id"
+                        element={
+                            <ProtectedRoute>
+                                <UserRoute>
+                                    <SubscriptionRoute>
+                                        <UdharCustomer />
                                     </SubscriptionRoute>
                                 </UserRoute>
                             </ProtectedRoute>

@@ -210,7 +210,7 @@ export default function CategoryPage() {
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <span className={`grid place-items-center h-11 w-11 rounded-xl text-base font-bold ${toneFor(category.categoryName)}`}>
-                                        {category.categoryName?.[0]?.toUpperCase() || "?"}
+                                            {category.categoryName?.[0]?.toUpperCase() || "?"}
                                     </span>
 
                                     <input

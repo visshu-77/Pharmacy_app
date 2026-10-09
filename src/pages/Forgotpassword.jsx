@@ -78,7 +78,7 @@ export default function ForgotPassword() {
                             <p className="text-sm text-muted mt-1 leading-relaxed">
                                 Self-service reset is not available yet. Email our
                                 team from <span className="font-medium text-heading">{email}</span> and
-                                we'll verify your shop and reset it for you.
+                                we'll verify your shop and resetit for you.
                             </p>
                         </div>
                     </div>
@@ -98,3 +98,4 @@ export default function ForgotPassword() {
         </AuthShell>
     );
 }
+    

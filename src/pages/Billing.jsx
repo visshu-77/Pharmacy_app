@@ -101,7 +101,7 @@ export default function Billing() {
         : "";
 
     const handleCreateOrder = async () => {
-        if (!cart.length) {
+        if (!cart.length) {             
             toast.warning("Add at least one item to the bill");
             return;
         }

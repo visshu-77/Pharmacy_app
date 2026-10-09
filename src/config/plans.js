@@ -49,3 +49,4 @@ const LEGACY_NAMES = {
 /** Display name for any plan id a subscription may carry. */
 export const planLabel = (id) =>
     id === PLAN.id ? PLAN.name : LEGACY_NAMES[id] || id || "—";
+    

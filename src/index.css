@@ -11,11 +11,14 @@
     }
 
     #invoice,
-    #invoice * {
+    #invoice *,
+    #statement,
+    #statement * {
         visibility: visible;
     }
 
-    #invoice {
+    #invoice,
+    #statement {
         position: absolute;
         left: 0;
         top: 0;

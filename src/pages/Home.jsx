@@ -16,7 +16,8 @@ import {
     ScanBarcode,
     ArrowRight,
     Trophy,
-    CheckCircle2
+    CheckCircle2,
+    BookUser
 } from "lucide-react";
 
 import Card, { CardHeader } from "../components/ui/Card";
@@ -27,6 +28,7 @@ import { Skeleton, EmptyState } from "../components/ui/State";
 import SalesTrendChart, { fillDailySeries } from "../components/charts/SalesTrendChart";
 
 import { getDashboardSummary } from "../services/dashboardService";
+import { getUdharSummary } from "../services/creditService";
 import { getTopSellingProducts, getSalesOverview } from "../services/reportService";
 import { useBusiness } from "../context/BusinessContext";
 
@@ -58,6 +60,9 @@ export default function Dashboard() {
     const [sales, setSales] = useState([]);
     const [salesLoading, setSalesLoading] = useState(true);
 
+    const [udhar, setUdhar] = useState(null);
+    const [udharLoading, setUdharLoading] = useState(true);
+
     useEffect(() => {
         getDashboardSummary()
             .then((data) => setSummary(data.summary || {}))
@@ -68,6 +73,13 @@ export default function Dashboard() {
             .then((data) => setTopProducts(data.products || []))
             .catch((err) => console.log("Top products:", err))
             .finally(() => setTopLoading(false));
+
+        // Read from the khata's own endpoint, so nothing in the dashboard or
+        // report queries has to change to show what is out on credit.
+        getUdharSummary()
+            .then((data) => setUdhar(data.summary || null))
+            .catch((err) => console.log("Udhar summary:", err))
+            .finally(() => setUdharLoading(false));
 
         getSalesOverview("last14Days")
             .then((data) => setSales(data.sales || []))
@@ -195,7 +207,7 @@ export default function Dashboard() {
             </section>
 
             {/* ---------------- Inventory at a glance ---------------- */}
-            <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <section className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 <StatCard
                     icon={Package}
                     label={`Total ${term.itemsLower}`}
@@ -225,6 +237,19 @@ export default function Dashboard() {
                     loading={summaryLoading}
                     tone="neutral"
                     to="/suppliers"
+                />
+                <StatCard
+                    icon={BookUser}
+                    label="Udhar outstanding"
+                    value={formatMoney(udhar?.outstanding || 0)}
+                    hint={
+                        udhar?.dueCustomers
+                            ? `${formatNumber(udhar.dueCustomers)} to collect from`
+                            : "Nothing on credit"
+                    }
+                    loading={udharLoading}
+                    tone="warning"
+                    to="/udhar"
                 />
             </section>
 

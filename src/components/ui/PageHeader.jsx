@@ -19,6 +19,7 @@ export function Breadcrumbs({ className = "" }) {
         reports: "Reports",
         billing: "New bill",
         notes: "Sales note",
+        udhar: "Udhar khata",
         guide: "Help & guide",
         subscription: "Plans",
         settings: "Settings",
