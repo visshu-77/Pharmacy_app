@@ -9,7 +9,6 @@ import {
     User,
     Phone,
     Banknote,
-    Smartphone,
     CreditCard,
     History,
     ShoppingCart,
