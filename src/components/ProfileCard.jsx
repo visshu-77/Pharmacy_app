@@ -13,6 +13,7 @@ import {
     ChartNoAxesCombined,
     Crown,
     Settings2,
+    Wallet,
     LogOut,
     Moon,
     Sun
@@ -53,6 +54,7 @@ export default function ProfileCard({ closeSidebar }) {
                 { icon: LayoutDashboard, name: t("sidebar.dashboard"), path: "/", end: true },
                 { icon: ReceiptText, name: t("sidebar.billing"), path: "/billing" },
                 { icon: History, name: "Billing History", path: "/billing-history" },
+                { icon: Wallet, name: "Expenses & Investments", path: "/expenses" },
                 { icon: NotebookPen, name: t("sidebar.notes", "Sales Note"), path: "/notes" },
                 { icon: BookUser, name: t("sidebar.udhar", "Udhar Khata"), path: "/udhar" }
             ]

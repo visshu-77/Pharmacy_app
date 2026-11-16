@@ -62,7 +62,9 @@
     .billing-document,
     .billing-document *,
     #statement,
-    #statement * {
+    #statement *,
+    #expense-report,
+    #expense-report * {
         visibility: visible;
     }
 
@@ -103,7 +105,8 @@
     }
 
     .billing-document,
-    #statement {
+    #statement,
+    #expense-report {
         position: static !important;
         display: block !important;
         width: 100% !important;
@@ -156,5 +159,10 @@
 
     .no-print {
         display: none !important;
+    }
+
+    #expense-report {
+        color: #0f172a !important;
+        background: #fff !important;
     }
 }

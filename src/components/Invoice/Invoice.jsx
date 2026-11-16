@@ -211,25 +211,25 @@ export default function Invoice({ order, onNewBill }) {
                 <div className="grid grid-cols-2 border-b border-slate-300 text-sm">
                     <section className="border-r border-slate-300 py-4 pr-4">
                         <h2 className="mb-2 font-bold text-black">Bill To</h2>
-                        <p className="font-semibold">{order.customerName || "Walk-in customer"}</p>
-                        {order.customerPhone && <p className="mt-1 text-xs">Phone no.: {order.customerPhone}</p>}
+                        <p className="font-semibold text-[10px]">{order.customerName || "Walk-in customer"}</p>
+                        {order.customerPhone && <p className="mt-1 text-[10px]">Phone no.: {order.customerPhone}</p>}
                     </section>
                     <section className="py-4 pl-4">
                         <h2 className="mb-2 font-bold text-black">Invoice Details</h2>
                         <dl className="space-y-1 text-xs">
-                            <div className="flex justify-between gap-3">
+                            <div className="flex justify-between gap-3 text-[10px]">
                                 <dt>Invoice No.</dt>
                                 <dd className="text-right font-semibold">{order.invoiceNumber}</dd>
                             </div>
-                            <div className="flex justify-between gap-3">
+                            <div className="flex justify-between gap-3 text-[10px]">
                                 <dt>Date</dt>
                                 <dd className="text-right">{invoiceDate}</dd>
                             </div>
-                            <div className="flex justify-between gap-3">
+                            <div className="flex justify-between gap-3 text-[10px]">
                                 <dt>Place of Supply</dt>
                                 <dd className="text-right">{placeOfSupply}</dd>
                             </div>
-                            <div className="flex justify-between gap-3">
+                            <div className="flex justify-between gap-3 text-[10px]">
                                 <dt>Payment</dt>
                                 <dd className="text-right">{order.paymentMethod === "Bank" ? "Bank Transfer" : order.paymentMethod}</dd>
                             </div>
