@@ -67,6 +67,11 @@ export default function Invoice({ order, onNewBill }) {
 
     const money = (value) => formatMoney(value, { decimals: 2 });
     const invoiceItems = getInvoiceItems(order);
+    const calculatedRoundOff = round2(
+        Number(order.grandTotal || 0) -
+        (Number(order.subtotal || 0) - Number(order.discount || 0) + Number(order.tax || 0))
+    );
+    const roundOff = Number(order.roundOff ?? calculatedRoundOff) || 0;
     const cgst = order.cgst != null
         ? Number(order.cgst)
         : order.tax > 0 ? round2(order.tax / 2) : 0;
@@ -128,6 +133,9 @@ export default function Invoice({ order, onNewBill }) {
             order.discount ? `Discount: −${money(order.discount)}` : null,
             order.tax ? `CGST: ${money(cgst)}` : null,
             order.tax ? `SGST: ${money(sgst)}` : null,
+            roundOff !== 0
+                ? `Round Off: ${roundOff > 0 ? "+" : "−"}${money(Math.abs(roundOff))}`
+                : null,
             `*Total: ${money(order.grandTotal)}*`,
             `Paid by ${order.paymentMethod === "Bank" ? "Bank Transfer" : order.paymentMethod}`,
             "",
@@ -181,7 +189,7 @@ export default function Invoice({ order, onNewBill }) {
                 className="billing-document mx-auto max-w-[1000px] rounded-xl border border-slate-300 bg-white px-6 text-slate-900 shadow-md print:max-w-none print:rounded-none print:border-0 print:px-8 print:py-8 print:shadow-none"
             >
                 <div className="border-b border-slate-400 py-3 text-center">
-                    <h1 className="text-xl font-bold">{user?.gstNumber ? "Tax Invoice" : "Invoice"}</h1>
+                    <h1 className="text-xl font-bold text-black">{user?.gstNumber ? "Tax Invoice" : "Invoice"}</h1>
                 </div>
 
                 <div className="flex items-start gap-4 border-b border-slate-300 py-4">
@@ -191,7 +199,7 @@ export default function Invoice({ order, onNewBill }) {
                             : initials}
                     </div>
                     <div className="ml-auto text-right">
-                        <h2 className="text-xl font-extrabold">{shopName}</h2>
+                        <h2 className="text-xl text-black font-extrabold">{shopName}</h2>
                         {address && <p className="mt-1 text-xs">{address}</p>}
                         {user?.mobileNumber && <p className="text-xs">Phone no.: {user.mobileNumber}</p>}
                         {user?.email && <p className="text-xs">{user.email}</p>}
@@ -202,12 +210,12 @@ export default function Invoice({ order, onNewBill }) {
 
                 <div className="grid grid-cols-2 border-b border-slate-300 text-sm">
                     <section className="border-r border-slate-300 py-4 pr-4">
-                        <h2 className="mb-2 font-bold">Bill To</h2>
+                        <h2 className="mb-2 font-bold text-black">Bill To</h2>
                         <p className="font-semibold">{order.customerName || "Walk-in customer"}</p>
                         {order.customerPhone && <p className="mt-1 text-xs">Phone no.: {order.customerPhone}</p>}
                     </section>
                     <section className="py-4 pl-4">
-                        <h2 className="mb-2 font-bold">Invoice Details</h2>
+                        <h2 className="mb-2 font-bold text-black">Invoice Details</h2>
                         <dl className="space-y-1 text-xs">
                             <div className="flex justify-between gap-3">
                                 <dt>Invoice No.</dt>
@@ -282,10 +290,10 @@ export default function Invoice({ order, onNewBill }) {
                 <div className="grid grid-cols-1 gap-5 py-4 sm:grid-cols-2">
                     {taxGroups.length > 0 && (
                         <section>
-                            <h2 className="mb-2 text-sm font-bold">Tax Details</h2>
+                            <h2 className="mb-2 text-sm font-bold text-black">Tax Details</h2>
                             <table className="w-full max-w-sm text-xs">
                                 <thead>
-                                    <tr className="border-b border-slate-300 text-left">
+                                    <tr className="border-b border-slate-300 text-left text-[10px]">
                                         <th className="py-1.5 pr-3">Tax</th>
                                         {taxGroups.map((group) => (
                                             <th key={group.rate} className="px-2 py-1.5 text-right">
@@ -294,7 +302,7 @@ export default function Invoice({ order, onNewBill }) {
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className="text-[10px]">
                                     <tr>
                                         <th className="py-1.5 pr-3 text-left font-medium">CGST</th>
                                         {taxGroups.map((group) => <td key={group.rate} className="px-2 py-1.5 text-right">{money(group.cgst)}</td>)}
@@ -309,9 +317,9 @@ export default function Invoice({ order, onNewBill }) {
                     )}
 
                     <section className={`ml-auto w-full max-w-sm ${taxGroups.length === 0 ? "sm:col-span-2" : ""}`}>
-                        <h2 className="mb-2 text-sm font-bold">Amounts</h2>
-                        <dl className="space-y-1.5 text-sm">
-                            <div className="flex justify-between gap-4">
+                        <h2 className="mb-2 text-sm font-bold text-black">Amounts</h2>
+                        <dl className="space-y-1.5 text-[10px]">
+                            <div className="flex justify-between gap-4 text-[10px]">
                                 <dt>Sub Total</dt>
                                 <dd className="text-right tabular">{money(order.subtotal)}</dd>
                             </div>
@@ -333,6 +341,14 @@ export default function Invoice({ order, onNewBill }) {
                                     </div>
                                 </>
                             )}
+                            {roundOff !== 0 && (
+                                <div className="flex justify-between gap-4">
+                                    <dt>Round Off</dt>
+                                    <dd className="text-right tabular">
+                                        {roundOff > 0 ? "+ " : "− "}{money(Math.abs(roundOff))}
+                                    </dd>
+                                </div>
+                            )}
                             <div className="flex justify-between gap-4 border-t border-slate-400 pt-2 text-base font-bold">
                                 <dt>Total</dt>
                                 <dd className="text-right tabular">{money(order.grandTotal)}</dd>
@@ -341,7 +357,7 @@ export default function Invoice({ order, onNewBill }) {
                     </section>
                 </div>
 
-                <div className="border-t border-slate-300 py-3 text-sm">
+                <div className="border-t border-slate-300 py-3 text-[10px]">
                     <p className="font-bold">Amount in Words</p>
                     <p className="mt-1">{amountInWords(order.grandTotal)}</p>
                 </div>

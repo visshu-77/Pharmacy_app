@@ -100,10 +100,12 @@ export default function Billing() {
         const cgst = round2(Object.values(itemTaxes).reduce((sum, itemTax) => sum + itemTax.cgst, 0));
         const sgst = round2(Object.values(itemTaxes).reduce((sum, itemTax) => sum + itemTax.sgst, 0));
 
-        const grandTotal = round2(subtotal - discount + tax);
+        const unroundedGrandTotal = round2(subtotal - discount + tax);
+        const grandTotal = Math.round(unroundedGrandTotal);
+        const roundOff = round2(grandTotal - unroundedGrandTotal);
         const units = cart.reduce((sum, item) => sum + Number(item.quantity), 0);
 
-        return { subtotal, discount, tax, cgst, sgst, grandTotal, units, itemTaxes };
+        return { subtotal, discount, tax, cgst, sgst, grandTotal, roundOff, units, itemTaxes };
     }, [cart, discountValue, discountMode, taxEnabled]);
 
     const change = paymentMethod === "Cash" && Number(cashReceived) > 0
@@ -397,6 +399,16 @@ export default function Billing() {
                                         <dt className="text-muted">SGST</dt>
                                         <dd className="font-semibold text-heading tabular">{formatMoney(totals.sgst, { decimals: 2 })}</dd>
                                     </div>
+                                </div>
+                            )}
+
+                            {totals.roundOff !== 0 && (
+                                <div className="flex justify-between">
+                                    <dt className="text-muted">Round Off</dt>
+                                    <dd className="font-semibold text-heading tabular">
+                                        {totals.roundOff > 0 ? "+ " : "− "}
+                                        {formatMoney(Math.abs(totals.roundOff), { decimals: 2 })}
+                                    </dd>
                                 </div>
                             )}
 

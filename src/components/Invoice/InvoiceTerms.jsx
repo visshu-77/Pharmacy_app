@@ -1,6 +1,6 @@
 export default function InvoiceTerms() {
     return (
-        <section className="border-t border-slate-300 py-3 text-xs print:break-inside-avoid">
+        <section className="border-t border-slate-300 py-3 text-[10px] print:break-inside-avoid">
             <h2 className="text-sm font-bold">Terms and Conditions</h2>
             <ol className="mt-1 list-decimal space-y-0.5 pl-5 leading-snug">
                 <li>Project designing, implementation, installation and commissioning</li>

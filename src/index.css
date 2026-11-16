@@ -125,6 +125,24 @@
         display: table-header-group;
     }
 
+    .billing-document > div,
+    .billing-document > section,
+    .billing-document .grid.grid-cols-2 > section,
+    .billing-document .invoice-footer > div {
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+    }
+
+    .billing-document th,
+    .billing-document td {
+        padding-top: 3px !important;
+        padding-bottom: 3px !important;
+    }
+
+    .billing-document .mb-10 {
+        margin-bottom: 12px !important;
+    }
+
     .billing-document tr {
         break-inside: avoid;
         page-break-inside: avoid;
