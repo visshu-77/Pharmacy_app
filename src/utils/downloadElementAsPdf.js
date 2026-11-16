@@ -24,12 +24,42 @@ export default async function downloadElementAsPdf(element, filename) {
         const margin = 5;
         const availableWidth = pdf.internal.pageSize.getWidth() - margin * 2;
         const availableHeight = pdf.internal.pageSize.getHeight() - margin * 2;
-        const scale = Math.min(availableWidth / canvas.width, availableHeight / canvas.height);
-        const imageWidth = canvas.width * scale;
-        const imageHeight = canvas.height * scale;
-        const imageX = (pdf.internal.pageSize.getWidth() - imageWidth) / 2;
+        const pixelsPerMm = canvas.width / availableWidth;
+        const pageHeightInPixels = Math.floor(availableHeight * pixelsPerMm);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        const pageContext = pageCanvas.getContext("2d");
+        if (!pageContext) {
+            throw new Error("Could not prepare an invoice PDF page");
+        }
 
-        pdf.addImage(canvas.toDataURL("image/png"), "PNG", imageX, margin, imageWidth, imageHeight);
+        for (let offsetY = 0, page = 0; offsetY < canvas.height; page += 1) {
+            const sliceHeight = Math.min(pageHeightInPixels, canvas.height - offsetY);
+            pageCanvas.height = sliceHeight;
+            pageContext.drawImage(
+                canvas,
+                0,
+                offsetY,
+                canvas.width,
+                sliceHeight,
+                0,
+                0,
+                canvas.width,
+                sliceHeight
+            );
+
+            if (page > 0) pdf.addPage();
+            pdf.addImage(
+                pageCanvas.toDataURL("image/png"),
+                "PNG",
+                margin,
+                margin,
+                availableWidth,
+                sliceHeight / pixelsPerMm
+            );
+            offsetY += sliceHeight;
+        }
+
         const safeFilename = String(filename || "document").replace(/[\\/:*?"<>|]/g, "-");
         await pdf.save(`${safeFilename || "document"}.pdf`, { returnPromise: true });
     } finally {

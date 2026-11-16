@@ -100,6 +100,7 @@ export default function CashReceipt({
         return (
             <div className="space-y-6">
                 <PageHeader
+                    className="no-print"
                     icon={CheckCircle2}
                     title="Cash receipt"
                     subtitle="Enter who paid and the amount received"

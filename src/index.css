@@ -52,7 +52,7 @@
 @media print {
     @page {
         size: A4;
-        margin: 0;
+        margin: 8mm;
     }
 
     body * {
@@ -66,45 +66,72 @@
         visibility: visible;
     }
 
+    html,
+    body,
+    #root,
+    main {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+    }
+
+    .h-screen {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .h-screen > aside {
+        display: none !important;
+    }
+
+    .h-screen > div {
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    main > div {
+        max-width: none !important;
+        padding: 0 !important;
+    }
+
+    .overflow-hidden,
+    .overflow-y-auto,
+    .overflow-x-hidden {
+        overflow: visible !important;
+    }
+
     .billing-document,
     #statement {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
+        position: static !important;
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
     }
 
-    .billing-document {
-        padding: 0.2in 0.3in !important;
+    .billing-document table {
+        width: 100% !important;
+        min-width: 0 !important;
+        border-collapse: collapse !important;
     }
 
-    .billing-document > div,
-    .billing-document > section {
-        padding-top: 0.1in !important;
-        padding-bottom: 0.1in !important;
+    .billing-document thead {
+        display: table-header-group;
     }
 
-    .billing-document .grid.grid-cols-2 > section {
-        padding-top: 0.1in !important;
-        padding-bottom: 0.1in !important;
+    .billing-document tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
-    .billing-document .invoice-footer > div {
-        padding-top: 0.1in !important;
-        padding-bottom: 0.1in !important;
-    }
-
-    .billing-document th,
-    .billing-document td {
-        padding-top: 3px !important;
-        padding-bottom: 3px !important;
-    }
-
-    .billing-document .mb-10 {
-        margin-bottom: 12px !important;
-    }
-
-    .billing-document .invoice-footer {
+    .billing-document .invoice-footer,
+    #statement .invoice-footer {
         break-inside: avoid;
         page-break-inside: avoid;
     }

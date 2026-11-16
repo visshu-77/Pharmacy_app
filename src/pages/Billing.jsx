@@ -171,7 +171,7 @@ export default function Billing() {
     if (createdOrder) {
         return (
             <div className="space-y-6">
-                <PageHeader icon={CheckCircle2} title="Sale complete" subtitle={`Invoice ${createdOrder.invoiceNumber}`} />
+                <PageHeader className="no-print" icon={CheckCircle2} title="Sale complete" subtitle={`Invoice ${createdOrder.invoiceNumber}`} />
                 <Invoice order={createdOrder} onNewBill={() => setCreatedOrder(null)} />
             </div>
         );

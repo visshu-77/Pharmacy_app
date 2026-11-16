@@ -229,7 +229,7 @@ export default function Invoice({ order, onNewBill }) {
                     </section>
                 </div>
 
-                <div className="overflow-x-auto py-3">
+                <div className="overflow-x-auto pb-3">
                     <table className="w-full min-w-[720px] border-collapse text-[10px] print:min-w-0">
                         <thead>
                             <tr className="border-y border-slate-400 bg-slate-100 text-left font-bold">
@@ -279,7 +279,7 @@ export default function Invoice({ order, onNewBill }) {
                     </table>
                 </div>
 
-                <div className="grid grid-cols-1 gap-5 border-t border-slate-300 py-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5 py-4 sm:grid-cols-2">
                     {taxGroups.length > 0 && (
                         <section>
                             <h2 className="mb-2 text-sm font-bold">Tax Details</h2>
