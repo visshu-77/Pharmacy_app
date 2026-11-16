@@ -4,25 +4,109 @@
 
 /* Design tokens live in ./styles/global.css (imported from index.js). */
 
+.billing-document.pdf-export {
+    width: 200mm !important;
+    max-width: 200mm !important;
+    padding: 4mm !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.billing-document.pdf-export table {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+.billing-document.pdf-export > div,
+.billing-document.pdf-export > section {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+}
+
+.billing-document.pdf-export .grid.grid-cols-2 > section {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+}
+
+.billing-document.pdf-export .invoice-footer > div {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+}
+
+.billing-document.pdf-export th,
+.billing-document.pdf-export td {
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
+}
+
+.billing-document.pdf-export .mb-10 {
+    margin-bottom: 12px !important;
+}
+
+.billing-document.pdf-export .invoice-footer {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
 @media print {
+    @page {
+        size: A4;
+        margin: 0;
+    }
 
     body * {
         visibility: hidden;
     }
 
-    #invoice,
-    #invoice *,
+    .billing-document,
+    .billing-document *,
     #statement,
     #statement * {
         visibility: visible;
     }
 
-    #invoice,
+    .billing-document,
     #statement {
         position: absolute;
         left: 0;
         top: 0;
         width: 100%;
+    }
+
+    .billing-document {
+        padding: 0.2in 0.3in !important;
+    }
+
+    .billing-document > div,
+    .billing-document > section {
+        padding-top: 0.1in !important;
+        padding-bottom: 0.1in !important;
+    }
+
+    .billing-document .grid.grid-cols-2 > section {
+        padding-top: 0.1in !important;
+        padding-bottom: 0.1in !important;
+    }
+
+    .billing-document .invoice-footer > div {
+        padding-top: 0.1in !important;
+        padding-bottom: 0.1in !important;
+    }
+
+    .billing-document th,
+    .billing-document td {
+        padding-top: 3px !important;
+        padding-bottom: 3px !important;
+    }
+
+    .billing-document .mb-10 {
+        margin-bottom: 12px !important;
+    }
+
+    .billing-document .invoice-footer {
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
     .no-print {

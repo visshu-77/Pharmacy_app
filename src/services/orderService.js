@@ -14,3 +14,15 @@ export const createOrder = async (orderData) => {
     );
     return response.data;
 };
+
+export const getOrderHistory = async ({ page = 1, limit = 25 } = {}) => {
+    const token = localStorage.getItem("token");
+    const response = await api.get("/order/history", {
+        params: { page, limit },
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    return response.data;
+};

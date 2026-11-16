@@ -127,6 +127,15 @@ export const CartProvider = ({ children }) => {
         );
     };
 
+    const setTaxRate = (id, taxRate) => {
+        setCart((previousCart) =>
+            previousCart.map(item => item._id === id
+                ? { ...item, taxRate }
+                : item
+            )
+        );
+    };
+
     const clearCart = () => {
         setCart([]);
         localStorage.removeItem("cart");
@@ -141,6 +150,7 @@ export const CartProvider = ({ children }) => {
                 increaseQuantity,
                 decreaseQuantity,
                 setQuantity,
+                setTaxRate,
                 clearCart,
                 syncCartOwner
             }}

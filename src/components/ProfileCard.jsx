@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
     LayoutDashboard,
     ReceiptText,
+    History,
     NotebookPen,
     BookUser,
     LifeBuoy,
@@ -51,6 +52,7 @@ export default function ProfileCard({ closeSidebar }) {
             items: [
                 { icon: LayoutDashboard, name: t("sidebar.dashboard"), path: "/", end: true },
                 { icon: ReceiptText, name: t("sidebar.billing"), path: "/billing" },
+                { icon: History, name: "Billing History", path: "/billing-history" },
                 { icon: NotebookPen, name: t("sidebar.notes", "Sales Note"), path: "/notes" },
                 { icon: BookUser, name: t("sidebar.udhar", "Udhar Khata"), path: "/udhar" }
             ]

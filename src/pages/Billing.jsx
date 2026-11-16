@@ -11,6 +11,7 @@ import {
     Banknote,
     Smartphone,
     CreditCard,
+    History,
     ShoppingCart,
     Percent,
     IndianRupee,
@@ -26,6 +27,7 @@ import { EmptyState } from "../components/ui/State";
 import { useToast } from "../components/ui/Toast";
 
 import ProductSearch from "../components/Billing/ProductSearch";
+import CashReceipt from "../components/Invoice/CashReceipt";
 import Invoice from "../components/Invoice/Invoice";
 
 import { createOrder } from "../services/orderService";
@@ -34,36 +36,44 @@ import { useBusiness } from "../context/BusinessContext";
 
 const PAYMENT_METHODS = [
     { id: "Cash", label: "Cash", icon: Banknote },
-    { id: "UPI", label: "UPI", icon: Smartphone },
-    { id: "Card", label: "Card", icon: CreditCard }
+    // { id: "UPI", label: "UPI", icon: Smartphone },
+    { id: "Bank", label: "Bank Transfer", icon: CreditCard }
 ];
 
 const round2 = (value) => Math.round(value * 100) / 100;
 
+const splitTax = (taxableAmount, taxRate) => {
+    const tax = round2(taxableAmount * taxRate / 100);
+    const cgst = round2(tax / 2);
+
+    return { tax, cgst, sgst: round2(tax - cgst) };
+};
+
 export default function Billing() {
 
     const toast = useToast();
-    const { cart, removeFromCart, clearCart, increaseQuantity, decreaseQuantity, setQuantity } = useCart();
+    const { cart, removeFromCart, clearCart, increaseQuantity, decreaseQuantity, setQuantity, setTaxRate } = useCart();
     const { user, term, shopName, formatMoney, showField, fields } = useBusiness();
+    const taxEnabled = showField(fields.TAX);
 
     const [customerName, setCustomerName] = useState("");
     const [customerPhone, setCustomerPhone] = useState("");
 
     const [discountValue, setDiscountValue] = useState("");
     const [discountMode, setDiscountMode] = useState("amount"); // "amount" | "percent"
-    const [applyGst, setApplyGst] = useState(false);
 
     const [paymentMethod, setPaymentMethod] = useState("Cash");
     const [cashReceived, setCashReceived] = useState("");
 
     const [loading, setLoading] = useState(false);
     const [createdOrder, setCreatedOrder] = useState(null);
+    const [showCashReceipt, setShowCashReceipt] = useState(false);
 
     const upiId = user?.upiId;
 
     const totals = useMemo(() => {
         const subtotal = round2(
-            cart.reduce((sum, item) => sum + Number(item.sellingPrice || 0) * Number(item.quantity), 0)
+            cart.reduce((sum, item) => sum + round2(Number(item.sellingPrice || 0) * Number(item.quantity)), 0)
         );
 
         const raw = Number(discountValue) || 0;
@@ -71,30 +81,35 @@ export default function Billing() {
             Math.min(subtotal, discountMode === "percent" ? (subtotal * Math.min(raw, 100)) / 100 : raw)
         );
 
-        // GST added on top, per item, from each item's own rate — pro-rated
-        // after the bill-level discount.
         const ratio = subtotal > 0 ? (subtotal - discount) / subtotal : 0;
-        const tax = applyGst
-            ? round2(
-                cart.reduce(
-                    (sum, item) =>
-                        sum + Number(item.sellingPrice || 0) * Number(item.quantity) * ratio * (Number(item.taxRate || 0) / 100),
-                    0
-                )
-            )
-            : 0;
+        const discountedSubtotal = round2(subtotal - discount);
+        const itemTaxes = {};
+        let allocatedTaxableAmount = 0;
+        cart.forEach((item, index) => {
+            const rate = taxEnabled ? Number(item.taxRate) || 0 : 0;
+            const lineSubtotal = round2(Number(item.sellingPrice || 0) * Number(item.quantity));
+            const taxableAmount = index === cart.length - 1
+                ? round2(discountedSubtotal - allocatedTaxableAmount)
+                : round2(lineSubtotal * ratio);
+            allocatedTaxableAmount += taxableAmount;
+            itemTaxes[item._id] = {
+                taxableAmount,
+                ...splitTax(taxableAmount, rate)
+            };
+        });
+        const tax = round2(Object.values(itemTaxes).reduce((sum, itemTax) => sum + itemTax.tax, 0));
+        const cgst = round2(Object.values(itemTaxes).reduce((sum, itemTax) => sum + itemTax.cgst, 0));
+        const sgst = round2(Object.values(itemTaxes).reduce((sum, itemTax) => sum + itemTax.sgst, 0));
 
         const grandTotal = round2(subtotal - discount + tax);
         const units = cart.reduce((sum, item) => sum + Number(item.quantity), 0);
 
-        return { subtotal, discount, tax, grandTotal, units };
-    }, [cart, discountValue, discountMode, applyGst]);
+        return { subtotal, discount, tax, cgst, sgst, grandTotal, units, itemTaxes };
+    }, [cart, discountValue, discountMode, taxEnabled]);
 
     const change = paymentMethod === "Cash" && Number(cashReceived) > 0
         ? round2(Number(cashReceived) - totals.grandTotal)
         : null;
-
-    const hasTaxedItems = cart.some((item) => Number(item.taxRate) > 0);
 
     const upiUrl = upiId
         ? `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(shopName)}&am=${totals.grandTotal.toFixed(2)}&cu=INR`
@@ -111,6 +126,14 @@ export default function Billing() {
             return;
         }
 
+        if (cart.some((item) => {
+            const rate = Number(item.taxRate ?? 0);
+            return taxEnabled && (!Number.isFinite(rate) || rate < 0 || rate > 100);
+        })) {
+            toast.warning("GST rate must be between 0 and 100 for each item");
+            return;
+        }
+
         if (change !== null && change < 0) {
             toast.warning(`Cash received is ${formatMoney(-change, { decimals: 2 })} short`);
             return;
@@ -122,7 +145,11 @@ export default function Billing() {
             const result = await createOrder({
                 customerName: customerName.trim(),
                 customerPhone: customerPhone.trim(),
-                items: cart.map((item) => ({ productId: item._id, quantity: Number(item.quantity) })),
+                items: cart.map((item) => ({
+                    productId: item._id,
+                    quantity: Number(item.quantity),
+                    taxRate: taxEnabled ? Number(item.taxRate) || 0 : 0
+                })),
                 discount: totals.discount,
                 tax: totals.tax,
                 paymentMethod
@@ -151,6 +178,10 @@ export default function Billing() {
         );
     }
 
+    if (showCashReceipt) {
+        return <CashReceipt onBack={() => setShowCashReceipt(false)} />;
+    }
+
     return (
         <div className="space-y-6">
             <PageHeader
@@ -158,11 +189,19 @@ export default function Billing() {
                 title="New bill"
                 subtitle="Scan or search to add items, then take payment"
                 actions={
-                    cart.length > 0 && (
-                        <Button variant="ghost" icon={Trash2} onClick={clearCart}>
-                            Clear bill
+                    <>
+                        <Button variant="secondary" icon={ReceiptText} onClick={() => setShowCashReceipt(true)}>
+                            Cash receipt
                         </Button>
-                    )
+                        <Button variant="ghost" icon={History} to="/billing-history">
+                            History
+                        </Button>
+                        {cart.length > 0 && (
+                            <Button variant="ghost" icon={Trash2} onClick={clearCart}>
+                                Clear bill
+                            </Button>
+                        )}
+                    </>
                 }
             />
 
@@ -201,9 +240,29 @@ export default function Billing() {
                                                 <p className="font-semibold text-heading truncate">{item.productName}</p>
                                                 <p className="text-xs text-muted tabular">
                                                     {formatMoney(item.sellingPrice, { decimals: 2 })} / {item.unit || "unit"}
-                                                    {applyGst && Number(item.taxRate) > 0 && ` · GST ${item.taxRate}%`}
                                                     {atMax && <span className="text-warning font-medium"> · max stock</span>}
                                                 </p>
+                                                {taxEnabled && (
+                                                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                                                        <label htmlFor={`tax-rate-${item._id}`} className="text-muted">GST %</label>
+                                                        <input
+                                                            id={`tax-rate-${item._id}`}
+                                                            type="number"
+                                                            min="0"
+                                                            max="100"
+                                                            step="0.01"
+                                                            value={item.taxRate ?? ""}
+                                                            onChange={(e) => setTaxRate(item._id, e.target.value)}
+                                                            className="h-7 w-20 rounded-md border border-line bg-surface px-2 text-right tabular text-heading focus:outline-none focus:border-primary"
+                                                            aria-label={`GST rate for ${item.productName}`}
+                                                        />
+                                                        {Number(item.taxRate) > 0 && (
+                                                            <span className="text-muted">
+                                                                CGST {Number(item.taxRate) / 2}% · SGST {Number(item.taxRate) / 2}%
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <div className="inline-flex items-center rounded-lg border border-line bg-surface">
@@ -329,22 +388,16 @@ export default function Billing() {
                                 )}
                             </div>
 
-                            {showField(fields.TAX) && (
-                                <div className="flex items-center justify-between">
-                                    <label className="flex items-center gap-2 text-muted cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={applyGst}
-                                            onChange={(e) => setApplyGst(e.target.checked)}
-                                            className="h-4 w-4"
-                                            disabled={!hasTaxedItems}
-                                        />
-                                        Add GST
-                                        {!hasTaxedItems && cart.length > 0 && <span className="text-[11px] text-faint">(no rates set)</span>}
-                                    </label>
-                                    <dd className="font-semibold text-heading tabular">
-                                        {totals.tax > 0 ? `+ ${formatMoney(totals.tax, { decimals: 2 })}` : "—"}
-                                    </dd>
+                            {taxEnabled && cart.length > 0 && (
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <dt className="text-muted">CGST</dt>
+                                        <dd className="font-semibold text-heading tabular">{formatMoney(totals.cgst, { decimals: 2 })}</dd>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <dt className="text-muted">SGST</dt>
+                                        <dd className="font-semibold text-heading tabular">{formatMoney(totals.sgst, { decimals: 2 })}</dd>
+                                    </div>
                                 </div>
                             )}
 
@@ -360,7 +413,7 @@ export default function Billing() {
                     <Card>
                         <h2 className="font-semibold text-heading">Payment</h2>
 
-                        <div className="mt-4 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Payment method">
+                        <div className="mt-4 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Payment method">
                             {PAYMENT_METHODS.map(({ id, label, icon: Icon }) => {
                                 const selected = paymentMethod === id;
                                 return (

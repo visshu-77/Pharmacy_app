@@ -18,6 +18,7 @@ export function Breadcrumbs({ className = "" }) {
         suppliers: business?.term.suppliers || "Suppliers",
         reports: "Reports",
         billing: "New bill",
+        "billing-history": "Billing History",
         notes: "Sales note",
         udhar: "Udhar khata",
         guide: "Help & guide",

@@ -32,6 +32,32 @@ export const updateProfile = async (profileData) => {
     return response.data;
 };
 
+export const uploadProfileImage = async (imageFile) => {
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("profileImage", imageFile);
+
+    const response = await api.put("/api/profile/image", formData, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+        }
+    });
+
+    return response.data;
+};
+
+export const removeProfileImage = async () => {
+    const token = localStorage.getItem("token");
+    const response = await api.delete("/api/profile/image", {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    return response.data;
+};
+
 export const changePassword = async (data) => {
     const token = localStorage.getItem("token");
 

@@ -11,6 +11,7 @@ import Category from "./pages/Category.jsx";
 import Login from "./pages/Login.jsx";
 import ForgotPassword from "./pages/Forgotpassword.jsx";
 import Billing from "./pages/Billing.jsx";
+import BillingHistory from "./pages/BillingHistory.jsx";
 import SalesNote from "./pages/SalesNote.jsx";
 import Udhar from "./pages/Udhar.jsx";
 import UdharCustomer from "./pages/UdharCustomer.jsx";
@@ -99,6 +100,19 @@ function App() {
                                 <UserRoute>
                                     <SubscriptionRoute>
                                         <Billing />
+                                    </SubscriptionRoute>
+                                </UserRoute>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/billing-history"
+                        element={
+                            <ProtectedRoute>
+                                <UserRoute>
+                                    <SubscriptionRoute>
+                                        <BillingHistory />
                                     </SubscriptionRoute>
                                 </UserRoute>
                             </ProtectedRoute>

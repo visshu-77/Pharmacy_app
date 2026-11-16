@@ -1,59 +1,175 @@
-import { Printer, MessageCircle, Plus, Home } from "lucide-react";
+import { useState } from "react";
+import { Printer, MessageCircle, Plus, Home, FileDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import Button from "../ui/Button";
+import { useToast } from "../ui/Toast";
 import { useBusiness } from "../../context/BusinessContext";
 import BRAND from "../../config/brand";
+import { amountInWords } from "../../utils/amountInWords";
+import downloadElementAsPdf from "../../utils/downloadElementAsPdf";
+import InvoiceTerms from "./InvoiceTerms";
 
-/**
- * Printable invoice. Always renders on a white "paper" surface — even in dark
- * mode — because that is what gets printed and shared.
- */
+const round2 = (value) => Math.round(Number(value || 0) * 100) / 100;
+
+const getInvoiceItems = (order) => {
+    const items = order.items || [];
+    const subtotal = Number(order.subtotal) || 0;
+    const discount = Number(order.discount) || 0;
+    const taxableSubtotal = round2(subtotal - discount);
+    const discountRatio = subtotal > 0 ? taxableSubtotal / subtotal : 0;
+    let allocatedTaxable = 0;
+    let allocatedLegacyTax = 0;
+
+    return items.map((item, index) => {
+        const fallbackTaxable = index === items.length - 1
+            ? round2(taxableSubtotal - allocatedTaxable)
+            : round2(Number(item.total) * discountRatio);
+        const taxableAmount = item.taxableAmount == null
+            ? fallbackTaxable
+            : Number(item.taxableAmount);
+        allocatedTaxable += taxableAmount;
+
+        let cgst = item.cgst == null ? null : Number(item.cgst);
+        let sgst = item.sgst == null ? null : Number(item.sgst);
+
+        if (cgst == null && sgst == null) {
+            const lineTax = index === items.length - 1
+                ? round2((Number(order.tax) || 0) - allocatedLegacyTax)
+                : round2((Number(order.tax) || 0) * (subtotal > 0 ? Number(item.total) / subtotal : 0));
+            allocatedLegacyTax += lineTax;
+            cgst = round2(lineTax / 2);
+            sgst = round2(lineTax - cgst);
+        }
+
+        cgst = cgst || 0;
+        sgst = sgst || 0;
+
+        return {
+            ...item,
+            taxableAmount,
+            cgst,
+            sgst,
+            amount: item.amount == null
+                ? round2(taxableAmount + cgst + sgst)
+                : Number(item.amount)
+        };
+    });
+};
+
 export default function Invoice({ order, onNewBill }) {
-
     const navigate = useNavigate();
     const { user, profile, shopName, formatMoney } = useBusiness();
+    const toast = useToast();
+    const [downloadingPdf, setDownloadingPdf] = useState(false);
 
     if (!order) return null;
 
     const money = (value) => formatMoney(value, { decimals: 2 });
-
+    const invoiceItems = getInvoiceItems(order);
+    const cgst = order.cgst != null
+        ? Number(order.cgst)
+        : order.tax > 0 ? round2(order.tax / 2) : 0;
+    const sgst = order.sgst != null
+        ? Number(order.sgst)
+        : order.tax > 0 ? round2(order.tax - cgst) : 0;
     const address = [user?.shopAddress, user?.city, user?.state].filter(Boolean).join(", ");
-    const licenceLabel = profile.licence?.label || "Licence No.";
+    const stateCode = String(user?.gstNumber || "").slice(0, 2);
+    const placeOfSupply = user?.state
+        ? `${/^\d{2}$/.test(stateCode) ? `${stateCode}-` : ""}${user.state}`
+        : "—";
+    const initials = shopName
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((word) => word[0])
+        .join("")
+        .toUpperCase() || "S";
+
+    const taxGroups = Object.values(invoiceItems.reduce((groups, item) => {
+        const rate = Number(item.taxRate) || 0;
+        if (rate <= 0) return groups;
+
+        const key = String(rate);
+        if (!groups[key]) groups[key] = { rate, cgst: 0, sgst: 0 };
+        groups[key].cgst += Number(item.cgst) || 0;
+        groups[key].sgst += Number(item.sgst) || 0;
+
+        return groups;
+    }, {})).sort((a, b) => a.rate - b.rate);
+
+    const totals = invoiceItems.reduce((result, item) => ({
+        quantity: result.quantity + (Number(item.quantity) || 0),
+        taxableAmount: result.taxableAmount + (Number(item.taxableAmount) || 0),
+        amount: result.amount + (Number(item.amount) || 0)
+    }), { quantity: 0, taxableAmount: 0, amount: 0 });
 
     const handleWhatsApp = () => {
-        const lines = order.items
-            .map((item) => `• ${item.productName} × ${item.quantity}${item.unit ? ` ${item.unit}` : ""} — ${money(item.total)}`)
+        const lines = invoiceItems
+            .map((item) => {
+                const taxDetails = item.taxRate > 0
+                    ? ` · GST ${item.taxRate}% (CGST ${money(item.cgst)}, SGST ${money(item.sgst)})`
+                    : "";
+
+                return `• ${item.productName} × ${item.quantity}${item.unit ? ` ${item.unit}` : ""} — ${money(item.amount)}${taxDetails}`;
+            })
             .join("\n");
 
         const message = [
             `*${shopName}*`,
             address,
             "",
-            `Invoice: *${order.invoiceNumber}*`,
+            `${user?.gstNumber ? "Tax invoice" : "Invoice"}: *${order.invoiceNumber}*`,
             `Date: ${new Date(order.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}`,
             "",
             lines,
             "",
             `Subtotal: ${money(order.subtotal)}`,
             order.discount ? `Discount: −${money(order.discount)}` : null,
-            order.tax ? `GST: ${money(order.tax)}` : null,
+            order.tax ? `CGST: ${money(cgst)}` : null,
+            order.tax ? `SGST: ${money(sgst)}` : null,
             `*Total: ${money(order.grandTotal)}*`,
-            `Paid by ${order.paymentMethod}`,
+            `Paid by ${order.paymentMethod === "Bank" ? "Bank Transfer" : order.paymentMethod}`,
             "",
             "Thank you for shopping with us!"
         ].filter((line) => line !== null).join("\n");
 
         const phone = order.customerPhone?.length === 10 ? `91${order.customerPhone}` : order.customerPhone;
-
         window.open(`https://wa.me/${phone || ""}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
     };
+
+    const handleDownloadPdf = async () => {
+        const element = document.getElementById("invoice");
+        if (!element) {
+            toast.error("Could not find the invoice to download");
+            return;
+        }
+
+        const filename = String(order.invoiceNumber || "invoice")
+            .replace(/[\\/:*?"<>|]/g, "-");
+
+        try {
+            setDownloadingPdf(true);
+            await downloadElementAsPdf(element, filename);
+            toast.success("Invoice PDF downloaded");
+        } catch (error) {
+            console.error("Invoice PDF export failed:", error);
+            toast.error("Could not download invoice PDF");
+        } finally {
+            setDownloadingPdf(false);
+        }
+    };
+
+    const invoiceDate = new Date(order.createdAt).toLocaleDateString("en-IN");
 
     return (
         <div className="space-y-4">
             <div className="no-print flex flex-wrap gap-2">
                 <Button icon={Plus} onClick={onNewBill}>New bill</Button>
                 <Button variant="secondary" icon={Printer} onClick={() => window.print()}>Print</Button>
+                <Button variant="secondary" icon={FileDown} loading={downloadingPdf} onClick={handleDownloadPdf}>
+                    Download PDF
+                </Button>
                 <Button variant="secondary" icon={MessageCircle} onClick={handleWhatsApp}>
                     {order.customerPhone ? "Send on WhatsApp" : "Share on WhatsApp"}
                 </Button>
@@ -62,100 +178,188 @@ export default function Invoice({ order, onNewBill }) {
 
             <div
                 id="invoice"
-                className="mx-auto max-w-[820px] rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-md print:shadow-none print:border-0 print:rounded-none"
+                className="billing-document mx-auto max-w-[1000px] rounded-xl border border-slate-300 bg-white px-6 text-slate-900 shadow-md print:max-w-none print:rounded-none print:border-0 print:px-8 print:py-8 print:shadow-none"
             >
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 p-8 border-b border-slate-200">
-                    <div>
-                        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">{shopName}</h1>
-                        {address && <p className="text-sm text-slate-500 mt-1 max-w-xs">{address}</p>}
-                        <div className="mt-2 space-y-0.5 text-xs text-slate-500">
-                            {user?.mobileNumber && <p>Phone: {user.mobileNumber}</p>}
-                            {user?.gstNumber && <p>GSTIN: <span className="font-mono">{user.gstNumber}</span></p>}
-                            {user?.licenseNumber && <p>{licenceLabel}: {user.licenseNumber}</p>}
-                        </div>
-                    </div>
+                <div className="border-b border-slate-400 py-3 text-center">
+                    <h1 className="text-xl font-bold">{user?.gstNumber ? "Tax Invoice" : "Invoice"}</h1>
+                </div>
 
-                    <div className="sm:text-right">
-                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600">
-                            {user?.gstNumber ? "Tax invoice" : "Invoice"}
-                        </p>
-                        <p className="mt-1 text-lg font-bold text-slate-900 font-mono">{order.invoiceNumber}</p>
-                        <p className="text-sm text-slate-500">
-                            {new Date(order.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
-                        </p>
+                <div className="flex items-start gap-4 border-b border-slate-300 py-4">
+                    <div className="grid h-16 w-16 shrink-0 place-items-center rounded-lg border border-slate-300 bg-slate-50 text-lg font-extrabold text-slate-700">
+                        {user?.profileImage
+                            ? <img src={user.profileImage} alt={`${shopName} logo`} className="h-full w-full object-contain p-1" />
+                            : initials}
+                    </div>
+                    <div className="ml-auto text-right">
+                        <h2 className="text-xl font-extrabold">{shopName}</h2>
+                        {address && <p className="mt-1 text-xs">{address}</p>}
+                        {user?.mobileNumber && <p className="text-xs">Phone no.: {user.mobileNumber}</p>}
+                        {user?.email && <p className="text-xs">{user.email}</p>}
+                        {user?.gstNumber && <p className="mt-1 text-xs font-semibold">GSTIN: {user.gstNumber}</p>}
+                        {user?.state && <p className="text-xs">State: {placeOfSupply}</p>}
                     </div>
                 </div>
 
-                {/* Bill to */}
-                <div className="grid grid-cols-2 gap-6 px-8 py-5 border-b border-slate-200 text-sm">
-                    <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Bill to</p>
-                        <p className="mt-1 font-semibold text-slate-900">{order.customerName || "Walk-in customer"}</p>
-                        {order.customerPhone && <p className="text-slate-500">{order.customerPhone}</p>}
-                    </div>
-                    <div className="text-right">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Payment</p>
-                        <p className="mt-1 font-semibold text-slate-900">{order.paymentMethod}</p>
-                        <p className="text-emerald-600 font-medium">{order.paymentStatus}</p>
-                    </div>
+                <div className="grid grid-cols-2 border-b border-slate-300 text-sm">
+                    <section className="border-r border-slate-300 py-4 pr-4">
+                        <h2 className="mb-2 font-bold">Bill To</h2>
+                        <p className="font-semibold">{order.customerName || "Walk-in customer"}</p>
+                        {order.customerPhone && <p className="mt-1 text-xs">Phone no.: {order.customerPhone}</p>}
+                    </section>
+                    <section className="py-4 pl-4">
+                        <h2 className="mb-2 font-bold">Invoice Details</h2>
+                        <dl className="space-y-1 text-xs">
+                            <div className="flex justify-between gap-3">
+                                <dt>Invoice No.</dt>
+                                <dd className="text-right font-semibold">{order.invoiceNumber}</dd>
+                            </div>
+                            <div className="flex justify-between gap-3">
+                                <dt>Date</dt>
+                                <dd className="text-right">{invoiceDate}</dd>
+                            </div>
+                            <div className="flex justify-between gap-3">
+                                <dt>Place of Supply</dt>
+                                <dd className="text-right">{placeOfSupply}</dd>
+                            </div>
+                            <div className="flex justify-between gap-3">
+                                <dt>Payment</dt>
+                                <dd className="text-right">{order.paymentMethod === "Bank" ? "Bank Transfer" : order.paymentMethod}</dd>
+                            </div>
+                        </dl>
+                    </section>
                 </div>
 
-                {/* Items */}
-                <div className="px-8 py-2 overflow-x-auto">
-                    <table className="w-full min-w-[480px] text-sm">
+                <div className="overflow-x-auto py-3">
+                    <table className="w-full min-w-[720px] border-collapse text-[10px] print:min-w-0">
                         <thead>
-                            <tr className="border-b border-slate-200 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                                <th className="py-3 w-8">#</th>
-                                <th className="py-3">{profile.itemLabel}</th>
-                                <th className="py-3 text-right">Qty</th>
-                                <th className="py-3 text-right">Rate</th>
-                                <th className="py-3 text-right">Amount</th>
+                            <tr className="border-y border-slate-400 bg-slate-100 text-left font-bold">
+                                <th className="px-1.5 py-2">#</th>
+                                <th className="px-1.5 py-2">{profile.itemLabel}</th>
+                                <th className="px-1.5 py-2">HSN / SAC</th>
+                                <th className="px-1.5 py-2 text-right">Quantity</th>
+                                <th className="px-1.5 py-2 text-right">Price / Unit</th>
+                                <th className="px-1.5 py-2 text-right">Taxable Amount</th>
+                                <th className="px-1.5 py-2 text-right">CGST</th>
+                                <th className="px-1.5 py-2 text-right">SGST</th>
+                                <th className="px-1.5 py-2 text-right">Amount</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {order.items.map((item, index) => (
-                                <tr key={`${item.productId}-${index}`} className="border-b border-slate-100">
-                                    <td className="py-3 text-slate-400 tabular">{index + 1}</td>
-                                    <td className="py-3 font-medium text-slate-900">{item.productName}</td>
-                                    <td className="py-3 text-right tabular">{item.quantity} <span className="text-slate-400 text-xs">{item.unit}</span></td>
-                                    <td className="py-3 text-right tabular">{money(item.price)}</td>
-                                    <td className="py-3 text-right tabular font-semibold text-slate-900">{money(item.total)}</td>
+                            {invoiceItems.map((item, index) => (
+                                <tr key={`${item.productId}-${index}`} className="border-b border-slate-200 align-top">
+                                    <td className="px-1.5 py-2">{index + 1}</td>
+                                    <td className="px-1.5 py-2 font-medium">{item.productName}</td>
+                                    <td className="px-1.5 py-2">{item.hsnCode || "—"}</td>
+                                    <td className="px-1.5 py-2 text-right">{item.quantity} {item.unit || ""}</td>
+                                    <td className="px-1.5 py-2 text-right">{money(item.price)}</td>
+                                    <td className="px-1.5 py-2 text-right">{money(item.taxableAmount)}</td>
+                                    <td className="px-1.5 py-2 text-right">
+                                        {money(item.cgst)}
+                                        {item.taxRate > 0 && <span className="block text-[9px]">({Number(item.taxRate) / 2}%)</span>}
+                                    </td>
+                                    <td className="px-1.5 py-2 text-right">
+                                        {money(item.sgst)}
+                                        {item.taxRate > 0 && <span className="block text-[9px]">({Number(item.taxRate) / 2}%)</span>}
+                                    </td>
+                                    <td className="px-1.5 py-2 text-right font-semibold">{money(item.amount)}</td>
                                 </tr>
                             ))}
                         </tbody>
+                        <tfoot>
+                            <tr className="border-y border-slate-400 bg-slate-50 font-bold">
+                                <td className="px-1.5 py-2" colSpan="3">Total</td>
+                                <td className="px-1.5 py-2 text-right">{totals.quantity}</td>
+                                <td />
+                                <td className="px-1.5 py-2 text-right">{money(totals.taxableAmount)}</td>
+                                <td className="px-1.5 py-2 text-right">{money(invoiceItems.reduce((sum, item) => sum + item.cgst, 0))}</td>
+                                <td className="px-1.5 py-2 text-right">{money(invoiceItems.reduce((sum, item) => sum + item.sgst, 0))}</td>
+                                <td className="px-1.5 py-2 text-right">{money(totals.amount)}</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
 
-                {/* Totals */}
-                <div className="flex justify-end px-8 py-5">
-                    <dl className="w-full max-w-[280px] space-y-2 text-sm">
-                        <div className="flex justify-between">
-                            <dt className="text-slate-500">Subtotal</dt>
-                            <dd className="tabular">{money(order.subtotal)}</dd>
-                        </div>
-                        {order.discount > 0 && (
-                            <div className="flex justify-between">
-                                <dt className="text-slate-500">Discount</dt>
-                                <dd className="tabular text-emerald-600">− {money(order.discount)}</dd>
+                <div className="grid grid-cols-1 gap-5 border-t border-slate-300 py-4 sm:grid-cols-2">
+                    {taxGroups.length > 0 && (
+                        <section>
+                            <h2 className="mb-2 text-sm font-bold">Tax Details</h2>
+                            <table className="w-full max-w-sm text-xs">
+                                <thead>
+                                    <tr className="border-b border-slate-300 text-left">
+                                        <th className="py-1.5 pr-3">Tax</th>
+                                        {taxGroups.map((group) => (
+                                            <th key={group.rate} className="px-2 py-1.5 text-right">
+                                                {group.rate / 2}% + {group.rate / 2}%
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th className="py-1.5 pr-3 text-left font-medium">CGST</th>
+                                        {taxGroups.map((group) => <td key={group.rate} className="px-2 py-1.5 text-right">{money(group.cgst)}</td>)}
+                                    </tr>
+                                    <tr>
+                                        <th className="py-1.5 pr-3 text-left font-medium">SGST</th>
+                                        {taxGroups.map((group) => <td key={group.rate} className="px-2 py-1.5 text-right">{money(group.sgst)}</td>)}
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </section>
+                    )}
+
+                    <section className={`ml-auto w-full max-w-sm ${taxGroups.length === 0 ? "sm:col-span-2" : ""}`}>
+                        <h2 className="mb-2 text-sm font-bold">Amounts</h2>
+                        <dl className="space-y-1.5 text-sm">
+                            <div className="flex justify-between gap-4">
+                                <dt>Sub Total</dt>
+                                <dd className="text-right tabular">{money(order.subtotal)}</dd>
                             </div>
-                        )}
-                        {order.tax > 0 && (
-                            <div className="flex justify-between">
-                                <dt className="text-slate-500">GST</dt>
-                                <dd className="tabular">{money(order.tax)}</dd>
+                            {order.discount > 0 && (
+                                <div className="flex justify-between gap-4">
+                                    <dt>Discount</dt>
+                                    <dd className="text-right tabular">− {money(order.discount)}</dd>
+                                </div>
+                            )}
+                            {order.tax > 0 && (
+                                <>
+                                    <div className="flex justify-between gap-4">
+                                        <dt>CGST</dt>
+                                        <dd className="text-right tabular">{money(cgst)}</dd>
+                                    </div>
+                                    <div className="flex justify-between gap-4">
+                                        <dt>SGST</dt>
+                                        <dd className="text-right tabular">{money(sgst)}</dd>
+                                    </div>
+                                </>
+                            )}
+                            <div className="flex justify-between gap-4 border-t border-slate-400 pt-2 text-base font-bold">
+                                <dt>Total</dt>
+                                <dd className="text-right tabular">{money(order.grandTotal)}</dd>
                             </div>
-                        )}
-                        <div className="flex justify-between items-baseline border-t border-slate-200 pt-3">
-                            <dt className="font-semibold text-slate-900">Total</dt>
-                            <dd className="text-2xl font-extrabold text-slate-900 tabular">{money(order.grandTotal)}</dd>
-                        </div>
-                    </dl>
+                        </dl>
+                    </section>
                 </div>
 
-                <div className="border-t border-slate-200 px-8 py-5 text-center">
-                    <p className="font-semibold text-slate-900">Thank you for shopping with us!</p>
-                    <p className="text-[11px] text-slate-400 mt-1">Generated with {BRAND.name}</p>
+                <div className="border-t border-slate-300 py-3 text-sm">
+                    <p className="font-bold">Amount in Words</p>
+                    <p className="mt-1">{amountInWords(order.grandTotal)}</p>
+                </div>
+
+                <InvoiceTerms />
+
+                <div className="invoice-footer">
+                    <div className="flex justify-end border-t border-slate-300 py-5">
+                        <div className="w-56 text-center text-xs">
+                            <p className="mb-10 font-semibold">For: {shopName}</p>
+                            <div className="border-t border-slate-400 pt-2 font-semibold">Authorized Signatory</div>
+                            {user?.ownerName && <p className="mt-1">{user.ownerName}</p>}
+                        </div>
+                    </div>
+
+                    <div className="border-t border-slate-200 py-3 text-center text-[10px] text-slate-500">
+                        Thank you for your business · Generated with {BRAND.name}
+                    </div>
                 </div>
             </div>
         </div>
