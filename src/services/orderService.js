@@ -26,3 +26,14 @@ export const getOrderHistory = async ({ page = 1, limit = 25 } = {}) => {
 
     return response.data;
 };
+
+export const deleteOrder = async (orderId) => {
+    const token = localStorage.getItem("token");
+    const response = await api.delete(`/order/${orderId}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    return response.data;
+};

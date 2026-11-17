@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, FileText, History, ReceiptText } from "lucide-react";
+import { ArrowLeft, FileText, History, ReceiptText, Trash2 } from "lucide-react";
 
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import PageHeader from "../components/ui/PageHeader";
 import { EmptyState, Spinner } from "../components/ui/State";
+import { ConfirmDialog } from "../components/ui/Modal";
 import { useToast } from "../components/ui/Toast";
 import CashReceipt from "../components/Invoice/CashReceipt";
 import Invoice from "../components/Invoice/Invoice";
 import { useBusiness } from "../context/BusinessContext";
 import { getCashReceiptHistory } from "../services/cashReceiptService";
-import { getOrderHistory } from "../services/orderService";
+import { deleteOrder, getOrderHistory } from "../services/orderService";
 
 const PAGE_SIZE = 25;
 
@@ -28,6 +29,8 @@ export default function BillingHistory() {
     const [selectedDocument, setSelectedDocument] = useState(null);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -105,6 +108,22 @@ export default function BillingHistory() {
             toast.error(error.response?.data?.message || "Could not load more billing history");
         } finally {
             setLoadingMore(false);
+        }
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+
+        try {
+            setDeleting(true);
+            await deleteOrder(deleteTarget._id);
+            setOrders((current) => current.filter((order) => order._id !== deleteTarget._id));
+            setDeleteTarget(null);
+            toast.success("Bill deleted. Dashboard totals have been updated.");
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Could not delete bill");
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -187,38 +206,53 @@ export default function BillingHistory() {
                 <div className="space-y-3">
                     {records.map((record) => (
                         <Card key={record.id} padded={false}>
-                            <button
-                                type="button"
-                                onClick={() => setSelectedDocument(record)}
-                                className="flex w-full flex-wrap items-center justify-between gap-3 px-5 py-4 text-left hover:bg-surface-hover"
-                            >
-                                <span className="flex min-w-0 items-center gap-3">
-                                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                                        {record.kind === "bill"
-                                            ? <FileText className="h-5 w-5" />
-                                            : <ReceiptText className="h-5 w-5" />}
-                                    </span>
-                                    <span className="min-w-0">
-                                        <span className="block truncate font-semibold text-heading">{record.name}</span>
-                                        <span className="mt-0.5 block text-xs text-muted">
-                                            {record.number} · {new Date(record.createdAt).toLocaleString("en-IN")}
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedDocument(record)}
+                                    className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3 px-5 py-4 text-left hover:bg-surface-hover"
+                                >
+                                    <span className="flex min-w-0 items-center gap-3">
+                                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                                            {record.kind === "bill"
+                                                ? <FileText className="h-5 w-5" />
+                                                : <ReceiptText className="h-5 w-5" />}
                                         </span>
-                                        {record.kind === "receipt" && (
+                                        <span className="min-w-0">
+                                            <span className="block truncate font-semibold text-heading">{record.name}</span>
                                             <span className="mt-0.5 block text-xs text-muted">
-                                                Received {formatMoney(record.cashReceived, { decimals: 2 })} · Remaining {formatMoney(record.remainingAmount, { decimals: 2 })}
+                                                {record.number} · {new Date(record.createdAt).toLocaleString("en-IN")}
                                             </span>
-                                        )}
+                                            {record.kind === "receipt" && (
+                                                <span className="mt-0.5 block text-xs text-muted">
+                                                    Received {formatMoney(record.cashReceived, { decimals: 2 })} · Remaining {formatMoney(record.remainingAmount, { decimals: 2 })}
+                                                </span>
+                                            )}
+                                        </span>
                                     </span>
-                                </span>
-                                <span className="ml-auto text-right">
-                                    <span className="block font-bold text-heading tabular">
-                                        {formatMoney(record.amount, { decimals: 2 })}
+                                    <span className="ml-auto text-right">
+                                        <span className="block font-bold text-heading tabular">
+                                            {formatMoney(record.amount, { decimals: 2 })}
+                                        </span>
+                                        <span className="text-xs text-muted">
+                                            {record.kind === "receipt" ? "Cash receipt" : record.paymentMethod}
+                                        </span>
                                     </span>
-                                    <span className="text-xs text-muted">
-                                        {record.kind === "receipt" ? "Cash receipt" : record.paymentMethod}
-                                    </span>
-                                </span>
-                            </button>
+                                </button>
+                                {record.kind === "bill" &&
+                                    record.document.source !== "credit" &&
+                                    record.document.source !== "note" && (
+                                        <Button
+                                            variant="ghost"
+                                            icon={Trash2}
+                                            className="mr-3 text-danger hover:!bg-danger/10 hover:!text-danger"
+                                            aria-label={`Delete bill ${record.number}`}
+                                            onClick={() => setDeleteTarget(record.document)}
+                                        >
+                                            Delete
+                                        </Button>
+                                    )}
+                            </div>
                         </Card>
                     ))}
                 </div>
@@ -231,6 +265,16 @@ export default function BillingHistory() {
                     </Button>
                 </div>
             )}
+
+            <ConfirmDialog
+                open={Boolean(deleteTarget)}
+                loading={deleting}
+                onCancel={() => setDeleteTarget(null)}
+                onConfirm={confirmDelete}
+                confirmLabel="Delete bill"
+                title={`Delete ${deleteTarget?.invoiceNumber || "this bill"}?`}
+                message="This permanently removes the bill, restores its sold items to stock, and removes its amount from dashboard totals."
+            />
         </div>
     );
 }
