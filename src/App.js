@@ -22,6 +22,7 @@ import Suppliers from "./pages/Suppliers.jsx";
 import Subscription from "./pages/Subscription.jsx";
 import SubscriptionCheckout from "./pages/SubscriptionCheckout.jsx";
 import Expenses from "./pages/Expenses.jsx";
+import Leads from "./pages/Leads.jsx";
 
 import SubscriptionRoute from "./components/SubscriptionRoute.jsx";
 
@@ -127,6 +128,19 @@ function App() {
                                 <UserRoute>
                                     <SubscriptionRoute>
                                         <Expenses />
+                                    </SubscriptionRoute>
+                                </UserRoute>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/leads"
+                        element={
+                            <ProtectedRoute>
+                                <UserRoute>
+                                    <SubscriptionRoute>
+                                        <Leads />
                                     </SubscriptionRoute>
                                 </UserRoute>
                             </ProtectedRoute>

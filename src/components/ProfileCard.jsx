@@ -14,6 +14,7 @@ import {
     Crown,
     Settings2,
     Wallet,
+    Users,
     LogOut,
     Moon,
     Sun
@@ -55,6 +56,7 @@ export default function ProfileCard({ closeSidebar }) {
                 { icon: ReceiptText, name: t("sidebar.billing"), path: "/billing" },
                 { icon: History, name: "Billing History", path: "/billing-history" },
                 { icon: Wallet, name: "Expenses & Investments", path: "/expenses" },
+                { icon: Users, name: "Lead Management", path: "/leads" },
                 { icon: NotebookPen, name: t("sidebar.notes", "Sales Note"), path: "/notes" },
                 { icon: BookUser, name: t("sidebar.udhar", "Udhar Khata"), path: "/udhar" }
             ]

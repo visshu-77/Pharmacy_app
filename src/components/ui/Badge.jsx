@@ -19,7 +19,8 @@ export default function Badge({
     size = "md",
     dot = false,
     icon: Icon,
-    className = ""
+    className = "",
+    style
 }) {
     return (
         <span
@@ -29,6 +30,7 @@ export default function Badge({
                 TONES[tone] || TONES.neutral,
                 className
             ].join(" ")}
+            style={style}
         >
             {dot && (
                 <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />

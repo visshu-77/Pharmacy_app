@@ -116,12 +116,16 @@
         border: 0 !important;
         border-radius: 0 !important;
         box-shadow: none !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
     .billing-document table {
         width: 100% !important;
         min-width: 0 !important;
         border-collapse: collapse !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
     .billing-document thead {
@@ -146,15 +150,18 @@
         margin-bottom: 12px !important;
     }
 
-    .billing-document tr {
-        break-inside: avoid;
-        page-break-inside: avoid;
-    }
-
+    .billing-document tr,
+    .billing-document th,
+    .billing-document td,
+    .billing-document section,
+    .billing-document > div,
+    .billing-document > section,
+    .billing-document .grid.grid-cols-2 > section,
     .billing-document .invoice-footer,
     #statement .invoice-footer {
         break-inside: avoid;
         page-break-inside: avoid;
+        break-after: avoid;
     }
 
     .no-print {
