@@ -7,7 +7,7 @@ import { Input } from "../ui/Field";
 import PageHeader from "../ui/PageHeader";
 import { useToast } from "../ui/Toast";
 import { useBusiness } from "../../context/BusinessContext";
-import BRAND from "../../config/brand";
+// import BRAND from "../../config/brand";
 import { createCashReceipt } from "../../services/cashReceiptService";
 import { amountInWords } from "../../utils/amountInWords";
 import downloadElementAsPdf from "../../utils/downloadElementAsPdf";
@@ -314,7 +314,7 @@ export default function CashReceipt({
                     </div>
 
                     <div className="border-t border-slate-200 py-3 text-center text-[10px] text-slate-500">
-                        Thank you for your payment · Generated with {BRAND.name}
+                        Thank you for your payment · Generated with {shopName}
                     </div>
                 </div>
             </div>

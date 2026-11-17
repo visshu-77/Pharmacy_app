@@ -15,10 +15,10 @@ export const createOrder = async (orderData) => {
     return response.data;
 };
 
-export const getOrderHistory = async ({ page = 1, limit = 25 } = {}) => {
+export const getOrderHistory = async ({ page = 1, limit = 25, search = "" } = {}) => {
     const token = localStorage.getItem("token");
     const response = await api.get("/order/history", {
-        params: { page, limit },
+        params: { page, limit, ...(search ? { search } : {}) },
         headers: {
             Authorization: `Bearer ${token}`
         }

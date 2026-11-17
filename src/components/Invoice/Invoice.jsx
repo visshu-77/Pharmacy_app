@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../ui/Button";
 import { useToast } from "../ui/Toast";
 import { useBusiness } from "../../context/BusinessContext";
-import BRAND from "../../config/brand";
+// import BRAND from "../../config/brand";
 import { amountInWords } from "../../utils/amountInWords";
 import downloadElementAsPdf from "../../utils/downloadElementAsPdf";
 import InvoiceTerms from "./InvoiceTerms";
@@ -374,7 +374,7 @@ export default function Invoice({ order, onNewBill }) {
                     </div>
 
                     <div className="border-t border-slate-200 py-3 text-center text-[10px] text-slate-500">
-                        Thank you for your business · Generated with {BRAND.name}
+                        Thank you for your business · Generated with {shopName}
                     </div>
                 </div>
             </div>

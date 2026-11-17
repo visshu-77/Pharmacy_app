@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, FileText, History, ReceiptText, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, History, ReceiptText, Search, Trash2 } from "lucide-react";
 
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -31,6 +31,7 @@ export default function BillingHistory() {
     const [loadingMore, setLoadingMore] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    const [customerSearch, setCustomerSearch] = useState("");
 
     useEffect(() => {
         let cancelled = false;
@@ -38,7 +39,7 @@ export default function BillingHistory() {
         const loadHistory = async () => {
             try {
                 const [orderResult, receiptResult] = await Promise.all([
-                    getOrderHistory({ page: 1, limit: PAGE_SIZE }),
+                    getOrderHistory({ page: 1, limit: PAGE_SIZE, search: customerSearch.trim() }),
                     getCashReceiptHistory({ page: 1, limit: PAGE_SIZE })
                 ]);
                 if (cancelled) return;
@@ -55,12 +56,15 @@ export default function BillingHistory() {
             }
         };
 
-        loadHistory();
+        setLoading(true);
+        setPage(1);
+        const timeout = setTimeout(loadHistory, 300);
         return () => {
             cancelled = true;
+            clearTimeout(timeout);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [customerSearch]);
 
     const records = useMemo(() => {
         const sales = orders.map((order) => ({
@@ -73,7 +77,7 @@ export default function BillingHistory() {
             createdAt: order.createdAt,
             document: order
         }));
-        const cashReceipts = receipts.map((receipt) => ({
+        const cashReceipts = customerSearch.trim() ? [] : receipts.map((receipt) => ({
             id: `receipt-${receipt._id}`,
             kind: "receipt",
             number: receipt.receiptNumber,
@@ -89,12 +93,24 @@ export default function BillingHistory() {
         return [...sales, ...cashReceipts]
             .filter((record) => filter === "all" || record.kind === filter)
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }, [orders, receipts, filter]);
+    }, [orders, receipts, filter, customerSearch]);
 
     const loadMore = async () => {
         const nextPage = page + 1;
         try {
             setLoadingMore(true);
+            if (customerSearch.trim()) {
+                const orderResult = await getOrderHistory({
+                    page: nextPage,
+                    limit: PAGE_SIZE,
+                    search: customerSearch.trim()
+                });
+                setOrders((current) => [...current, ...orderResult.orders]);
+                setHasMoreOrders(orderResult.hasMore);
+                setPage(nextPage);
+                return;
+            }
+
             const [orderResult, receiptResult] = await Promise.all([
                 getOrderHistory({ page: nextPage, limit: PAGE_SIZE }),
                 getCashReceiptHistory({ page: nextPage, limit: PAGE_SIZE })
@@ -157,7 +173,9 @@ export default function BillingHistory() {
         );
     }
 
-    const canLoadMore = filter === "bill"
+    const canLoadMore = customerSearch.trim()
+        ? filter !== "receipt" && hasMoreOrders
+        : filter === "bill"
         ? hasMoreOrders
         : filter === "receipt"
             ? hasMoreReceipts
@@ -175,6 +193,18 @@ export default function BillingHistory() {
                     </Button>
                 }
             />
+
+            <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
+                <input
+                    type="search"
+                    value={customerSearch}
+                    onChange={(event) => setCustomerSearch(event.target.value)}
+                    placeholder="Search bills by customer name…"
+                    aria-label="Search bills by customer name"
+                    className="h-11 w-full rounded-lg border border-line bg-surface pl-9 pr-3 text-sm text-heading focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+            </div>
 
             <div className="flex flex-wrap gap-2" role="group" aria-label="Filter billing history">
                 {[
@@ -199,8 +229,10 @@ export default function BillingHistory() {
             ) : records.length === 0 ? (
                 <EmptyState
                     icon={FileText}
-                    title="No billing history yet"
-                    message="Completed bills and saved cash receipts will appear here."
+                    title={customerSearch.trim() ? "No matching bills found" : "No billing history yet"}
+                    message={customerSearch.trim()
+                        ? "Try a different customer name."
+                        : "Completed bills and saved cash receipts will appear here."}
                 />
             ) : (
                 <div className="space-y-3">
